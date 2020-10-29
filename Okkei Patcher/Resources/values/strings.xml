@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Okkei Patcher</string>
+    <string name="action_settings">Settings</string>
+    <string name="okkei">Okkei</string>
+    <string name="patch_btn">Patch</string>
+    <string name="unpatch_btn">Unpatch</string>
+    <string name="clear_btn">Clear backup</string>
+    <string name="savedata_checkbox">Backup/restore save data</string>
+</resources>

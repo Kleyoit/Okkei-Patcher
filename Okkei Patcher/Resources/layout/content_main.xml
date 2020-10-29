@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="fill_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:showIn="@layout/activity_main"
+    android:minWidth="25px"
+    android:minHeight="25px">
+
+    <ImageView
+        android:src="@drawable/okkei"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:id="@+id/OkkeiImage"
+        android:scaleType="fitCenter"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:contentDescription="@string/okkei" />
+
+    <TableRow
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tableRow"
+        android:gravity="center"
+        android:paddingStart="25dp"
+        android:paddingEnd="25dp">
+        <Button
+            android:text="@string/patch_btn"
+            android:textSize="12dp"
+            android:id="@+id/Patch"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginRight="5dp" />
+        <Button
+            android:text="@string/unpatch_btn"
+            android:textSize="12dp"
+            android:id="@+id/Unpatch"
+            android:layout_width="100dp"
+            android:layout_height="match_parent" />
+        <Button
+            android:text="@string/clear_btn"
+            android:textSize="11dp"
+            android:id="@+id/Clear"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="5dp" />
+    </TableRow>
+
+    <CheckBox
+        android:text="@string/savedata_checkbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:id="@+id/CheckBoxSavedata"
+        android:checked="true" />
+
+    <TextView
+        android:text=""
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/Status"
+        android:textAlignment="center"
+        android:layout_marginTop="30dp" />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:max="100" />
+
+</LinearLayout>
