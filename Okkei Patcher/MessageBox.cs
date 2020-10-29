@@ -19,8 +19,7 @@ namespace OkkeiPatcher
 		{
 			MessageBox._getMessageBoxActivity = callerActivity;
 
-			Android.App.AlertDialog.Builder builder;
-			builder = new Android.App.AlertDialog.Builder(callerActivity);
+			var builder = new AlertDialog.Builder(callerActivity);
 			builder.SetTitle(title);
 			builder.SetMessage(message);
 			builder.SetCancelable(false);
@@ -36,8 +35,7 @@ namespace OkkeiPatcher
 					builder.SetPositiveButton("EXIT", MessageBoxExitAction);
 					break;
 			}
-			Dialog dialog = builder.Create();
-			dialog.Show();
+			builder.Create()?.Show();
 		}
 
 		private static void MessageBoxOkUnknownAppSourceNoticeAction(object sender, DialogClickEventArgs e)

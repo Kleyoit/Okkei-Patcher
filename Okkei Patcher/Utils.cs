@@ -72,19 +72,15 @@ namespace OkkeiPatcher
 
 		public static bool IsAppInstalled(string packageName)
 		{
-			PackageManager pm = Android.App.Application.Context.PackageManager;
-			bool installed = false;
 			try
 			{
-				pm.GetPackageInfo(packageName, PackageInfoFlags.Activities);
-				installed = true;
+				Application.Context.PackageManager.GetPackageInfo(packageName, PackageInfoFlags.Activities);
+				return true;
 			}
-			catch (PackageManager.NameNotFoundException ex)
+			catch (PackageManager.NameNotFoundException)
 			{
-				installed = false;
+				return false;
 			}
-
-			return installed;
 		}
 
 		private static void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
@@ -94,12 +90,12 @@ namespace OkkeiPatcher
 
 			try
 			{
-				if (input != null) input.CopyTo(packageInSession);
-				else throw new Exception("InputStream is null");
+				if (input != null && packageInSession != null) input.CopyTo(packageInSession);
+				else throw new Exception("InputStream or session is null");
 			}
 			finally
 			{
-				packageInSession.Close();
+				packageInSession?.Close();
 				input.Close();
 			}
 
@@ -115,7 +111,7 @@ namespace OkkeiPatcher
 			{
 				var packageInstaller = Android.App.Application.Context.PackageManager.PackageInstaller;
 				var sessionParams = new PackageInstaller.SessionParams(PackageInstallMode.FullInstall);
-				int sessionId = packageInstaller.CreateSession(sessionParams);
+				var sessionId = packageInstaller.CreateSession(sessionParams);
 				var session = packageInstaller.OpenSession(sessionId);
 
 				AddApkToInstallSession(apkUri, session);
@@ -240,7 +236,7 @@ namespace OkkeiPatcher
 						token.ThrowIfCancellationRequested();
 					}
 				}
-				catch (System.OperationCanceledException ex)
+				catch (System.OperationCanceledException)
 				{
 					MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
 					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
@@ -262,7 +258,6 @@ namespace OkkeiPatcher
 			CancellationToken token = TokenSource.Token;
 
 			ProgressBar progressBar = callerActivity.FindViewById<ProgressBar>(Resource.Id.progressBar);
-			TextView info = callerActivity.FindViewById<TextView>(Resource.Id.Status);
 
 			int bufferLength = 0x14000;
 			byte[] buffer = new byte[bufferLength];
@@ -309,11 +304,11 @@ namespace OkkeiPatcher
 			}
 
 			input?.Dispose();
-			inputFile?.Dispose();
+			inputFile.Dispose();
 			inputBaseApkStream?.Dispose();
-			output?.Dispose();
-			if (token.IsCancellationRequested) outFile?.Delete();
-			outFile?.Dispose();
+			output.Dispose();
+			if (token.IsCancellationRequested && outFile.Exists()) outFile.Delete();
+			outFile.Dispose();
 
 			return !token.IsCancellationRequested ? Task.CompletedTask : Task.FromException(new System.OperationCanceledException());
 		}
@@ -380,9 +375,9 @@ namespace OkkeiPatcher
 			{
 				//await Task.Delay(1);    // Xamarin debugger bug workaround
 				download?.Dispose();
-				output?.Dispose();
-				if (token.IsCancellationRequested) downloadedFile?.Delete();
-				downloadedFile?.Dispose();
+				output.Dispose();
+				if (token.IsCancellationRequested && downloadedFile.Exists()) downloadedFile.Delete();
+				downloadedFile.Dispose();
 			}
 		}
 

@@ -25,9 +25,7 @@ namespace OkkeiPatcher
 		{
 			if (requestCode == (int)RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O)
 			{
-				PackageManager pm = this.PackageManager;
-
-				if (!pm.CanRequestPackageInstalls())
+				if (!this.PackageManager.CanRequestPackageInstalls())
 					MessageBox.Show(this, "Error", "Okkei Patcher can't get permission to install packages.", MessageBox.Code.Exit);
 			}
 
@@ -45,7 +43,7 @@ namespace OkkeiPatcher
 			{
 				TextView info = FindViewById<TextView>(Resource.Id.Status);
 
-				var status = extras.GetInt(PackageInstaller.ExtraStatus);
+				var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 				//var message = extras.GetString(PackageInstaller.ExtraStatusMessage);
 				switch (status)
 				{
@@ -66,7 +64,7 @@ namespace OkkeiPatcher
 
 							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
-							signedApk?.Dispose();
+							signedApk.Dispose();
 
 							Task.Run(() => PatchTasks.FinishPatch(this));
 						}
@@ -89,7 +87,7 @@ namespace OkkeiPatcher
 
 
 			// Don't turn screen off
-			this.Window.AddFlags(WindowManagerFlags.KeepScreenOn);
+			this.Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
 
 
 			// Subscribe to events
@@ -178,9 +176,9 @@ namespace OkkeiPatcher
 
 				info.Text = "Backup cleared.";
 
-				apk?.Dispose();
-				obb?.Dispose();
-				savedata?.Dispose();
+				apk.Dispose();
+				obb.Dispose();
+				savedata.Dispose();
 			}
 		}
 

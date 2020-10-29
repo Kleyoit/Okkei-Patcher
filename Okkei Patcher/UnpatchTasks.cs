@@ -78,17 +78,17 @@ namespace OkkeiPatcher
 					}
 
 					// Finish unpatch
-					apk?.Dispose();
-					obb?.Dispose();
-					savedata?.Dispose();
-					backupedSavedata?.Dispose();
-					appSavedata?.Dispose();
+					apk.Dispose();
+					obb.Dispose();
+					savedata.Dispose();
+					backupedSavedata.Dispose();
+					appSavedata.Dispose();
 
 					Preferences.Set("apk_is_patched", false);
 
 					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Restored successfully."; });
 				}
-				catch (System.OperationCanceledException ex)
+				catch (System.OperationCanceledException)
 				{
 					if (backupedSavedata.Exists()) backupedSavedata.Delete();
 					if (appSavedata.Exists()) appSavedata.Delete();
@@ -191,7 +191,7 @@ namespace OkkeiPatcher
 					// Uninstall and reinstall backuped CHAOS;CHILD, then restore OBB and, if checked, save data
 					Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
 				}
-				catch (System.OperationCanceledException ex)
+				catch (System.OperationCanceledException)
 				{
 					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
 					MainThread.BeginInvokeOnMainThread(() => { unpatch.Text = "Unpatch"; });
@@ -200,7 +200,7 @@ namespace OkkeiPatcher
 				}
 				finally
 				{
-					backupApk?.Dispose();
+					backupApk.Dispose();
 					MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
 				}
 			}

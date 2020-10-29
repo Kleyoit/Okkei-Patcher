@@ -73,11 +73,11 @@ namespace OkkeiPatcher
 						Preferences.Set("apk_is_patched", true);
 					}
 
-					installedObb?.Dispose();
+					installedObb.Dispose();
 
 					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Patched successfully."; });
 				}
-				catch (System.OperationCanceledException ex)
+				catch (System.OperationCanceledException)
 				{
 					backupSavedata?.Delete();
 
@@ -175,7 +175,7 @@ namespace OkkeiPatcher
 
 								await Utils.CopyFile(callerActivity, originalSavedata.Path,
 									backupSavedata.Parent, backupSavedata.Name);
-								if (token.IsCancellationRequested) originalSavedata?.Dispose();
+								if (token.IsCancellationRequested) originalSavedata.Dispose();
 								token.ThrowIfCancellationRequested();
 
 								MainThread.BeginInvokeOnMainThread(() =>
@@ -184,7 +184,7 @@ namespace OkkeiPatcher
 								});
 
 								Preferences.Set("savedata_md5", Utils.CalculateMD5(originalSavedata.Path));
-								originalSavedata?.Dispose();
+								originalSavedata.Dispose();
 							}
 						}
 						else
@@ -195,7 +195,7 @@ namespace OkkeiPatcher
 									MessageBox.Code.OK);
 							});
 
-						backupSavedata?.Dispose();
+						backupSavedata.Dispose();
 					}
 
 					if (!new Java.IO.File(FilePaths[Files.SignedApk]).Exists())
@@ -243,7 +243,7 @@ namespace OkkeiPatcher
 							}
 						}
 
-						backupApk?.Dispose();
+						backupApk.Dispose();
 
 
 						// Download scripts
@@ -419,7 +419,7 @@ namespace OkkeiPatcher
 					// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
 					Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
 				}
-				catch (System.OperationCanceledException ex)
+				catch (System.OperationCanceledException)
 				{
 					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
 					MainThread.BeginInvokeOnMainThread(() => { patch.Text = "Patch"; });
