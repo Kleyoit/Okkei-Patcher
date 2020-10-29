@@ -44,9 +44,7 @@ namespace OkkeiPatcher
 			_getMessageBoxActivity.StartActivityForResult(intent, (int)GlobalData.RequestCodes.UnknownAppSourceCode);
 		}
 
-		private static void MessageBoxExitAction(object sender, DialogClickEventArgs e)
-		{
+		private static void MessageBoxExitAction(object sender, DialogClickEventArgs e) =>
 			System.Environment.Exit(0);
-		}
 	}
 }
