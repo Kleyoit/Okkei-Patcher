@@ -146,8 +146,7 @@ namespace OkkeiPatcher
 			// Request permission to install packages on first start
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
 			{
-				PackageManager pm = this.PackageManager;
-				if (!pm.CanRequestPackageInstalls())
+				if (!this.PackageManager.CanRequestPackageInstalls())
 					MessageBox.Show(this, "Attention", "Okkei Patcher requires permission to install applications from unknown sources to continue. After pressing the OK button you will be redirected to your device settings where you should enable this option. Then you can return to Okkei Patcher using the back button or gesture.", MessageBox.Code.UnknownAppSourceNotice);
 			}
 		}
