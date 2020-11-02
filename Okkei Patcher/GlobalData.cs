@@ -11,6 +11,8 @@ namespace OkkeiPatcher
 
 		public static X509Certificate2 testkey = new X509Certificate2();
 
+		public const long TwoGb = (long)1024 * 1024 * 1024 * 2;
+
 		public static readonly string PACKAGE_INSTALLED_ACTION = "com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED";
 		public static readonly string OkkeiFilesPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "OkkeiPatcher");
 		public static readonly string OkkeiFilesPathBackup = Path.Combine(OkkeiFilesPath, "backup");

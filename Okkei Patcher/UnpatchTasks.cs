@@ -160,8 +160,7 @@ namespace OkkeiPatcher
 						token.ThrowIfCancellationRequested();
 					}
 
-					const long twoGb = (long)1024 * 1024 * 1024 * 1024;
-					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < twoGb)
+					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
