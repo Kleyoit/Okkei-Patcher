@@ -160,6 +160,18 @@ namespace OkkeiPatcher
 						token.ThrowIfCancellationRequested();
 					}
 
+					const long twoGb = (long)1024 * 1024 * 1024 * 1024;
+					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < twoGb)
+					{
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							MessageBox.Show(callerActivity, "Error",
+								"Not enough free disk space. Ensure that you have at least 2 GB to restore your backup.", MessageBox.Code.OK);
+						});
+						TokenSource.Cancel();
+						token.ThrowIfCancellationRequested();
+					}
+
 					if (checkBoxSavedata.Checked)
 					{
 						if (new Java.IO.File(FilePaths[Files.OriginalSavedata]).Exists())
@@ -188,7 +200,7 @@ namespace OkkeiPatcher
 					MainThread.BeginInvokeOnMainThread(() => { info.Text = ""; });
 
 
-					// Uninstall and reinstall backuped CHAOS;CHILD, then restore OBB and, if checked, save data
+					// Uninstall and reinstall backed up CHAOS;CHILD, then restore OBB and, if checked, save data
 					Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
 				}
 				catch (System.OperationCanceledException)

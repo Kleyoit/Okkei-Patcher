@@ -140,6 +140,18 @@ namespace OkkeiPatcher
 						token.ThrowIfCancellationRequested();
 					}
 
+					const long twoGb = (long)1024 * 1024 * 1024 * 1024;
+					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < twoGb)
+					{
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							MessageBox.Show(callerActivity, "Error",
+								"Not enough free disk space. Ensure that you have at least 2 GB for a backup.", MessageBox.Code.OK);
+						});
+						TokenSource.Cancel();
+						token.ThrowIfCancellationRequested();
+					}
+
 
 					// Backup save data
 					if (checkBoxSavedata.Checked)
