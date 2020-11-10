@@ -26,22 +26,27 @@ namespace OkkeiPatcher
 			switch (id)
 			{
 				case MessageBox.Code.OK:
-					builder.SetPositiveButton("OK", delegate { });
+					builder.SetPositiveButton(callerActivity.Resources.GetText(Resource.String.dialog_ok),
+						delegate { });
 					break;
 				case MessageBox.Code.UnknownAppSourceNotice:
-					builder.SetPositiveButton("OK", MessageBoxOkUnknownAppSourceNoticeAction);
+					builder.SetPositiveButton(callerActivity.Resources.GetText(Resource.String.dialog_ok),
+						MessageBoxOkUnknownAppSourceNoticeAction);
 					break;
 				case MessageBox.Code.Exit:
-					builder.SetPositiveButton("EXIT", MessageBoxExitAction);
+					builder.SetPositiveButton(callerActivity.Resources.GetText(Resource.String.dialog_exit),
+						MessageBoxExitAction);
 					break;
 			}
+
 			builder.Create()?.Show();
 		}
 
 		private static void MessageBoxOkUnknownAppSourceNoticeAction(object sender, DialogClickEventArgs e)
 		{
-			Intent intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources, Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-			_getMessageBoxActivity.StartActivityForResult(intent, (int)GlobalData.RequestCodes.UnknownAppSourceCode);
+			Intent intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
+				Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
+			_getMessageBoxActivity.StartActivityForResult(intent, (int) GlobalData.RequestCodes.UnknownAppSourceCode);
 		}
 
 		private static void MessageBoxExitAction(object sender, DialogClickEventArgs e) =>

@@ -43,15 +43,15 @@ namespace OkkeiPatcher
 		public static readonly Dictionary<Files, string> FileToCompareWith = new Dictionary<Files, string>()
 		{
 			{ Files.OriginalSavedata, Path.Combine(OkkeiFilesPathBackup, SavedataFileName) },
-			{ Files.SAVEDATA_BACKUP, "savedata_md5" },
-			{ Files.BackupSavedata, "savedata_md5" },
-			{ Files.TempApk, "backup_apk_md5" },
-			{ Files.BackupApk, "backup_apk_md5" },
-			{ Files.SignedApk, "signed_apk_md5" },
-			{ Files.Scripts, "scripts_md5" },
-			{ Files.ObbToBackup, "backup_obb_md5" },
-			{ Files.ObbToReplace, "downloaded_obb_md5" },
-			{ Files.BackupObb, "backup_obb_md5" }
+			{ Files.SAVEDATA_BACKUP, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_savedata_md5) },
+			{ Files.BackupSavedata, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_savedata_md5) },
+			{ Files.TempApk, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_backup_apk_md5) },
+			{ Files.BackupApk, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_backup_apk_md5) },
+			{ Files.SignedApk, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_signed_apk_md5) },
+			{ Files.Scripts, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_signed_apk_md5) },
+			{ Files.ObbToBackup, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_backup_obb_md5) },
+			{ Files.ObbToReplace, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_downloaded_obb_md5) },
+			{ Files.BackupObb, Android.App.Application.Context.Resources.GetText(Resource.String.prefkey_backup_obb_md5) }
 		};
 
 		public enum Files

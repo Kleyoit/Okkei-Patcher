@@ -119,7 +119,8 @@ namespace OkkeiPatcher
 				// Create an install status receiver
 				var intent = new Intent(callerActivity, callerActivity.Class);
 				intent.SetAction(PACKAGE_INSTALLED_ACTION);
-				var pendingIntent = PendingIntent.GetActivity(callerActivity, 0, intent, PendingIntentFlags.UpdateCurrent);
+				var pendingIntent =
+					PendingIntent.GetActivity(callerActivity, 0, intent, PendingIntentFlags.UpdateCurrent);
 				var statusReceiver = pendingIntent.IntentSender;
 
 				// Commit the session (this will start the installation workflow)
@@ -129,11 +130,15 @@ namespace OkkeiPatcher
 
 		public static async void OnInstallResult(Activity callerActivity)
 		{
-			bool isPatched = Preferences.Get("apk_is_patched", false);
+			bool isPatched = Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched),
+				false);
 
 			TextView info = callerActivity.FindViewById<TextView>(Resource.Id.Status);
 
-			MainThread.BeginInvokeOnMainThread(() => { info.Text = "Waiting for response from package installer..."; });
+			MainThread.BeginInvokeOnMainThread(() =>
+			{
+				info.Text = callerActivity.Resources.GetText(Resource.String.wait_installer);
+			});
 
 			await Task.Delay(6000);
 
@@ -144,14 +149,27 @@ namespace OkkeiPatcher
 				Button patch = callerActivity.FindViewById<Button>(Resource.Id.Patch);
 				Button unpatch = callerActivity.FindViewById<Button>(Resource.Id.Unpatch);
 
-				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "An error occurred while installing APK. Please try again.", MessageBox.Code.OK); });
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+						callerActivity.Resources.GetText(Resource.String.install_error), MessageBox.Code.OK);
+				});
 				MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
-				MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
+				});
 
 				if (isPatched)
-					MainThread.BeginInvokeOnMainThread(() => { unpatch.Text = "Unpatch"; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						unpatch.Text = callerActivity.Resources.GetText(Resource.String.unpatch);
+					});
 				else
-					MainThread.BeginInvokeOnMainThread(() => { patch.Text = "Patch"; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						patch.Text = callerActivity.Resources.GetText(Resource.String.patch);
+					});
 
 				TokenSource = new CancellationTokenSource();
 				PatchTasks.IsAnyRunning = false;
@@ -163,21 +181,26 @@ namespace OkkeiPatcher
 		{
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			Intent uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
-			callerActivity.StartActivityForResult(uninstallIntent, (int)RequestCodes.UninstallCode);
+			callerActivity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
 		public static void OnUninstallResult(Activity callerActivity)
 		{
 			if (IsAppInstalled(ChaosChildPackageName))
 			{
-				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "CHAOS;CHILD was not uninstalled. Please try again.", MessageBox.Code.OK); });
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+						callerActivity.Resources.GetText(Resource.String.uninstall_error), MessageBox.Code.OK);
+				});
 
 				TokenSource = new CancellationTokenSource();
 			}
 			else
 			{
 				// Install APK
-				bool isPatched = Preferences.Get("apk_is_patched", false);
+				bool isPatched =
+					Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
@@ -193,12 +216,18 @@ namespace OkkeiPatcher
 
 				if (isPatched)
 				{
-					if (Preferences.ContainsKey("backup_apk_md5")) apkMd5 = Preferences.Get("backup_apk_md5", "");
+					if (Preferences.ContainsKey(
+						callerActivity.Resources.GetText(Resource.String.prefkey_backup_apk_md5)))
+						apkMd5 = Preferences.Get(
+							callerActivity.Resources.GetText(Resource.String.prefkey_backup_apk_md5), "");
 					path = FilePaths[Files.BackupApk];
 				}
 				else
 				{
-					if (Preferences.ContainsKey("signed_apk_md5")) apkMd5 = Preferences.Get("signed_apk_md5", "");
+					if (Preferences.ContainsKey(
+						callerActivity.Resources.GetText(Resource.String.prefkey_signed_apk_md5)))
+						apkMd5 = Preferences.Get(
+							callerActivity.Resources.GetText(Resource.String.prefkey_signed_apk_md5), "");
 					path = FilePaths[Files.SignedApk];
 				}
 
@@ -206,7 +235,10 @@ namespace OkkeiPatcher
 				{
 					if (System.IO.File.Exists(path))
 					{
-						MainThread.BeginInvokeOnMainThread(() => { info.Text = "Comparing APK checksums..."; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							info.Text = callerActivity.Resources.GetText(Resource.String.compare_apk);
+						});
 
 						apkFileMd5 = CalculateMD5(path);
 
@@ -217,9 +249,21 @@ namespace OkkeiPatcher
 							System.IO.File.Delete(path);
 
 							if (isPatched)
-								MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "APK to be installed might be not created by Okkei Patcher. Okkei Patcher will now abort restoring process.", MessageBox.Code.OK); });
+								MainThread.BeginInvokeOnMainThread(() =>
+								{
+									MessageBox.Show(callerActivity,
+										callerActivity.Resources.GetText(Resource.String.error),
+										callerActivity.Resources.GetText(
+											Resource.String.not_trustworthy_apk_unpatch), MessageBox.Code.OK);
+								});
 							else
-								MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "APK to be installed might be not created by Okkei Patcher. Please restart patching process.", MessageBox.Code.OK); });
+								MainThread.BeginInvokeOnMainThread(() =>
+								{
+									MessageBox.Show(callerActivity,
+										callerActivity.Resources.GetText(Resource.String.error),
+										callerActivity.Resources.GetText(Resource.String.not_trustworthy_apk_patch),
+										MessageBox.Code.OK);
+								});
 
 							TokenSource.Cancel();
 							token.ThrowIfCancellationRequested();
@@ -228,9 +272,21 @@ namespace OkkeiPatcher
 					else
 					{
 						if (isPatched)
-							MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "APK to be installed was not found. Okkei Patcher will now abort restoring process.", MessageBox.Code.OK); });
+							MainThread.BeginInvokeOnMainThread(() =>
+							{
+								MessageBox.Show(callerActivity,
+									callerActivity.Resources.GetText(Resource.String.error),
+									callerActivity.Resources.GetText(Resource.String.apk_not_found_unpatch),
+									MessageBox.Code.OK);
+							});
 						else
-							MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "APK to be installed was not found. Please restart patching process.", MessageBox.Code.OK); });
+							MainThread.BeginInvokeOnMainThread(() =>
+							{
+								MessageBox.Show(callerActivity,
+									callerActivity.Resources.GetText(Resource.String.error),
+									callerActivity.Resources.GetText(Resource.String.apk_not_found_patch),
+									MessageBox.Code.OK);
+							});
 
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -239,12 +295,21 @@ namespace OkkeiPatcher
 				catch (System.OperationCanceledException)
 				{
 					MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
+					});
 
 					if (isPatched)
-						MainThread.BeginInvokeOnMainThread(() => { unpatch.Text = "Unpatch"; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							unpatch.Text = callerActivity.Resources.GetText(Resource.String.unpatch);
+						});
 					else
-						MainThread.BeginInvokeOnMainThread(() => { patch.Text = "Patch"; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							patch.Text = callerActivity.Resources.GetText(Resource.String.patch);
+						});
 
 					TokenSource = new CancellationTokenSource();
 					PatchTasks.IsAnyRunning = false;
@@ -279,7 +344,7 @@ namespace OkkeiPatcher
 			if (!inFilePath.StartsWith("/data"))
 			{
 				input = new FileStream(inFilePath, FileMode.Open);
-				int inputLength = (int)input.Length;
+				int inputLength = (int) input.Length;
 
 				MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = inputLength / bufferLength; });
 
@@ -292,7 +357,7 @@ namespace OkkeiPatcher
 			}
 			else
 			{
-				int fileSize = (int)inputFile.Length();
+				int fileSize = (int) inputFile.Length();
 				MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = fileSize / bufferLength; });
 
 				while ((length = inputBaseApkStream.Read(buffer)) > 0)
@@ -310,10 +375,13 @@ namespace OkkeiPatcher
 			if (token.IsCancellationRequested && outFile.Exists()) outFile.Delete();
 			outFile.Dispose();
 
-			return !token.IsCancellationRequested ? Task.CompletedTask : Task.FromException(new System.OperationCanceledException());
+			return !token.IsCancellationRequested
+				? Task.CompletedTask
+				: Task.FromException(new System.OperationCanceledException());
 		}
 
-		public static async Task DownloadFile(Activity callerActivity, string URL, string outFilePath, string outFileName)
+		public static async Task DownloadFile(Activity callerActivity, string URL, string outFilePath,
+			string outFileName)
 		{
 			CancellationToken token = TokenSource.Token;
 
@@ -332,18 +400,25 @@ namespace OkkeiPatcher
 
 			try
 			{
-				HttpResponseMessage response = await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead, token);
+				HttpResponseMessage response =
+					await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead, token);
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
-					int contentLength = (int)response.Content.Headers.ContentLength;
+					int contentLength = (int) response.Content.Headers.ContentLength;
 					MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = contentLength; });
 
 					download = await response.Content.ReadAsStreamAsync();
 				}
 				else
 				{
-					MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "Failed to access a file to download. Contact the creator of this application.\nError description: " + response.StatusCode.ToString(), MessageBox.Code.OK); });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+							Java.Lang.String.Format(
+								callerActivity.Resources.GetText(Resource.String.http_file_access_error),
+								response.StatusCode.ToString()), MessageBox.Code.OK);
+					});
 
 					TokenSource.Cancel();
 				}
@@ -357,7 +432,7 @@ namespace OkkeiPatcher
 						int outputLength;
 						if (output != null)
 						{
-							outputLength = (int)output.Length;
+							outputLength = (int) output.Length;
 							MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = outputLength; });
 						}
 
@@ -367,7 +442,12 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex) when (!(ex is System.OperationCanceledException))
 			{
-				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Error", "An error occurred while downloading file. Check your internet connection and try again.", MessageBox.Code.OK); });
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+						callerActivity.Resources.GetText(Resource.String.http_file_download_error),
+						MessageBox.Code.OK);
+				});
 
 				TokenSource.Cancel();
 			}
@@ -383,7 +463,8 @@ namespace OkkeiPatcher
 
 		public static string GetBugReportText(Exception ex)
 		{
-			return $"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{Utils.GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
+			return
+				$"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{Utils.GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
 		}
 
 		public static string GetDeviceInfo()
@@ -394,14 +475,19 @@ namespace OkkeiPatcher
 			string incremental = Build.VERSION.Incremental;
 			string release = Build.VERSION.Release;
 			BuildVersionCodes sdkInt = Build.VERSION.SdkInt;
-			return $"manufacturer:       {manufacturer}\nmodel:              {model}\nproduct:            {product}\nincremental:        {incremental}\nrelease:            {release}\nsdkInt:             {sdkInt}";
+			return
+				$"manufacturer:       {manufacturer}\nmodel:              {model}\nproduct:            {product}\nincremental:        {incremental}\nrelease:            {release}\nsdkInt:             {sdkInt}";
 		}
 
 		public static void WriteBugReport(Activity callerActivity, Exception ex)
 		{
 			string bugReport = Utils.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
-			MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(callerActivity, "Exception", "Send \"bugreport.log\" file located in OkkeiPatcher directory to the creator of this application.", MessageBox.Code.Exit); });
+			MainThread.BeginInvokeOnMainThread(() =>
+			{
+				MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.exception),
+					callerActivity.Resources.GetText(Resource.String.exception_notice), MessageBox.Code.Exit);
+			});
 		}
 	}
 }

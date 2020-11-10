@@ -18,21 +18,23 @@ using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	[Activity(Label = "@string/app_name", Theme = "@style/Theme.MaterialComponents", MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
+	[Activity(Label = "@string/app_name", Theme = "@style/Theme.MaterialComponents", MainLauncher = true,
+		LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
-			if (requestCode == (int)RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O)
+			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O)
 			{
 				if (!this.PackageManager.CanRequestPackageInstalls())
-					MessageBox.Show(this, "Error", "Okkei Patcher can't get permission to install packages.", MessageBox.Code.Exit);
+					MessageBox.Show(this, Resources.GetText(Resource.String.error),
+						Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
 			}
 
-			if (requestCode == (int)RequestCodes.UninstallCode)
+			if (requestCode == (int) RequestCodes.UninstallCode)
 				Utils.OnUninstallResult(this);
 
-			if (requestCode == (int)RequestCodes.InstallCode)
+			if (requestCode == (int) RequestCodes.InstallCode)
 				Utils.OnInstallResult(this);
 		}
 
@@ -47,20 +49,24 @@ namespace OkkeiPatcher
 				//var message = extras.GetString(PackageInstaller.ExtraStatusMessage);
 				switch (status)
 				{
-					case (int)PackageInstallStatus.PendingUserAction:
+					case (int) PackageInstallStatus.PendingUserAction:
 
 						// Ask user to confirm the installation
-						var confirmIntent = (Intent)extras.Get(Intent.ExtraIntent);
-						StartActivityForResult(confirmIntent, (int)RequestCodes.InstallCode);
+						var confirmIntent = (Intent) extras.Get(Intent.ExtraIntent);
+						StartActivityForResult(confirmIntent, (int) RequestCodes.InstallCode);
 						break;
 
-					case (int)PackageInstallStatus.Success:
+					case (int) PackageInstallStatus.Success:
 
-						bool isPatched = Preferences.Get("apk_is_patched", false);
+						bool isPatched = Preferences.Get(Resources.GetText(Resource.String.prefkey_apk_is_patched),
+							false);
 
 						if (!isPatched)
 						{
-							MainThread.BeginInvokeOnMainThread(() => { info.Text = "Patched successfully."; });
+							MainThread.BeginInvokeOnMainThread(() =>
+							{
+								info.Text = Resources.GetText(Resource.String.patch_success);
+							});
 
 							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
@@ -70,6 +76,7 @@ namespace OkkeiPatcher
 						}
 						else
 							Task.Run(() => UnpatchTasks.RestoreFiles(this));
+
 						break;
 				}
 			}
@@ -109,10 +116,11 @@ namespace OkkeiPatcher
 
 			// Read testcert for signing APK
 			AssetManager assets = this.Assets;
-			Stream testkeyFile = assets.Open("testkey.p12");
+			Stream testkeyFile = assets.Open(Resources.GetText(Resource.String.certfile));
 			int testkeySize = 2797;
 
-			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize), "password");
+			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize),
+				Resources.GetText(Resource.String.password));
 			testkey = testkeyTemp;
 
 			testkeyFile?.Close();
@@ -120,24 +128,25 @@ namespace OkkeiPatcher
 
 
 			// Set apk_is_patched = false pref on first start
-			if (!Preferences.ContainsKey("apk_is_patched"))
-				Preferences.Set("apk_is_patched", false);
+			if (!Preferences.ContainsKey(Resources.GetText(Resource.String.prefkey_apk_is_patched)))
+				Preferences.Set(Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
 
 
 			// Restore previous state of checkbox or set pref on first start
-			if (!Preferences.ContainsKey("backup_restore_savedata"))
-				Preferences.Set("backup_restore_savedata", true);
+			if (!Preferences.ContainsKey(Resources.GetText(Resource.String.prefkey_backup_restore_savedata)))
+				Preferences.Set(Resources.GetText(Resource.String.prefkey_backup_restore_savedata), true);
 			else
-				checkBoxSavedata.Checked = Preferences.Get("backup_restore_savedata", true);
+				checkBoxSavedata.Checked =
+					Preferences.Get(Resources.GetText(Resource.String.prefkey_backup_restore_savedata), true);
 
 
 			// Request read/write external storage permissions on first start
 			if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 			{
-				string[] extStoragePermissions = { Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage };
+				string[] extStoragePermissions =
+					{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
 				RequestPermissions(extStoragePermissions, 0);
 			}
-
 
 			// Create OkkeiPatcher directory if doesn't exist
 			else if (!Directory.Exists(OkkeiFilesPath)) Directory.CreateDirectory(OkkeiFilesPath);
@@ -147,15 +156,17 @@ namespace OkkeiPatcher
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
 			{
 				if (!this.PackageManager.CanRequestPackageInstalls())
-					MessageBox.Show(this, "Attention", "Okkei Patcher requires permission to install applications from unknown sources to continue. After pressing the OK button you will be redirected to your device settings where you should enable this option. Then you can return to Okkei Patcher using the back button or gesture.", MessageBox.Code.UnknownAppSourceNotice);
+					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+						Resources.GetText(Resource.String.unknown_sources_notice),
+						MessageBox.Code.UnknownAppSourceNotice);
 			}
 		}
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
-			bool isChecked = ((CheckBox)sender).Checked;
+			bool isChecked = ((CheckBox) sender).Checked;
 			if (sender == FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata))
-				Preferences.Set("backup_restore_savedata", isChecked);
+				Preferences.Set(Resources.GetText(Resource.String.prefkey_backup_restore_savedata), isChecked);
 		}
 
 		private void Clear_Click(object sender, EventArgs e)
@@ -173,7 +184,7 @@ namespace OkkeiPatcher
 				Java.IO.File savedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 				if (savedata.Exists()) savedata.Delete();
 
-				info.Text = "Backup cleared.";
+				info.Text = Resources.GetText(Resource.String.backup_cleared);
 
 				apk.Dispose();
 				obb.Dispose();
@@ -192,7 +203,7 @@ namespace OkkeiPatcher
 
 				if (UnpatchTasks.IsAnyRunning && !TokenSource.IsCancellationRequested)
 				{
-					unpatch.Text = "Abort";
+					unpatch.Text = Resources.GetText(Resource.String.abort);
 
 					progressBar.Progress = 0;
 					Task.Run(() => UnpatchTasks.UnpatchTask(this));
@@ -212,7 +223,7 @@ namespace OkkeiPatcher
 
 				if (PatchTasks.IsAnyRunning && !TokenSource.IsCancellationRequested)
 				{
-					patch.Text = "Abort";
+					patch.Text = Resources.GetText(Resource.String.abort);
 
 					progressBar.Progress = 0;
 					Task.Run(() => PatchTasks.PatchTask(this));
@@ -223,12 +234,15 @@ namespace OkkeiPatcher
 
 		private void FabOnClick(object sender, EventArgs eventArgs)
 		{
-			View view = (View)sender;
-			Snackbar.Make(view, $"Version {AppInfo.VersionString} by solru", Snackbar.LengthLong)
-				.SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
+			View view = (View) sender;
+			Snackbar.Make(view,
+					Java.Lang.String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString),
+					Snackbar.LengthLong)
+				.SetAction("Action", (Android.Views.View.IOnClickListener) null).Show();
 		}
 
-		public override void OnRequestPermissionsResult(int requestCode, string[] permissions, [GeneratedEnum] Android.Content.PM.Permission[] grantResults)
+		public override void OnRequestPermissionsResult(int requestCode, string[] permissions,
+			[GeneratedEnum] Android.Content.PM.Permission[] grantResults)
 		{
 			Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
@@ -240,10 +254,10 @@ namespace OkkeiPatcher
 			{
 				if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 				{
-					string[] extStoragePermissions = { Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage };
+					string[] extStoragePermissions =
+						{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
 					RequestPermissions(extStoragePermissions, 0);
 				}
-
 
 				// Create OkkeiPatcher directory if doesn't exist
 				else if (!Directory.Exists(OkkeiFilesPath)) Directory.CreateDirectory(OkkeiFilesPath);

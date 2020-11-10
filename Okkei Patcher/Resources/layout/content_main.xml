@@ -31,20 +31,20 @@
         android:paddingStart="25dp"
         android:paddingEnd="25dp">
         <Button
-            android:text="@string/patch_btn"
+            android:text="@string/patch"
             android:textSize="12dp"
             android:id="@+id/Patch"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginRight="5dp" />
         <Button
-            android:text="@string/unpatch_btn"
+            android:text="@string/unpatch"
             android:textSize="12dp"
             android:id="@+id/Unpatch"
             android:layout_width="100dp"
             android:layout_height="match_parent" />
         <Button
-            android:text="@string/clear_btn"
+            android:text="@string/clear"
             android:textSize="11dp"
             android:id="@+id/Clear"
             android:layout_width="wrap_content"

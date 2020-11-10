@@ -31,7 +31,10 @@ namespace OkkeiPatcher
 
 				try
 				{
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Restoring OBB..."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.restore_obb);
+					});
 
 					await Utils.CopyFile(callerActivity, FilePaths[Files.BackupObb], ObbPath, ObbFileName);
 					token.ThrowIfCancellationRequested();
@@ -40,7 +43,10 @@ namespace OkkeiPatcher
 					{
 						if (new Java.IO.File(FilePaths[Files.BackupSavedata]).Exists())
 						{
-							MainThread.BeginInvokeOnMainThread(() => { info.Text = "Restoring save data..."; });
+							MainThread.BeginInvokeOnMainThread(() =>
+							{
+								info.Text = callerActivity.Resources.GetText(Resource.String.restore_saves);
+							});
 
 							await Utils.CopyFile(callerActivity, FilePaths[Files.BackupSavedata], SavedataPath,
 								SavedataFileName);
@@ -50,8 +56,9 @@ namespace OkkeiPatcher
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								MessageBox.Show(callerActivity, "Warning",
-									"Save data backup was not found. Okkei Patcher can not restore your old save data.",
+								MessageBox.Show(callerActivity,
+									callerActivity.Resources.GetText(Resource.String.warning),
+									callerActivity.Resources.GetText(Resource.String.saves_backup_not_found),
 									MessageBox.Code.OK);
 							});
 						}
@@ -73,7 +80,8 @@ namespace OkkeiPatcher
 							backupedSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
 							backupedSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
-							Preferences.Set("savedata_md5", Utils.CalculateMD5(backupedSavedata.Path));
+							Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_savedata_md5),
+								Utils.CalculateMD5(backupedSavedata.Path));
 						}
 					}
 
@@ -84,22 +92,31 @@ namespace OkkeiPatcher
 					backupedSavedata.Dispose();
 					appSavedata.Dispose();
 
-					Preferences.Set("apk_is_patched", false);
+					Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
 
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Restored successfully."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.unpatch_success);
+					});
 				}
 				catch (System.OperationCanceledException)
 				{
 					if (backupedSavedata.Exists()) backupedSavedata.Delete();
 					if (appSavedata.Exists()) appSavedata.Delete();
 
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
+					});
 				}
 				finally
 				{
 					TokenSource = new CancellationTokenSource();
 					UnpatchTasks.IsAnyRunning = false;
-					MainThread.BeginInvokeOnMainThread(() => { unpatch.Text = "Unpatch"; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						unpatch.Text = callerActivity.Resources.GetText(Resource.String.unpatch);
+					});
 					MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
 				}
 			}
@@ -123,7 +140,8 @@ namespace OkkeiPatcher
 
 				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
 
-				bool isPatched = Preferences.Get("apk_is_patched", false);
+				bool isPatched =
+					Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
 
 				try
 				{
@@ -131,7 +149,8 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error", "CHAOS;CHILD hasn't been patched yet.",
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.error_not_patched),
 								MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
@@ -142,8 +161,8 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error",
-								"CHAOS;CHILD was not found on this device.", MessageBox.Code.OK);
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.cc_not_found), MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -153,7 +172,8 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error", "Backup of CHAOS;CHILD was not found.",
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.backup_not_found),
 								MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
@@ -164,8 +184,9 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error",
-								"Not enough free disk space. Ensure that you have at least 2 GB to restore your backup.", MessageBox.Code.OK);
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.no_free_space_unpatch),
+								MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -178,7 +199,7 @@ namespace OkkeiPatcher
 							// Backup save data
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								info.Text = "Backuping save data...";
+								info.Text = callerActivity.Resources.GetText(Resource.String.backup_saves);
 							});
 
 							await Utils.CopyFile(callerActivity, FilePaths[Files.OriginalSavedata],
@@ -189,8 +210,9 @@ namespace OkkeiPatcher
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								MessageBox.Show(callerActivity, "Warning",
-									"Save data was not found. Okkei Patcher can not perform backup of your current save data and will continue restoring process.",
+								MessageBox.Show(callerActivity,
+									callerActivity.Resources.GetText(Resource.String.warning),
+									callerActivity.Resources.GetText(Resource.String.saves_not_found_unpatch),
 									MessageBox.Code.OK);
 							});
 						}
@@ -204,8 +226,14 @@ namespace OkkeiPatcher
 				}
 				catch (System.OperationCanceledException)
 				{
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
-					MainThread.BeginInvokeOnMainThread(() => { unpatch.Text = "Unpatch"; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
+					});
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						unpatch.Text = callerActivity.Resources.GetText(Resource.String.unpatch);
+					});
 					TokenSource = new CancellationTokenSource();
 					UnpatchTasks.IsAnyRunning = false;
 				}

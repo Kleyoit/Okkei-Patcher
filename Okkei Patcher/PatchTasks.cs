@@ -30,7 +30,10 @@ namespace OkkeiPatcher
 				ProgressBar progressBar = callerActivity.FindViewById<ProgressBar>(Resource.Id.progressBar);
 				CheckBox checkBoxSavedata = callerActivity.FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
-				MainThread.BeginInvokeOnMainThread(() => { patch.Text = "Abort"; });
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					patch.Text = callerActivity.Resources.GetText(Resource.String.abort);
+				});
 
 				Java.IO.File backupSavedata = null;
 
@@ -43,7 +46,10 @@ namespace OkkeiPatcher
 						if (backupSavedata.Exists())
 						{
 							MainThread.BeginInvokeOnMainThread(
-								() => { info.Text = "Restoring old save data..."; });
+								() =>
+								{
+									info.Text = callerActivity.Resources.GetText(Resource.String.restore_old_saves);
+								});
 
 							backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
 							backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
@@ -57,37 +63,56 @@ namespace OkkeiPatcher
 
 					Java.IO.File installedObb = new Java.IO.File(FilePaths[Files.ObbToReplace]);
 
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Comparing OBB checksums..."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.compare_obb);
+					});
 
 					if (!Utils.CompareMD5(Files.ObbToReplace) || !installedObb.Exists())
 					{
-						MainThread.BeginInvokeOnMainThread(() => { info.Text = "Downloading OBB..."; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							info.Text = callerActivity.Resources.GetText(Resource.String.download_obb);
+						});
 
 						await Utils.DownloadFile(callerActivity, ObbUrl, ObbPath, ObbFileName);
 						token.ThrowIfCancellationRequested();
 
-						MainThread.BeginInvokeOnMainThread(() => { info.Text = "Writing OBB checksum..."; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							info.Text = callerActivity.Resources.GetText(Resource.String.write_obb_md5);
+						});
 
-						Preferences.Set("downloaded_obb_md5", Utils.CalculateMD5(installedObb.Path));
-						Preferences.Set("apk_is_patched", true);
+						Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_downloaded_obb_md5),
+							Utils.CalculateMD5(installedObb.Path));
+						Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), true);
 					}
 
 					installedObb.Dispose();
 
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Patched successfully."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.patch_success);
+					});
 				}
 				catch (System.OperationCanceledException)
 				{
 					backupSavedata?.Delete();
 
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
+					});
 				}
 				finally
 				{
 					backupSavedata?.Dispose();
 					TokenSource = new CancellationTokenSource();
 					PatchTasks.IsAnyRunning = false;
-					MainThread.BeginInvokeOnMainThread(() => { patch.Text = "Patch"; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						patch.Text = callerActivity.Resources.GetText(Resource.String.patch);
+					});
 					MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
 				}
 			}
@@ -113,15 +138,21 @@ namespace OkkeiPatcher
 
 				try
 				{
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Checking..."; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.checking);
+					});
 
-					bool isPatched = Preferences.Get("apk_is_patched", false);
+					bool isPatched =
+						Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched),
+							false);
 
 					if (isPatched)
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error", "CHAOS;CHILD is already patched.",
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.error_patched),
 								MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
@@ -132,8 +163,8 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error",
-								"CHAOS;CHILD was not found on this device.", MessageBox.Code.OK);
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.cc_not_found), MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -143,8 +174,9 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error",
-								"Not enough free disk space. Ensure that you have at least 2 GB for a backup.", MessageBox.Code.OK);
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.no_free_space_patch),
+								MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -173,14 +205,14 @@ namespace OkkeiPatcher
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								info.Text = "Comparing save data checksums...";
+								info.Text = callerActivity.Resources.GetText(Resource.String.compare_saves);
 							});
 
 							if (!Utils.CompareMD5(Files.OriginalSavedata))
 							{
 								MainThread.BeginInvokeOnMainThread(() =>
 								{
-									info.Text = "Backuping save data...";
+									info.Text = callerActivity.Resources.GetText(Resource.String.backup_saves);
 								});
 
 								await Utils.CopyFile(callerActivity, originalSavedata.Path,
@@ -190,18 +222,20 @@ namespace OkkeiPatcher
 
 								MainThread.BeginInvokeOnMainThread(() =>
 								{
-									info.Text = "Writing save data checksum...";
+									info.Text = callerActivity.Resources.GetText(Resource.String.write_saves_md5);
 								});
 
-								Preferences.Set("savedata_md5", Utils.CalculateMD5(originalSavedata.Path));
+								Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_savedata_md5),
+									Utils.CalculateMD5(originalSavedata.Path));
 								originalSavedata.Dispose();
 							}
 						}
 						else
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								MessageBox.Show(callerActivity, "Warning",
-									"Save data file not found. Okkei Patcher will not backup save data.",
+								MessageBox.Show(callerActivity,
+									callerActivity.Resources.GetText(Resource.String.warning),
+									callerActivity.Resources.GetText(Resource.String.saves_not_found_patch),
 									MessageBox.Code.OK);
 							});
 
@@ -211,11 +245,15 @@ namespace OkkeiPatcher
 					if (!new Java.IO.File(FilePaths[Files.SignedApk]).Exists())
 					{
 						// Get installed CHAOS;CHILD APK
-						string originalApkPath = callerActivity.PackageManager.GetPackageInfo(ChaosChildPackageName, 0).ApplicationInfo
+						string originalApkPath = callerActivity.PackageManager.GetPackageInfo(ChaosChildPackageName, 0)
+							.ApplicationInfo
 							.PublicSourceDir;
 						Java.IO.File unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
 
-						MainThread.BeginInvokeOnMainThread(() => { info.Text = "Copying APK..."; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							info.Text = callerActivity.Resources.GetText(Resource.String.copy_apk);
+						});
 
 						await Utils.CopyFile(callerActivity, originalApkPath, unpatchedApk.Parent,
 							unpatchedApk.Name);
@@ -229,14 +267,14 @@ namespace OkkeiPatcher
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								info.Text = "Comparing APK checksums...";
+								info.Text = callerActivity.Resources.GetText(Resource.String.compare_apk);
 							});
 
 							if (!Utils.CompareMD5(Files.TempApk) || !backupApk.Exists())
 							{
 								MainThread.BeginInvokeOnMainThread(() =>
 								{
-									info.Text = "Backuping APK...";
+									info.Text = callerActivity.Resources.GetText(Resource.String.backup_apk);
 								});
 
 								await Utils.CopyFile(callerActivity, originalApkPath, backupApk.Parent,
@@ -245,10 +283,12 @@ namespace OkkeiPatcher
 
 								MainThread.BeginInvokeOnMainThread(() =>
 								{
-									info.Text = "Writing APK checksum...";
+									info.Text = callerActivity.Resources.GetText(Resource.String.write_apk_md5);
 								});
 
-								Preferences.Set("backup_apk_md5", Utils.CalculateMD5(backupApk.Path));
+								Preferences.Set(
+									callerActivity.Resources.GetText(Resource.String.prefkey_backup_apk_md5),
+									Utils.CalculateMD5(backupApk.Path));
 							}
 						}
 
@@ -262,14 +302,14 @@ namespace OkkeiPatcher
 
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							info.Text = "Comparing scripts checksums...";
+							info.Text = callerActivity.Resources.GetText(Resource.String.compare_scripts);
 						});
 
 						if (!Utils.CompareMD5(Files.Scripts) || !scriptsZip.Exists())
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								info.Text = "Downloading scripts...";
+								info.Text = callerActivity.Resources.GetText(Resource.String.download_scripts);
 							});
 
 							await Utils.DownloadFile(callerActivity, ScriptsUrl, scriptsZip.Parent,
@@ -278,10 +318,11 @@ namespace OkkeiPatcher
 
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								info.Text = "Writing scripts checksum...";
+								info.Text = callerActivity.Resources.GetText(Resource.String.write_scripts_md5);
 							});
 
-							Preferences.Set("scripts_md5", Utils.CalculateMD5(scriptsZip.Path));
+							Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_scripts_md5),
+								Utils.CalculateMD5(scriptsZip.Path));
 						}
 
 
@@ -293,7 +334,7 @@ namespace OkkeiPatcher
 
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							info.Text = "Extracting scripts...";
+							info.Text = callerActivity.Resources.GetText(Resource.String.extract_scripts);
 						});
 
 						fastZip.ExtractZip(scriptsZip.Path, Path.Combine(OkkeiFilesPath, "scripts"),
@@ -307,7 +348,10 @@ namespace OkkeiPatcher
 						int scriptsCount = filePaths.Length;
 
 						MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = scriptsCount; });
-						MainThread.BeginInvokeOnMainThread(() => { info.Text = "Replacing scripts..."; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							info.Text = callerActivity.Resources.GetText(Resource.String.replace_scripts);
+						});
 
 						ZipFile zipFile = new ZipFile(unpatchedApk.Path);
 
@@ -348,7 +392,10 @@ namespace OkkeiPatcher
 
 
 						// Sign APK
-						MainThread.BeginInvokeOnMainThread(() => { info.Text = "Signing APK..."; });
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							info.Text = callerActivity.Resources.GetText(Resource.String.sign_apk);
+						});
 
 						FileStream apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
 						FileStream signedApkStream =
@@ -359,10 +406,11 @@ namespace OkkeiPatcher
 
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							info.Text = "Writing patched APK checksum...";
+							info.Text = callerActivity.Resources.GetText(Resource.String.write_patched_apk_md5);
 						});
 
-						Preferences.Set("signed_apk_md5", Utils.CalculateMD5(FilePaths[Files.SignedApk]));
+						Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_signed_apk_md5),
+							Utils.CalculateMD5(FilePaths[Files.SignedApk]));
 
 						if (unpatchedApk.Exists()) unpatchedApk.Delete();
 						unpatchedApk?.Dispose();
@@ -388,12 +436,15 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							info.Text = "Comparing OBB checksums...";
+							info.Text = callerActivity.Resources.GetText(Resource.String.compare_obb);
 						});
 
 						if (!Utils.CompareMD5(Files.ObbToBackup) || !backupObb.Exists())
 						{
-							MainThread.BeginInvokeOnMainThread(() => { info.Text = "Backuping OBB..."; });
+							MainThread.BeginInvokeOnMainThread(() =>
+							{
+								info.Text = callerActivity.Resources.GetText(Resource.String.backup_obb);
+							});
 
 							await Utils.CopyFile(callerActivity, originalObb.Path, backupObb.Parent,
 								backupObb.Name);
@@ -403,10 +454,11 @@ namespace OkkeiPatcher
 
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
-								info.Text = "Writing OBB checksum...";
+								info.Text = callerActivity.Resources.GetText(Resource.String.write_obb_md5);
 							});
 
-							Preferences.Set("backup_obb_md5", Utils.CalculateMD5(backupObb.Path));
+							Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_backup_obb_md5),
+								Utils.CalculateMD5(backupObb.Path));
 							backupObb?.Dispose();
 						}
 					}
@@ -414,8 +466,8 @@ namespace OkkeiPatcher
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							MessageBox.Show(callerActivity, "Error",
-								"OBB file was not found. Okkei Patcher will abort patching process.",
+							MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
+								callerActivity.Resources.GetText(Resource.String.obb_not_found),
 								MessageBox.Code.OK);
 						});
 						TokenSource.Cancel();
@@ -430,8 +482,14 @@ namespace OkkeiPatcher
 				}
 				catch (System.OperationCanceledException)
 				{
-					MainThread.BeginInvokeOnMainThread(() => { info.Text = "Operation aborted."; });
-					MainThread.BeginInvokeOnMainThread(() => { patch.Text = "Patch"; });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
+					});
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						patch.Text = callerActivity.Resources.GetText(Resource.String.patch);
+					});
 					TokenSource = new CancellationTokenSource();
 					PatchTasks.IsAnyRunning = false;
 				}
