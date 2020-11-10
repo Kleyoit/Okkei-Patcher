@@ -1,13 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <string name="app_name">Okkei Patcher</string>
   <string name="action_settings">Настройки</string>
-  <string name="okkei">Okkei</string>
   <string name="patch">Патч</string>
   <string name="unpatch">Восст.</string>
   <string name="clear">Удалить&#10;копию</string>
   <string name="savedata_checkbox">Делать копию/восстанавливать сохранения</string>
-  <string name="dialog_ok">OK</string>
   <string name="dialog_exit">ВЫХОД</string>
   <string name="abort">Стоп</string>
   <string name="error">Ошибка</string>
