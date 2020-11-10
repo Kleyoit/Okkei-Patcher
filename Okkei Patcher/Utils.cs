@@ -401,7 +401,7 @@ namespace OkkeiPatcher
 			try
 			{
 				HttpResponseMessage response =
-					await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead, token);
+					await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
