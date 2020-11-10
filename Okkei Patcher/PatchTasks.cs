@@ -3,7 +3,6 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
-using Android.Content.PM;
 using Android.Widget;
 using ICSharpCode.SharpZipLib.Zip;
 using Xamarin.Essentials;
@@ -212,8 +211,7 @@ namespace OkkeiPatcher
 					if (!new Java.IO.File(FilePaths[Files.SignedApk]).Exists())
 					{
 						// Get installed CHAOS;CHILD APK
-						PackageManager pm = callerActivity.PackageManager;
-						string originalApkPath = pm.GetPackageInfo(ChaosChildPackageName, 0).ApplicationInfo
+						string originalApkPath = callerActivity.PackageManager.GetPackageInfo(ChaosChildPackageName, 0).ApplicationInfo
 							.PublicSourceDir;
 						Java.IO.File unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
 
