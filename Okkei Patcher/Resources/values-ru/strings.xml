@@ -3,7 +3,7 @@
   <string name="action_settings">Настройки</string>
   <string name="patch">Патч</string>
   <string name="unpatch">Восст.</string>
-  <string name="clear">Удалить&#10;копию</string>
+  <string name="clear">Удалить копию</string>
   <string name="savedata_checkbox">Делать копию/восстанавливать сохранения</string>
   <string name="dialog_exit">ВЫХОД</string>
   <string name="abort">Стоп</string>

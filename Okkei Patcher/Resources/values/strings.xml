@@ -6,7 +6,7 @@
   <string name="password">password</string>
   <string name="patch">Patch</string>
   <string name="unpatch">Unpatch</string>
-  <string name="clear">Clear&#10;backup</string>
+  <string name="clear">Clear backup</string>
   <string name="savedata_checkbox">Backup/restore save data</string>
   <string name="dialog_ok">OK</string>
   <string name="dialog_exit">EXIT</string>
