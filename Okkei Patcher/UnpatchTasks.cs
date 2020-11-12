@@ -80,8 +80,7 @@ namespace OkkeiPatcher
 							backupedSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
 							backupedSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
-							Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_savedata_md5),
-								Utils.CalculateMD5(backupedSavedata.Path));
+							Preferences.Set(Prefkey.savedata_md5.ToString(), Utils.CalculateMD5(backupedSavedata.Path));
 						}
 					}
 
@@ -92,7 +91,7 @@ namespace OkkeiPatcher
 					backupedSavedata.Dispose();
 					appSavedata.Dispose();
 
-					Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
+					Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
@@ -141,7 +140,7 @@ namespace OkkeiPatcher
 				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
 
 				bool isPatched =
-					Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
+					Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 				try
 				{

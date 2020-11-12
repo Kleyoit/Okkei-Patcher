@@ -83,9 +83,8 @@ namespace OkkeiPatcher
 							info.Text = callerActivity.Resources.GetText(Resource.String.write_obb_md5);
 						});
 
-						Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_downloaded_obb_md5),
-							Utils.CalculateMD5(installedObb.Path));
-						Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), true);
+						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), Utils.CalculateMD5(installedObb.Path));
+						Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
 					}
 
 					installedObb.Dispose();
@@ -144,8 +143,7 @@ namespace OkkeiPatcher
 					});
 
 					bool isPatched =
-						Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched),
-							false);
+						Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 					if (isPatched)
 					{
@@ -225,7 +223,7 @@ namespace OkkeiPatcher
 									info.Text = callerActivity.Resources.GetText(Resource.String.write_saves_md5);
 								});
 
-								Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_savedata_md5),
+								Preferences.Set(Prefkey.savedata_md5.ToString(),
 									Utils.CalculateMD5(originalSavedata.Path));
 								originalSavedata.Dispose();
 							}
@@ -286,9 +284,7 @@ namespace OkkeiPatcher
 									info.Text = callerActivity.Resources.GetText(Resource.String.write_apk_md5);
 								});
 
-								Preferences.Set(
-									callerActivity.Resources.GetText(Resource.String.prefkey_backup_apk_md5),
-									Utils.CalculateMD5(backupApk.Path));
+								Preferences.Set(Prefkey.backup_apk_md5.ToString(), Utils.CalculateMD5(backupApk.Path));
 							}
 						}
 
@@ -321,8 +317,7 @@ namespace OkkeiPatcher
 								info.Text = callerActivity.Resources.GetText(Resource.String.write_scripts_md5);
 							});
 
-							Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_scripts_md5),
-								Utils.CalculateMD5(scriptsZip.Path));
+							Preferences.Set(Prefkey.scripts_md5.ToString(), Utils.CalculateMD5(scriptsZip.Path));
 						}
 
 
@@ -409,7 +404,7 @@ namespace OkkeiPatcher
 							info.Text = callerActivity.Resources.GetText(Resource.String.write_patched_apk_md5);
 						});
 
-						Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_signed_apk_md5),
+						Preferences.Set(Prefkey.signed_apk_md5.ToString(),
 							Utils.CalculateMD5(FilePaths[Files.SignedApk]));
 
 						if (unpatchedApk.Exists()) unpatchedApk.Delete();
@@ -457,8 +452,7 @@ namespace OkkeiPatcher
 								info.Text = callerActivity.Resources.GetText(Resource.String.write_obb_md5);
 							});
 
-							Preferences.Set(callerActivity.Resources.GetText(Resource.String.prefkey_backup_obb_md5),
-								Utils.CalculateMD5(backupObb.Path));
+							Preferences.Set(Prefkey.backup_obb_md5.ToString(), Utils.CalculateMD5(backupObb.Path));
 							backupObb?.Dispose();
 						}
 					}

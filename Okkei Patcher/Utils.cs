@@ -130,8 +130,7 @@ namespace OkkeiPatcher
 
 		public static async void OnInstallResult(Activity callerActivity)
 		{
-			bool isPatched = Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched),
-				false);
+			bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 			TextView info = callerActivity.FindViewById<TextView>(Resource.Id.Status);
 
@@ -199,8 +198,7 @@ namespace OkkeiPatcher
 			else
 			{
 				// Install APK
-				bool isPatched =
-					Preferences.Get(callerActivity.Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
+				bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
@@ -216,18 +214,14 @@ namespace OkkeiPatcher
 
 				if (isPatched)
 				{
-					if (Preferences.ContainsKey(
-						callerActivity.Resources.GetText(Resource.String.prefkey_backup_apk_md5)))
-						apkMd5 = Preferences.Get(
-							callerActivity.Resources.GetText(Resource.String.prefkey_backup_apk_md5), "");
+					if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
+						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), "");
 					path = FilePaths[Files.BackupApk];
 				}
 				else
 				{
-					if (Preferences.ContainsKey(
-						callerActivity.Resources.GetText(Resource.String.prefkey_signed_apk_md5)))
-						apkMd5 = Preferences.Get(
-							callerActivity.Resources.GetText(Resource.String.prefkey_signed_apk_md5), "");
+					if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
+						apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), "");
 					path = FilePaths[Files.SignedApk];
 				}
 

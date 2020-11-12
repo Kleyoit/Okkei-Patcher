@@ -58,8 +58,7 @@ namespace OkkeiPatcher
 
 					case (int) PackageInstallStatus.Success:
 
-						bool isPatched = Preferences.Get(Resources.GetText(Resource.String.prefkey_apk_is_patched),
-							false);
+						bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 						if (!isPatched)
 						{
@@ -116,11 +115,10 @@ namespace OkkeiPatcher
 
 			// Read testcert for signing APK
 			AssetManager assets = this.Assets;
-			Stream testkeyFile = assets.Open(Resources.GetText(Resource.String.certfile));
+			Stream testkeyFile = assets.Open(CertFileName);
 			int testkeySize = 2797;
 
-			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize),
-				Resources.GetText(Resource.String.password));
+			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize), CertPassword);
 			testkey = testkeyTemp;
 
 			testkeyFile?.Close();
@@ -128,16 +126,15 @@ namespace OkkeiPatcher
 
 
 			// Set apk_is_patched = false pref on first start
-			if (!Preferences.ContainsKey(Resources.GetText(Resource.String.prefkey_apk_is_patched)))
-				Preferences.Set(Resources.GetText(Resource.String.prefkey_apk_is_patched), false);
+			if (!Preferences.ContainsKey(Prefkey.apk_is_patched.ToString()))
+				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
 
 			// Restore previous state of checkbox or set pref on first start
-			if (!Preferences.ContainsKey(Resources.GetText(Resource.String.prefkey_backup_restore_savedata)))
-				Preferences.Set(Resources.GetText(Resource.String.prefkey_backup_restore_savedata), true);
+			if (!Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString()))
+				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 			else
-				checkBoxSavedata.Checked =
-					Preferences.Get(Resources.GetText(Resource.String.prefkey_backup_restore_savedata), true);
+				checkBoxSavedata.Checked = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
 
 
 			// Request read/write external storage permissions on first start
@@ -164,9 +161,9 @@ namespace OkkeiPatcher
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
-			bool isChecked = ((CheckBox) sender).Checked;
+			bool isChecked = e.IsChecked;
 			if (sender == FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata))
-				Preferences.Set(Resources.GetText(Resource.String.prefkey_backup_restore_savedata), isChecked);
+				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), isChecked);
 		}
 
 		private void Clear_Click(object sender, EventArgs e)
