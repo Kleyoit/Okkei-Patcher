@@ -11,8 +11,6 @@ using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
 using Xamarin.Essentials;
-using System.Security.Cryptography.X509Certificates;
-using Android.Content.Res;
 using Android.Content;
 using static OkkeiPatcher.GlobalData;
 
@@ -111,18 +109,6 @@ namespace OkkeiPatcher
 
 			CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 			checkBoxSavedata.CheckedChange += CheckBox_CheckedChange;
-
-
-			// Read testcert for signing APK
-			AssetManager assets = this.Assets;
-			Stream testkeyFile = assets.Open(CertFileName);
-			int testkeySize = 2797;
-
-			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize), CertPassword);
-			testkey = testkeyTemp;
-
-			testkeyFile?.Close();
-			testkeyFile?.Dispose();
 
 
 			// Set apk_is_patched = false pref on first start

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Android.Content.Res;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
@@ -7,11 +8,25 @@ namespace OkkeiPatcher
 {
 	internal static class GlobalData
 	{
+		static GlobalData()
+		{
+			// Read testcert for signing APK
+			AssetManager assets = Android.App.Application.Context.Assets;
+			Stream testkeyFile = assets.Open(CertFileName);
+			int testkeySize = 2797;
+
+			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize), CertPassword);
+			testkey = testkeyTemp;
+
+			testkeyFile?.Close();
+			testkeyFile?.Dispose();
+		}
+
 		public static CancellationTokenSource TokenSource = new CancellationTokenSource();
-
-		public static X509Certificate2 testkey = new X509Certificate2();
-
+		
 		public const long TwoGb = (long)1024 * 1024 * 1024 * 2;
+
+		public static readonly X509Certificate2 testkey;
 
 		public static readonly string PACKAGE_INSTALLED_ACTION = "com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED";
 		public static readonly string OkkeiFilesPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "OkkeiPatcher");
