@@ -424,7 +424,7 @@ namespace OkkeiPatcher
 						output.Write(buffer, 0, length);
 
 						int outputLength;
-						if (output is not null)
+						if (output != null)
 						{
 							outputLength = (int) output.Length;
 							MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = outputLength; });
