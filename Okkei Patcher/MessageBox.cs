@@ -58,7 +58,7 @@ namespace OkkeiPatcher
 					break;
 			}
 
-			builder.Create()?.Show();
+			MainThread.BeginInvokeOnMainThread(() => { builder.Create()?.Show(); });
 		}
 
 		private static void MessageBoxOkUnknownAppSourceNoticeAction(object sender, DialogClickEventArgs e)
