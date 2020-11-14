@@ -2,7 +2,7 @@
 
 namespace OkkeiPatcher
 {
-	class ProgressChangedEventArgs : EventArgs
+	internal class ProgressChangedEventArgs : EventArgs
 	{
 		public int Max { get; }
 		public int Progress { get; }
