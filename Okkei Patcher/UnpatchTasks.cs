@@ -63,7 +63,7 @@ namespace OkkeiPatcher
 
 				try
 				{
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.restore_obb),
 							MessageBox.Data.Empty));
@@ -75,7 +75,7 @@ namespace OkkeiPatcher
 					{
 						if (new Java.IO.File(FilePaths[Files.BackupSavedata]).Exists())
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.restore_saves),
 									MessageBox.Data.Empty));
@@ -86,7 +86,7 @@ namespace OkkeiPatcher
 						}
 						else
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 										Application.Context.Resources.GetText(Resource.String.saves_backup_not_found),
@@ -123,7 +123,7 @@ namespace OkkeiPatcher
 
 					Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.unpatch_success),
 							MessageBox.Data.Empty));
@@ -133,7 +133,7 @@ namespace OkkeiPatcher
 					if (backupedSavedata.Exists()) backupedSavedata.Delete();
 					if (appSavedata.Exists()) appSavedata.Delete();
 
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));

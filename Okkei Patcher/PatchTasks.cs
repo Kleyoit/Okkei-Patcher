@@ -73,7 +73,7 @@ namespace OkkeiPatcher
 
 						if (backupSavedata.Exists())
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.restore_old_saves),
 									MessageBox.Data.Empty));
@@ -90,14 +90,14 @@ namespace OkkeiPatcher
 
 					Java.IO.File installedObb = new Java.IO.File(FilePaths[Files.ObbToReplace]);
 
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.compare_obb),
 							MessageBox.Data.Empty));
 
 					if (!Utils.CompareMD5(Files.ObbToReplace) || !installedObb.Exists())
 					{
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.download_obb),
 								MessageBox.Data.Empty));
@@ -105,7 +105,7 @@ namespace OkkeiPatcher
 						await Utils.DownloadFile(ObbUrl, ObbPath, ObbFileName);
 						token.ThrowIfCancellationRequested();
 
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.write_obb_md5),
 								MessageBox.Data.Empty));
@@ -116,7 +116,7 @@ namespace OkkeiPatcher
 
 					installedObb.Dispose();
 
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.patch_success),
 							MessageBox.Data.Empty));
@@ -125,7 +125,7 @@ namespace OkkeiPatcher
 				{
 					backupSavedata?.Delete();
 
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
@@ -155,7 +155,7 @@ namespace OkkeiPatcher
 
 				try
 				{
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.checking),
 							MessageBox.Data.Empty));
@@ -165,7 +165,7 @@ namespace OkkeiPatcher
 
 					if (isPatched)
 					{
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.error_patched),
@@ -177,7 +177,7 @@ namespace OkkeiPatcher
 
 					if (!Utils.IsAppInstalled(ChaosChildPackageName))
 					{
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.cc_not_found),
@@ -189,7 +189,7 @@ namespace OkkeiPatcher
 
 					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
 					{
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
@@ -220,14 +220,14 @@ namespace OkkeiPatcher
 
 						if (originalSavedata.Exists())
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.compare_saves),
 									MessageBox.Data.Empty));
 
 							if (!Utils.CompareMD5(Files.OriginalSavedata))
 							{
-								StatusChanged?.Invoke(null,
+								StatusChanged?.Invoke(this,
 									new StatusChangedEventArgs(
 										Application.Context.Resources.GetText(Resource.String.backup_saves),
 										MessageBox.Data.Empty));
@@ -237,7 +237,7 @@ namespace OkkeiPatcher
 								if (token.IsCancellationRequested) originalSavedata.Dispose();
 								token.ThrowIfCancellationRequested();
 
-								StatusChanged?.Invoke(null,
+								StatusChanged?.Invoke(this,
 									new StatusChangedEventArgs(
 										Application.Context.Resources.GetText(Resource.String.write_saves_md5),
 										MessageBox.Data.Empty));
@@ -248,7 +248,7 @@ namespace OkkeiPatcher
 							}
 						}
 						else
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 										callerActivity.Resources.GetText(Resource.String.saves_not_found_patch),
@@ -266,7 +266,7 @@ namespace OkkeiPatcher
 							.PublicSourceDir;
 						Java.IO.File unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
 
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.copy_apk),
 								MessageBox.Data.Empty));
@@ -281,14 +281,14 @@ namespace OkkeiPatcher
 
 						if (unpatchedApk.Exists())
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.compare_apk),
 									MessageBox.Data.Empty));
 
 							if (!Utils.CompareMD5(Files.TempApk) || !backupApk.Exists())
 							{
-								StatusChanged?.Invoke(null,
+								StatusChanged?.Invoke(this,
 									new StatusChangedEventArgs(
 										Application.Context.Resources.GetText(Resource.String.backup_apk),
 										MessageBox.Data.Empty));
@@ -297,7 +297,7 @@ namespace OkkeiPatcher
 									backupApk.Name);
 								token.ThrowIfCancellationRequested();
 
-								StatusChanged?.Invoke(null,
+								StatusChanged?.Invoke(this,
 									new StatusChangedEventArgs(
 										Application.Context.Resources.GetText(Resource.String.write_apk_md5),
 										MessageBox.Data.Empty));
@@ -314,14 +314,14 @@ namespace OkkeiPatcher
 
 						Java.IO.File scriptsZip = new Java.IO.File(FilePaths[Files.Scripts]);
 
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.compare_scripts),
 								MessageBox.Data.Empty));
 
 						if (!Utils.CompareMD5(Files.Scripts) || !scriptsZip.Exists())
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.download_scripts),
 									MessageBox.Data.Empty));
@@ -330,7 +330,7 @@ namespace OkkeiPatcher
 								scriptsZip.Name);
 							token.ThrowIfCancellationRequested();
 
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.write_scripts_md5),
 									MessageBox.Data.Empty));
@@ -345,7 +345,7 @@ namespace OkkeiPatcher
 						FastZip fastZip = new FastZip();
 						string fileFilter = null;
 
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.extract_scripts),
 								MessageBox.Data.Empty));
@@ -360,7 +360,7 @@ namespace OkkeiPatcher
 						string[] filePaths = Directory.GetFiles(Path.Combine(OkkeiFilesPath, "scripts"));
 						int scriptsCount = filePaths.Length;
 
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.replace_scripts),
 								MessageBox.Data.Empty));
@@ -405,7 +405,7 @@ namespace OkkeiPatcher
 
 
 						// Sign APK
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.sign_apk),
 								MessageBox.Data.Empty));
@@ -417,7 +417,7 @@ namespace OkkeiPatcher
 
 						SignPackage(apkToSign, testkey, signedApkStream, signWholeFile);
 
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.write_patched_apk_md5),
 								MessageBox.Data.Empty));
@@ -447,14 +447,14 @@ namespace OkkeiPatcher
 
 					if (originalObb.Exists())
 					{
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.compare_obb),
 								MessageBox.Data.Empty));
 
 						if (!Utils.CompareMD5(Files.ObbToBackup) || !backupObb.Exists())
 						{
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.backup_obb),
 									MessageBox.Data.Empty));
@@ -465,7 +465,7 @@ namespace OkkeiPatcher
 							if (token.IsCancellationRequested) backupObb?.Dispose();
 							token.ThrowIfCancellationRequested();
 
-							StatusChanged?.Invoke(null,
+							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.write_obb_md5),
 									MessageBox.Data.Empty));
@@ -476,7 +476,7 @@ namespace OkkeiPatcher
 					}
 					else
 					{
-						StatusChanged?.Invoke(null,
+						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.obb_not_found),
@@ -493,7 +493,7 @@ namespace OkkeiPatcher
 				}
 				catch (System.OperationCanceledException)
 				{
-					StatusChanged?.Invoke(null,
+					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
