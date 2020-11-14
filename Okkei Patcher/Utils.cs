@@ -177,6 +177,8 @@ namespace OkkeiPatcher
 							MessageBox.Code.OK)));
 
 				TokenSource = new CancellationTokenSource();
+				if (PatchTasks.Instance.IsAnyRunning) PatchTasks.Instance.IsAnyRunning = false;
+				if (UnpatchTasks.Instance.IsAnyRunning) UnpatchTasks.Instance.IsAnyRunning = false;
 			}
 			else
 			{
