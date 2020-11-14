@@ -159,6 +159,8 @@ namespace OkkeiPatcher
 		{
 			try
 			{
+				this.IsAnyRunning = true;
+
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
 
