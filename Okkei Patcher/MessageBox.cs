@@ -38,7 +38,7 @@ namespace OkkeiPatcher
 		{
 			MessageBox._getMessageBoxActivity = callerActivity;
 
-			var builder = new AlertDialog.Builder(Application.Context);
+			var builder = new AlertDialog.Builder(callerActivity);
 			builder.SetTitle(data.Title);
 			builder.SetMessage(data.Message);
 			builder.SetCancelable(false);
