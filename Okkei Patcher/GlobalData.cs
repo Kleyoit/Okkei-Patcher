@@ -16,7 +16,7 @@ namespace OkkeiPatcher
 			int testkeySize = 2797;
 
 			X509Certificate2 testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize), CertPassword);
-			testkey = testkeyTemp;
+			Testkey = testkeyTemp;
 
 			testkeyFile?.Close();
 			testkeyFile?.Dispose();
@@ -26,7 +26,7 @@ namespace OkkeiPatcher
 		
 		public const long TwoGb = (long)1024 * 1024 * 1024 * 2;
 
-		public static readonly X509Certificate2 testkey;
+		public static readonly X509Certificate2 Testkey;
 
 		public static readonly string PACKAGE_INSTALLED_ACTION = "com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED";
 		public static readonly string OkkeiFilesPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "OkkeiPatcher");

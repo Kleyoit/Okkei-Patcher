@@ -24,16 +24,16 @@ namespace OkkeiPatcher
 
 		public static PatchTasks Instance => instance.Value;
 
-		private bool isAnyRunning = false;
+		private bool _isAnyRunning = false;
 
 		public bool IsAnyRunning
 		{
-			get => isAnyRunning;
+			get => _isAnyRunning;
 			set
 			{
-				if (value != isAnyRunning)
+				if (value != _isAnyRunning)
 				{
-					isAnyRunning = value;
+					_isAnyRunning = value;
 					NotifyPropertyChanged();
 				}
 			}
@@ -419,7 +419,7 @@ namespace OkkeiPatcher
 							new FileStream(FilePaths[Files.SignedApk], FileMode.OpenOrCreate);
 						bool signWholeFile = false;
 
-						SignPackage(apkToSign, testkey, signedApkStream, signWholeFile);
+						SignPackage(apkToSign, Testkey, signedApkStream, signWholeFile);
 
 						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(

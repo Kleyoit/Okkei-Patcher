@@ -21,16 +21,16 @@ namespace OkkeiPatcher
 
 		public static UnpatchTasks Instance => instance.Value;
 
-		private bool isAnyRunning = false;
+		private bool _isAnyRunning = false;
 
 		public bool IsAnyRunning
 		{
-			get => isAnyRunning;
+			get => _isAnyRunning;
 			set
 			{
-				if (value != isAnyRunning)
+				if (value != _isAnyRunning)
 				{
-					isAnyRunning = value;
+					_isAnyRunning = value;
 					NotifyPropertyChanged();
 				}
 			}

@@ -187,8 +187,7 @@ namespace OkkeiPatcher
 				CancellationToken token = TokenSource.Token;
 
 				string apkMd5 = "";
-				string apkFileMd5 = "";
-				string path = "";
+				string path;
 
 				if (isPatched)
 				{
@@ -213,7 +212,7 @@ namespace OkkeiPatcher
 								MessageBox.Data.Empty));
 
 
-						apkFileMd5 = CalculateMD5(path);
+						string apkFileMd5 = CalculateMD5(path);
 
 						if (apkMd5 == apkFileMd5)
 							InstallPackage(callerActivity, Android.Net.Uri.FromFile(new Java.IO.File(path)));
@@ -330,7 +329,7 @@ namespace OkkeiPatcher
 
 			input?.Dispose();
 			inputFile.Dispose();
-			inputBaseApkStream?.Dispose();
+			inputBaseApkStream.Dispose();
 			output.Dispose();
 			if (token.IsCancellationRequested && outFile.Exists()) outFile.Delete();
 			outFile.Dispose();

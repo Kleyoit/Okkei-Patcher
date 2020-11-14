@@ -31,12 +31,12 @@ namespace OkkeiPatcher
 			Exit
 		}
 
-		public static void Show(Activity callerActivity, string title, string message, MessageBox.Code id) =>
+		public static void Show(Activity callerActivity, string title, string message, Code id) =>
 			Show(callerActivity, new Data(title, message, id));
 
 		public static void Show(Activity callerActivity, Data data)
 		{
-			MessageBox._getMessageBoxActivity = callerActivity;
+			_getMessageBoxActivity = callerActivity;
 
 			var builder = new AlertDialog.Builder(callerActivity);
 			builder.SetTitle(data.Title);
@@ -44,15 +44,15 @@ namespace OkkeiPatcher
 			builder.SetCancelable(false);
 			switch (data.Id)
 			{
-				case MessageBox.Code.OK:
+				case Code.OK:
 					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_ok),
 						delegate { });
 					break;
-				case MessageBox.Code.UnknownAppSourceNotice:
+				case Code.UnknownAppSourceNotice:
 					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_ok),
 						MessageBoxOkUnknownAppSourceNoticeAction);
 					break;
-				case MessageBox.Code.Exit:
+				case Code.Exit:
 					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_exit),
 						MessageBoxExitAction);
 					break;
