@@ -8,6 +8,22 @@ namespace OkkeiPatcher
 	{
 		private static Activity _getMessageBoxActivity;
 
+		public struct Data
+		{
+			public string Title { get; }
+			public string Message { get; }
+			public Code Id { get; }
+
+			public static Data Empty => new Data(string.Empty, string.Empty, Code.OK);
+
+			public Data(string title, string message, Code id)
+			{
+				Title = title;
+				Message = message;
+				Id = id;
+			}
+		}
+
 		public enum Code
 		{
 			OK,
@@ -15,26 +31,29 @@ namespace OkkeiPatcher
 			Exit
 		}
 
-		public static void Show(Activity callerActivity, string title, string message, MessageBox.Code id)
+		public static void Show(Activity callerActivity, string title, string message, MessageBox.Code id) =>
+			Show(callerActivity, new Data(title, message, id));
+
+		public static void Show(Activity callerActivity, Data data)
 		{
 			MessageBox._getMessageBoxActivity = callerActivity;
 
-			var builder = new AlertDialog.Builder(callerActivity);
-			builder.SetTitle(title);
-			builder.SetMessage(message);
+			var builder = new AlertDialog.Builder(Application.Context);
+			builder.SetTitle(data.Title);
+			builder.SetMessage(data.Message);
 			builder.SetCancelable(false);
-			switch (id)
+			switch (data.Id)
 			{
 				case MessageBox.Code.OK:
-					builder.SetPositiveButton(callerActivity.Resources.GetText(Resource.String.dialog_ok),
+					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_ok),
 						delegate { });
 					break;
 				case MessageBox.Code.UnknownAppSourceNotice:
-					builder.SetPositiveButton(callerActivity.Resources.GetText(Resource.String.dialog_ok),
+					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_ok),
 						MessageBoxOkUnknownAppSourceNoticeAction);
 					break;
 				case MessageBox.Code.Exit:
-					builder.SetPositiveButton(callerActivity.Resources.GetText(Resource.String.dialog_exit),
+					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_exit),
 						MessageBoxExitAction);
 					break;
 			}

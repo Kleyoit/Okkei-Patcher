@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
 using Android;
@@ -33,7 +34,7 @@ namespace OkkeiPatcher
 				Utils.OnUninstallResult(this);
 
 			if (requestCode == (int) RequestCodes.InstallCode)
-				Utils.OnInstallResult(this);
+				Utils.OnInstallResult();
 		}
 
 		protected override void OnNewIntent(Intent intent)
@@ -42,22 +43,20 @@ namespace OkkeiPatcher
 			if (PACKAGE_INSTALLED_ACTION.Equals(intent.Action))
 			{
 				TextView info = FindViewById<TextView>(Resource.Id.Status);
+				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
 				var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 				//var message = extras.GetString(PackageInstaller.ExtraStatusMessage);
+
 				switch (status)
 				{
 					case (int) PackageInstallStatus.PendingUserAction:
-
 						// Ask user to confirm the installation
 						var confirmIntent = (Intent) extras.Get(Intent.ExtraIntent);
 						StartActivityForResult(confirmIntent, (int) RequestCodes.InstallCode);
 						break;
-
 					case (int) PackageInstallStatus.Success:
-
 						bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
-
 						if (!isPatched)
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
@@ -69,10 +68,10 @@ namespace OkkeiPatcher
 							if (signedApk.Exists()) signedApk.Delete();
 							signedApk.Dispose();
 
-							Task.Run(() => PatchTasks.FinishPatch(this));
+							Task.Run(() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked));
 						}
 						else
-							Task.Run(() => UnpatchTasks.RestoreFiles(this));
+							Task.Run(() => UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked));
 
 						break;
 				}
@@ -110,6 +109,15 @@ namespace OkkeiPatcher
 			CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 			checkBoxSavedata.CheckedChange += CheckBox_CheckedChange;
 
+			PatchTasks.Instance.StatusChanged += OnStatusChanged;
+			UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
+
+			PatchTasks.Instance.ProgressChanged += OnProgressChanged;
+			UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
+
+			PatchTasks.Instance.PropertyChanged += OnPropertyChanged;
+			UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged;
+
 
 			// Set apk_is_patched = false pref on first start
 			if (!Preferences.ContainsKey(Prefkey.apk_is_patched.ToString()))
@@ -145,6 +153,45 @@ namespace OkkeiPatcher
 			}
 		}
 
+		private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == "IsAnyRunning")
+			{
+				Button button;
+				bool isRunning;
+				string buttonText;
+
+				if (sender is PatchTasks)
+				{
+					button = FindViewById<Button>(Resource.Id.Patch);
+					isRunning = PatchTasks.Instance.IsAnyRunning;
+					buttonText = Resources.GetText(Resource.String.patch);
+				}
+				else if (sender is UnpatchTasks)
+				{
+					button = FindViewById<Button>(Resource.Id.Unpatch);
+					isRunning = UnpatchTasks.Instance.IsAnyRunning;
+					buttonText = Resources.GetText(Resource.String.unpatch);
+				}
+				else return;
+
+				button.Text = isRunning ? Resources.GetText(Resource.String.abort) : buttonText;
+			}
+		}
+
+		private void OnStatusChanged(object sender, StatusChangedEventArgs e)
+		{
+			if (e.Info != null) FindViewById<TextView>(Resource.Id.Status).Text = e.Info;
+			if (!e.MessageData.Equals(MessageBox.Data.Empty)) MessageBox.Show(this, e.MessageData);
+		}
+
+		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
+		{
+			ProgressBar progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
+			if (progressBar.Max != e.Max) progressBar.Max = e.Max;
+			progressBar.Progress = e.Progress;
+		}
+
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
 			bool isChecked = e.IsChecked;
@@ -156,7 +203,7 @@ namespace OkkeiPatcher
 		{
 			TextView info = FindViewById<TextView>(Resource.Id.Status);
 
-			if (!PatchTasks.IsAnyRunning && !UnpatchTasks.IsAnyRunning)
+			if (!PatchTasks.Instance.IsAnyRunning && !UnpatchTasks.Instance.IsAnyRunning)
 			{
 				Java.IO.File apk = new Java.IO.File(FilePaths[Files.BackupApk]);
 				if (apk.Exists()) apk.Delete();
@@ -177,40 +224,30 @@ namespace OkkeiPatcher
 
 		private void Unpatch_Click(object sender, EventArgs e)
 		{
-			if (!PatchTasks.IsAnyRunning)
+			if (!PatchTasks.Instance.IsAnyRunning)
 			{
-				if (!TokenSource.IsCancellationRequested) UnpatchTasks.IsAnyRunning = !UnpatchTasks.IsAnyRunning;
+				if (!TokenSource.IsCancellationRequested)
+					UnpatchTasks.Instance.IsAnyRunning = !UnpatchTasks.Instance.IsAnyRunning;
 
-				Button unpatch = FindViewById<Button>(Resource.Id.Unpatch);
-				ProgressBar progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
+				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
-				if (UnpatchTasks.IsAnyRunning && !TokenSource.IsCancellationRequested)
-				{
-					unpatch.Text = Resources.GetText(Resource.String.abort);
-
-					progressBar.Progress = 0;
-					Task.Run(() => UnpatchTasks.UnpatchTask(this));
-				}
+				if (UnpatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
+					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked));
 				else TokenSource.Cancel();
 			}
 		}
 
 		private void Patch_Click(object sender, EventArgs e)
 		{
-			if (!UnpatchTasks.IsAnyRunning)
+			if (!UnpatchTasks.Instance.IsAnyRunning)
 			{
-				if (!TokenSource.IsCancellationRequested) PatchTasks.IsAnyRunning = !PatchTasks.IsAnyRunning;
+				if (!TokenSource.IsCancellationRequested)
+					PatchTasks.Instance.IsAnyRunning = !PatchTasks.Instance.IsAnyRunning;
 
-				Button patch = FindViewById<Button>(Resource.Id.Patch);
-				ProgressBar progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
+				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
-				if (PatchTasks.IsAnyRunning && !TokenSource.IsCancellationRequested)
-				{
-					patch.Text = Resources.GetText(Resource.String.abort);
-
-					progressBar.Progress = 0;
-					Task.Run(() => PatchTasks.PatchTask(this));
-				}
+				if (PatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
+					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked));
 				else TokenSource.Cancel();
 			}
 		}

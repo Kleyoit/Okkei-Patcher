@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using Android.Widget;
 using System.IO;
 using System.Threading;
 using Xamarin.Essentials;
@@ -19,6 +18,9 @@ namespace OkkeiPatcher
 	internal static class Utils
 	{
 		private static readonly HttpClient Client = new HttpClient();
+
+		public static event EventHandler<StatusChangedEventArgs> StatusChanged;
+		public static event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 
 		public static string CalculateMD5(string filename)
 		{
@@ -56,7 +58,6 @@ namespace OkkeiPatcher
 			}
 
 			if (firstFile.Exists() && secondMd5 != "") firstMd5 = CalculateMD5(firstFile.Path);
-
 			if (firstMd5 == secondMd5 && firstMd5 != "" && secondMd5 != "") result = true;
 
 			return result;
@@ -128,51 +129,33 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public static async void OnInstallResult(Activity callerActivity)
+		public static async void OnInstallResult()
 		{
-			bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
-
-			TextView info = callerActivity.FindViewById<TextView>(Resource.Id.Status);
-
-			MainThread.BeginInvokeOnMainThread(() =>
-			{
-				info.Text = callerActivity.Resources.GetText(Resource.String.wait_installer);
-			});
+			StatusChanged?.Invoke(null,
+				new StatusChangedEventArgs(
+					Application.Context.Resources.GetText(Resource.String.wait_installer),
+					MessageBox.Data.Empty));
 
 			await Task.Delay(6000);
 
-			ProgressBar progressBar = callerActivity.FindViewById<ProgressBar>(Resource.Id.progressBar);
-
 			if (!IsAppInstalled(ChaosChildPackageName))
 			{
-				Button patch = callerActivity.FindViewById<Button>(Resource.Id.Patch);
-				Button unpatch = callerActivity.FindViewById<Button>(Resource.Id.Unpatch);
+				StatusChanged?.Invoke(null,
+					new StatusChangedEventArgs(null,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.install_error),
+							MessageBox.Code.OK)));
 
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
-						callerActivity.Resources.GetText(Resource.String.install_error), MessageBox.Code.OK);
-				});
-				MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
-				});
+				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 
-				if (isPatched)
-					MainThread.BeginInvokeOnMainThread(() =>
-					{
-						unpatch.Text = callerActivity.Resources.GetText(Resource.String.unpatch);
-					});
-				else
-					MainThread.BeginInvokeOnMainThread(() =>
-					{
-						patch.Text = callerActivity.Resources.GetText(Resource.String.patch);
-					});
+				StatusChanged?.Invoke(null,
+					new StatusChangedEventArgs(
+						Application.Context.Resources.GetText(Resource.String.aborted),
+						MessageBox.Data.Empty));
 
 				TokenSource = new CancellationTokenSource();
-				PatchTasks.IsAnyRunning = false;
-				UnpatchTasks.IsAnyRunning = false;
+				if (PatchTasks.Instance.IsAnyRunning) PatchTasks.Instance.IsAnyRunning = false;
+				if (UnpatchTasks.Instance.IsAnyRunning) UnpatchTasks.Instance.IsAnyRunning = false;
 			}
 		}
 
@@ -187,11 +170,11 @@ namespace OkkeiPatcher
 		{
 			if (IsAppInstalled(ChaosChildPackageName))
 			{
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
-						callerActivity.Resources.GetText(Resource.String.uninstall_error), MessageBox.Code.OK);
-				});
+				StatusChanged?.Invoke(null,
+					new StatusChangedEventArgs(null,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.uninstall_error),
+							MessageBox.Code.OK)));
 
 				TokenSource = new CancellationTokenSource();
 			}
@@ -202,11 +185,6 @@ namespace OkkeiPatcher
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
-
-				Button patch = callerActivity.FindViewById<Button>(Resource.Id.Patch);
-				Button unpatch = callerActivity.FindViewById<Button>(Resource.Id.Unpatch);
-				TextView info = callerActivity.FindViewById<TextView>(Resource.Id.Status);
-				ProgressBar progressBar = callerActivity.FindViewById<ProgressBar>(Resource.Id.progressBar);
 
 				string apkMd5 = "";
 				string apkFileMd5 = "";
@@ -229,10 +207,11 @@ namespace OkkeiPatcher
 				{
 					if (System.IO.File.Exists(path))
 					{
-						MainThread.BeginInvokeOnMainThread(() =>
-						{
-							info.Text = callerActivity.Resources.GetText(Resource.String.compare_apk);
-						});
+						StatusChanged?.Invoke(null,
+							new StatusChangedEventArgs(
+								Application.Context.Resources.GetText(Resource.String.compare_apk),
+								MessageBox.Data.Empty));
+
 
 						apkFileMd5 = CalculateMD5(path);
 
@@ -243,21 +222,22 @@ namespace OkkeiPatcher
 							System.IO.File.Delete(path);
 
 							if (isPatched)
-								MainThread.BeginInvokeOnMainThread(() =>
-								{
-									MessageBox.Show(callerActivity,
-										callerActivity.Resources.GetText(Resource.String.error),
-										callerActivity.Resources.GetText(
-											Resource.String.not_trustworthy_apk_unpatch), MessageBox.Code.OK);
-								});
+								StatusChanged?.Invoke(null,
+									new StatusChangedEventArgs(null,
+										new MessageBox.Data(
+											Application.Context.Resources.GetText(Resource.String.error),
+											Application.Context.Resources.GetText(Resource.String
+												.not_trustworthy_apk_unpatch),
+											MessageBox.Code.OK)));
+
 							else
-								MainThread.BeginInvokeOnMainThread(() =>
-								{
-									MessageBox.Show(callerActivity,
-										callerActivity.Resources.GetText(Resource.String.error),
-										callerActivity.Resources.GetText(Resource.String.not_trustworthy_apk_patch),
-										MessageBox.Code.OK);
-								});
+								StatusChanged?.Invoke(null,
+									new StatusChangedEventArgs(null,
+										new MessageBox.Data(
+											Application.Context.Resources.GetText(Resource.String.error),
+											Application.Context.Resources.GetText(Resource.String
+												.not_trustworthy_apk_patch),
+											MessageBox.Code.OK)));
 
 							TokenSource.Cancel();
 							token.ThrowIfCancellationRequested();
@@ -266,21 +246,18 @@ namespace OkkeiPatcher
 					else
 					{
 						if (isPatched)
-							MainThread.BeginInvokeOnMainThread(() =>
-							{
-								MessageBox.Show(callerActivity,
-									callerActivity.Resources.GetText(Resource.String.error),
-									callerActivity.Resources.GetText(Resource.String.apk_not_found_unpatch),
-									MessageBox.Code.OK);
-							});
+							StatusChanged?.Invoke(null,
+								new StatusChangedEventArgs(null,
+									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
+										MessageBox.Code.OK)));
+
 						else
-							MainThread.BeginInvokeOnMainThread(() =>
-							{
-								MessageBox.Show(callerActivity,
-									callerActivity.Resources.GetText(Resource.String.error),
-									callerActivity.Resources.GetText(Resource.String.apk_not_found_patch),
-									MessageBox.Code.OK);
-							});
+							StatusChanged?.Invoke(null,
+								new StatusChangedEventArgs(null,
+									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+										Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
+										MessageBox.Code.OK)));
 
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -288,41 +265,28 @@ namespace OkkeiPatcher
 				}
 				catch (System.OperationCanceledException)
 				{
-					MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
-					MainThread.BeginInvokeOnMainThread(() =>
-					{
-						info.Text = callerActivity.Resources.GetText(Resource.String.aborted);
-					});
-
-					if (isPatched)
-						MainThread.BeginInvokeOnMainThread(() =>
-						{
-							unpatch.Text = callerActivity.Resources.GetText(Resource.String.unpatch);
-						});
-					else
-						MainThread.BeginInvokeOnMainThread(() =>
-						{
-							patch.Text = callerActivity.Resources.GetText(Resource.String.patch);
-						});
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+					StatusChanged?.Invoke(null,
+						new StatusChangedEventArgs(
+							Application.Context.Resources.GetText(Resource.String.aborted),
+							MessageBox.Data.Empty));
 
 					TokenSource = new CancellationTokenSource();
-					PatchTasks.IsAnyRunning = false;
-					UnpatchTasks.IsAnyRunning = false;
+					if (PatchTasks.Instance.IsAnyRunning) PatchTasks.Instance.IsAnyRunning = false;
+					if (UnpatchTasks.Instance.IsAnyRunning) UnpatchTasks.Instance.IsAnyRunning = false;
 				}
 			}
 		}
 
-		public static Task CopyFile(Activity callerActivity, string inFilePath, string outFilePath, string outFileName)
+		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName)
 		{
 			CancellationToken token = TokenSource.Token;
-
-			ProgressBar progressBar = callerActivity.FindViewById<ProgressBar>(Resource.Id.progressBar);
 
 			int bufferLength = 0x14000;
 			byte[] buffer = new byte[bufferLength];
 			int length;
 
-			MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = 0; });
+			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 
 			Directory.CreateDirectory(outFilePath);
 
@@ -338,26 +302,28 @@ namespace OkkeiPatcher
 			if (!inFilePath.StartsWith("/data"))
 			{
 				input = new FileStream(inFilePath, FileMode.Open);
-				int inputLength = (int) input.Length;
+				int progressMax = (int) input.Length / bufferLength;
 
-				MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = inputLength / bufferLength; });
-
+				int i = 0;
 				while ((length = input.Read(buffer)) > 0)
 				{
 					output.Write(buffer, 0, length);
-					MainThread.BeginInvokeOnMainThread(() => { progressBar.IncrementProgressBy(1); });
+					i++;
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(i, progressMax));
 					if (token.IsCancellationRequested) break;
 				}
 			}
 			else
 			{
 				int fileSize = (int) inputFile.Length();
-				MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = fileSize / bufferLength; });
+				int progressMax = fileSize / bufferLength;
 
+				int i = 0;
 				while ((length = inputBaseApkStream.Read(buffer)) > 0)
 				{
 					output.Write(buffer, 0, length);
-					MainThread.BeginInvokeOnMainThread(() => { progressBar.IncrementProgressBy(1); });
+					i++;
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(i, progressMax));
 					if (token.IsCancellationRequested) break;
 				}
 			}
@@ -374,12 +340,9 @@ namespace OkkeiPatcher
 				: Task.FromException(new System.OperationCanceledException());
 		}
 
-		public static async Task DownloadFile(Activity callerActivity, string URL, string outFilePath,
-			string outFileName)
+		public static async Task DownloadFile(string URL, string outFilePath, string outFileName)
 		{
 			CancellationToken token = TokenSource.Token;
-
-			ProgressBar progressBar = callerActivity.FindViewById<ProgressBar>(Resource.Id.progressBar);
 
 			Directory.CreateDirectory(outFilePath);
 			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
@@ -396,23 +359,21 @@ namespace OkkeiPatcher
 			{
 				HttpResponseMessage response =
 					await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
+				int contentLength = -1;
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
-					int contentLength = (int) response.Content.Headers.ContentLength;
-					MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = contentLength; });
-
+					contentLength = (int) response.Content.Headers.ContentLength;
 					download = await response.Content.ReadAsStreamAsync();
 				}
 				else
 				{
-					MainThread.BeginInvokeOnMainThread(() =>
-					{
-						MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
-							Java.Lang.String.Format(
-								callerActivity.Resources.GetText(Resource.String.http_file_access_error),
-								response.StatusCode.ToString()), MessageBox.Code.OK);
-					});
+					StatusChanged?.Invoke(null,
+						new StatusChangedEventArgs(null,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Java.Lang.String.Format(
+									Application.Context.Resources.GetText(Resource.String.http_file_access_error),
+									response.StatusCode.ToString()), MessageBox.Code.OK)));
 
 					TokenSource.Cancel();
 				}
@@ -422,26 +383,18 @@ namespace OkkeiPatcher
 					while ((length = download.Read(buffer)) > 0)
 					{
 						output.Write(buffer, 0, length);
-
-						int outputLength;
-						if (output != null)
-						{
-							outputLength = (int) output.Length;
-							MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = outputLength; });
-						}
-
+						ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
 						if (token.IsCancellationRequested) break;
 					}
 				}
 			}
 			catch (Exception ex) when (!(ex is System.OperationCanceledException))
 			{
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.error),
-						callerActivity.Resources.GetText(Resource.String.http_file_download_error),
-						MessageBox.Code.OK);
-				});
+				StatusChanged?.Invoke(null,
+					new StatusChangedEventArgs(null,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+							MessageBox.Code.OK)));
 
 				TokenSource.Cancel();
 			}
@@ -473,15 +426,15 @@ namespace OkkeiPatcher
 				$"manufacturer:       {manufacturer}\nmodel:              {model}\nproduct:            {product}\nincremental:        {incremental}\nrelease:            {release}\nsdkInt:             {sdkInt}";
 		}
 
-		public static void WriteBugReport(Activity callerActivity, Exception ex)
+		public static void WriteBugReport(Exception ex)
 		{
 			string bugReport = Utils.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
-			MainThread.BeginInvokeOnMainThread(() =>
-			{
-				MessageBox.Show(callerActivity, callerActivity.Resources.GetText(Resource.String.exception),
-					callerActivity.Resources.GetText(Resource.String.exception_notice), MessageBox.Code.Exit);
-			});
+			StatusChanged?.Invoke(null,
+				new StatusChangedEventArgs(null,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
+						Application.Context.Resources.GetText(Resource.String.exception_notice),
+						MessageBox.Code.Exit)));
 		}
 	}
 }
