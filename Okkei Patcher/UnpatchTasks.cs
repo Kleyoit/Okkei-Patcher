@@ -43,11 +43,15 @@ namespace OkkeiPatcher
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e) =>
-			StatusChanged?.Invoke(this, e);
+		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
+		{
+			if (this.IsAnyRunning) StatusChanged?.Invoke(this, e);
+		}
 
-		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e) =>
-			ProgressChanged?.Invoke(this, e);
+		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
+		{
+			if (this.IsAnyRunning) ProgressChanged?.Invoke(this, e);
+		}
 
 		public async Task RestoreFiles(bool processSavedata)
 		{

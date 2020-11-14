@@ -235,9 +235,6 @@ namespace OkkeiPatcher
 		{
 			if (!PatchTasks.Instance.IsAnyRunning)
 			{
-				if (!TokenSource.IsCancellationRequested)
-					UnpatchTasks.Instance.IsAnyRunning = !UnpatchTasks.Instance.IsAnyRunning;
-
 				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
 				if (UnpatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
@@ -250,9 +247,6 @@ namespace OkkeiPatcher
 		{
 			if (!UnpatchTasks.Instance.IsAnyRunning)
 			{
-				if (!TokenSource.IsCancellationRequested)
-					PatchTasks.Instance.IsAnyRunning = !PatchTasks.Instance.IsAnyRunning;
-
 				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
 				if (PatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
