@@ -175,21 +175,30 @@ namespace OkkeiPatcher
 				}
 				else return;
 
-				button.Text = isRunning ? Resources.GetText(Resource.String.abort) : buttonText;
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					button.Text = isRunning ? Resources.GetText(Resource.String.abort) : buttonText;
+				});
 			}
 		}
 
 		private void OnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
-			if (e.Info != null) FindViewById<TextView>(Resource.Id.Status).Text = e.Info;
-			if (!e.MessageData.Equals(MessageBox.Data.Empty)) MessageBox.Show(this, e.MessageData);
+			string info = e.Info;
+			MessageBox.Data data = e.MessageData;
+			if (info != null)
+				MainThread.BeginInvokeOnMainThread(() => { FindViewById<TextView>(Resource.Id.Status).Text = info; });
+			if (!data.Equals(MessageBox.Data.Empty))
+				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, data); });
 		}
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
+			int progress = e.Progress;
+			int max = e.Max;
 			ProgressBar progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
-			if (progressBar.Max != e.Max) progressBar.Max = e.Max;
-			progressBar.Progress = e.Progress;
+			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = max; });
+			MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = progress; });
 		}
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
