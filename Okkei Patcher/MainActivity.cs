@@ -235,10 +235,11 @@ namespace OkkeiPatcher
 		{
 			if (!PatchTasks.Instance.IsAnyRunning)
 			{
-				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-
-				if (!TokenSource.IsCancellationRequested)
+				if (!UnpatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
+				{
+					CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked));
+				}
 				else TokenSource.Cancel();
 			}
 		}
@@ -247,10 +248,11 @@ namespace OkkeiPatcher
 		{
 			if (!UnpatchTasks.Instance.IsAnyRunning)
 			{
-				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-
-				if (!TokenSource.IsCancellationRequested)
+				if (!PatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
+				{
+					CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked));
+				}
 				else TokenSource.Cancel();
 			}
 		}
