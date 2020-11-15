@@ -21,16 +21,16 @@ namespace OkkeiPatcher
 
 		public static UnpatchTasks Instance => instance.Value;
 
-		private bool _isAnyRunning = false;
+		private bool _isRunning = false;
 
-		public bool IsAnyRunning
+		public bool IsRunning
 		{
-			get => _isAnyRunning;
+			get => _isRunning;
 			set
 			{
-				if (value != _isAnyRunning)
+				if (value != _isRunning)
 				{
-					_isAnyRunning = value;
+					_isRunning = value;
 					NotifyPropertyChanged();
 				}
 			}
@@ -45,19 +45,19 @@ namespace OkkeiPatcher
 
 		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
-			if (this.IsAnyRunning) StatusChanged?.Invoke(this, e);
+			if (this.IsRunning) StatusChanged?.Invoke(this, e);
 		}
 
 		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			if (this.IsAnyRunning) ProgressChanged?.Invoke(this, e);
+			if (this.IsRunning) ProgressChanged?.Invoke(this, e);
 		}
 
 		public async Task RestoreFiles(bool processSavedata)
 		{
 			try
 			{
-				this.IsAnyRunning = true;
+				this.IsRunning = true;
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
@@ -145,7 +145,7 @@ namespace OkkeiPatcher
 				finally
 				{
 					TokenSource = new CancellationTokenSource();
-					this.IsAnyRunning = false;
+					this.IsRunning = false;
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 			}
@@ -159,7 +159,7 @@ namespace OkkeiPatcher
 		{
 			try
 			{
-				this.IsAnyRunning = true;
+				this.IsRunning = true;
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
@@ -177,17 +177,6 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.error_not_patched),
-									MessageBox.Code.OK)));
-						TokenSource.Cancel();
-						token.ThrowIfCancellationRequested();
-					}
-
-					if (!Utils.IsAppInstalled(ChaosChildPackageName))
-					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.cc_not_found),
 									MessageBox.Code.OK)));
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();
@@ -242,8 +231,13 @@ namespace OkkeiPatcher
 					StatusChanged?.Invoke(this, new StatusChangedEventArgs("", MessageBox.Data.Empty));
 
 
-					// Uninstall and reinstall backed up CHAOS;CHILD, then restore OBB and, if checked, save data
-					Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
+					// Uninstall CHAOS;CHILD and install backup, then restore OBB and save data if checked
+					// Install backup immediately if CHAOS;CHILD is not installed
+					if (Utils.IsAppInstalled(ChaosChildPackageName))
+						Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
+					else
+						Utils.InstallPackage(callerActivity,
+							Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk])));
 				}
 				catch (System.OperationCanceledException)
 				{
@@ -252,7 +246,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
 					TokenSource = new CancellationTokenSource();
-					this.IsAnyRunning = false;
+					this.IsRunning = false;
 				}
 				finally
 				{

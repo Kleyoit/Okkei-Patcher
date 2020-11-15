@@ -24,16 +24,16 @@ namespace OkkeiPatcher
 
 		public static PatchTasks Instance => instance.Value;
 
-		private bool _isAnyRunning = false;
+		private bool _isRunning = false;
 
-		public bool IsAnyRunning
+		public bool IsRunning
 		{
-			get => _isAnyRunning;
+			get => _isRunning;
 			set
 			{
-				if (value != _isAnyRunning)
+				if (value != _isRunning)
 				{
-					_isAnyRunning = value;
+					_isRunning = value;
 					NotifyPropertyChanged();
 				}
 			}
@@ -50,19 +50,19 @@ namespace OkkeiPatcher
 
 		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
-			if (this.IsAnyRunning) StatusChanged?.Invoke(this, e);
+			if (this.IsRunning) StatusChanged?.Invoke(this, e);
 		}
 
 		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			if (this.IsAnyRunning) ProgressChanged?.Invoke(this, e);
+			if (this.IsRunning) ProgressChanged?.Invoke(this, e);
 		}
 
 		public async Task FinishPatch(bool processSavedata)
 		{
 			try
 			{
-				this.IsAnyRunning = true;
+				this.IsRunning = true;
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
@@ -138,7 +138,7 @@ namespace OkkeiPatcher
 				{
 					backupSavedata?.Dispose();
 					TokenSource = new CancellationTokenSource();
-					this.IsAnyRunning = false;
+					this.IsRunning = false;
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 			}
@@ -152,7 +152,7 @@ namespace OkkeiPatcher
 		{
 			try
 			{
-				this.IsAnyRunning = true;
+				this.IsRunning = true;
 
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
@@ -505,7 +505,7 @@ namespace OkkeiPatcher
 							MessageBox.Data.Empty));
 
 					TokenSource = new CancellationTokenSource();
-					this.IsAnyRunning = false;
+					this.IsRunning = false;
 				}
 				finally
 				{

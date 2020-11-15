@@ -140,22 +140,18 @@ namespace OkkeiPatcher
 
 			if (!IsAppInstalled(ChaosChildPackageName))
 			{
-				StatusChanged?.Invoke(null,
-					new StatusChangedEventArgs(null,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.install_error),
-							MessageBox.Code.OK)));
-
 				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 
 				StatusChanged?.Invoke(null,
 					new StatusChangedEventArgs(
 						Application.Context.Resources.GetText(Resource.String.aborted),
-						MessageBox.Data.Empty));
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.install_error),
+							MessageBox.Code.OK)));
 
 				TokenSource = new CancellationTokenSource();
-				if (PatchTasks.Instance.IsAnyRunning) PatchTasks.Instance.IsAnyRunning = false;
-				if (UnpatchTasks.Instance.IsAnyRunning) UnpatchTasks.Instance.IsAnyRunning = false;
+				if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
+				if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
 			}
 		}
 
@@ -171,37 +167,35 @@ namespace OkkeiPatcher
 			if (IsAppInstalled(ChaosChildPackageName))
 			{
 				StatusChanged?.Invoke(null,
-					new StatusChangedEventArgs(null,
+					new StatusChangedEventArgs(Application.Context.Resources.GetText(Resource.String.aborted),
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 							Application.Context.Resources.GetText(Resource.String.uninstall_error),
 							MessageBox.Code.OK)));
 
 				TokenSource = new CancellationTokenSource();
-				if (PatchTasks.Instance.IsAnyRunning) PatchTasks.Instance.IsAnyRunning = false;
-				if (UnpatchTasks.Instance.IsAnyRunning) UnpatchTasks.Instance.IsAnyRunning = false;
+				if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
+				if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
 			}
 			else
 			{
 				// Install APK
-				bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
-
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
 
 				string apkMd5 = "";
-				string path;
+				string path = "";
 
-				if (isPatched)
-				{
-					if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
-						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), "");
-					path = FilePaths[Files.BackupApk];
-				}
-				else
+				if (PatchTasks.Instance.IsRunning)
 				{
 					if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
 						apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), "");
 					path = FilePaths[Files.SignedApk];
+				}
+				else if (UnpatchTasks.Instance.IsRunning)
+				{
+					if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
+						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), "");
+					path = FilePaths[Files.BackupApk];
 				}
 
 				try
@@ -222,7 +216,16 @@ namespace OkkeiPatcher
 						{
 							System.IO.File.Delete(path);
 
-							if (isPatched)
+							if (PatchTasks.Instance.IsRunning)
+								StatusChanged?.Invoke(null,
+								new StatusChangedEventArgs(null,
+									new MessageBox.Data(
+										Application.Context.Resources.GetText(Resource.String.error),
+										Application.Context.Resources.GetText(Resource.String
+											.not_trustworthy_apk_patch),
+										MessageBox.Code.OK)));
+
+							else if (UnpatchTasks.Instance.IsRunning)
 								StatusChanged?.Invoke(null,
 									new StatusChangedEventArgs(null,
 										new MessageBox.Data(
@@ -231,33 +234,24 @@ namespace OkkeiPatcher
 												.not_trustworthy_apk_unpatch),
 											MessageBox.Code.OK)));
 
-							else
-								StatusChanged?.Invoke(null,
-									new StatusChangedEventArgs(null,
-										new MessageBox.Data(
-											Application.Context.Resources.GetText(Resource.String.error),
-											Application.Context.Resources.GetText(Resource.String
-												.not_trustworthy_apk_patch),
-											MessageBox.Code.OK)));
-
 							TokenSource.Cancel();
 							token.ThrowIfCancellationRequested();
 						}
 					}
 					else
 					{
-						if (isPatched)
-							StatusChanged?.Invoke(null,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
-										MessageBox.Code.OK)));
-
-						else
+						if (PatchTasks.Instance.IsRunning)
 							StatusChanged?.Invoke(null,
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 										Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
+										MessageBox.Code.OK)));
+
+						else if (UnpatchTasks.Instance.IsRunning)
+							StatusChanged?.Invoke(null,
+								new StatusChangedEventArgs(null,
+									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
 										MessageBox.Code.OK)));
 
 						TokenSource.Cancel();
@@ -273,8 +267,8 @@ namespace OkkeiPatcher
 							MessageBox.Data.Empty));
 
 					TokenSource = new CancellationTokenSource();
-					if (PatchTasks.Instance.IsAnyRunning) PatchTasks.Instance.IsAnyRunning = false;
-					if (UnpatchTasks.Instance.IsAnyRunning) UnpatchTasks.Instance.IsAnyRunning = false;
+					if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
+					if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
 				}
 			}
 		}

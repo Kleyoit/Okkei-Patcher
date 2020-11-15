@@ -56,8 +56,7 @@ namespace OkkeiPatcher
 						StartActivityForResult(confirmIntent, (int) RequestCodes.InstallCode);
 						break;
 					case (int) PackageInstallStatus.Success:
-						bool isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
-						if (!isPatched)
+						if (PatchTasks.Instance.IsRunning)
 						{
 							MainThread.BeginInvokeOnMainThread(() =>
 							{
@@ -70,7 +69,7 @@ namespace OkkeiPatcher
 
 							Task.Run(() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked));
 						}
-						else
+						else if (UnpatchTasks.Instance.IsRunning)
 							Task.Run(() => UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked));
 
 						break;
@@ -146,7 +145,7 @@ namespace OkkeiPatcher
 
 		private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == "IsAnyRunning")
+			if (e.PropertyName == "IsRunning")
 			{
 				Button button;
 				string buttonText;
@@ -155,19 +154,17 @@ namespace OkkeiPatcher
 				{
 					button = FindViewById<Button>(Resource.Id.Patch);
 
-					if (!PatchTasks.Instance.IsAnyRunning)
-						buttonText = Resources.GetText(Resource.String.patch);
-					else
-						buttonText = Resources.GetText(Resource.String.abort);
+					buttonText = PatchTasks.Instance.IsRunning
+						? Resources.GetText(Resource.String.abort)
+						: Resources.GetText(Resource.String.patch);
 				}
 				else if (sender is UnpatchTasks)
 				{
 					button = FindViewById<Button>(Resource.Id.Unpatch);
 
-					if (!UnpatchTasks.Instance.IsAnyRunning)
-						buttonText = Resources.GetText(Resource.String.unpatch);
-					else
-						buttonText = Resources.GetText(Resource.String.abort);
+					buttonText = UnpatchTasks.Instance.IsRunning
+						? Resources.GetText(Resource.String.abort)
+						: Resources.GetText(Resource.String.unpatch);
 				}
 				else return;
 
@@ -205,7 +202,7 @@ namespace OkkeiPatcher
 		{
 			TextView info = FindViewById<TextView>(Resource.Id.Status);
 
-			if (!PatchTasks.Instance.IsAnyRunning && !UnpatchTasks.Instance.IsAnyRunning)
+			if (!PatchTasks.Instance.IsRunning && !UnpatchTasks.Instance.IsRunning)
 			{
 				Java.IO.File apk = new Java.IO.File(FilePaths[Files.BackupApk]);
 				if (apk.Exists()) apk.Delete();
@@ -226,9 +223,9 @@ namespace OkkeiPatcher
 
 		private void Unpatch_Click(object sender, EventArgs e)
 		{
-			if (!PatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
+			if (!PatchTasks.Instance.IsRunning && !TokenSource.IsCancellationRequested)
 			{
-				if (!UnpatchTasks.Instance.IsAnyRunning)
+				if (!UnpatchTasks.Instance.IsRunning)
 				{
 					UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
 					UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
@@ -243,9 +240,9 @@ namespace OkkeiPatcher
 
 		private void Patch_Click(object sender, EventArgs e)
 		{
-			if (!UnpatchTasks.Instance.IsAnyRunning && !TokenSource.IsCancellationRequested)
+			if (!UnpatchTasks.Instance.IsRunning && !TokenSource.IsCancellationRequested)
 			{
-				if (!PatchTasks.Instance.IsAnyRunning)
+				if (!PatchTasks.Instance.IsRunning)
 				{
 					PatchTasks.Instance.StatusChanged += OnStatusChanged;
 					PatchTasks.Instance.ProgressChanged += OnProgressChanged;
