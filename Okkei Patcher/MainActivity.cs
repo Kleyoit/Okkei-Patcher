@@ -26,8 +26,11 @@ namespace OkkeiPatcher
 			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O)
 			{
 				if (!this.PackageManager.CanRequestPackageInstalls())
-					MessageBox.Show(this, Resources.GetText(Resource.String.error),
-						Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						MessageBox.Show(this, Resources.GetText(Resource.String.error),
+							Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
+					});
 			}
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
@@ -137,9 +140,12 @@ namespace OkkeiPatcher
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
 			{
 				if (!this.PackageManager.CanRequestPackageInstalls())
-					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-						Resources.GetText(Resource.String.unknown_sources_notice),
-						MessageBox.Code.UnknownAppSourceNotice);
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+							Resources.GetText(Resource.String.unknown_sources_notice),
+							MessageBox.Code.UnknownAppSourceNotice);
+					});
 			}
 		}
 
