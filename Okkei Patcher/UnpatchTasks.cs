@@ -247,6 +247,8 @@ namespace OkkeiPatcher
 					else
 						Utils.InstallPackage(callerActivity,
 							Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk])));
+
+					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 				catch (System.OperationCanceledException)
 				{
@@ -255,12 +257,12 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
 					TokenSource = new CancellationTokenSource();
+					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					this.IsRunning = false;
 				}
 				finally
 				{
 					backupApk.Dispose();
-					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 			}
 			catch (Exception ex)

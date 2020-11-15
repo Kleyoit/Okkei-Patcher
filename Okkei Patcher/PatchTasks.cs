@@ -496,6 +496,8 @@ namespace OkkeiPatcher
 
 					// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
 					Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
+
+					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 				catch (System.OperationCanceledException)
 				{
@@ -505,11 +507,8 @@ namespace OkkeiPatcher
 							MessageBox.Data.Empty));
 
 					TokenSource = new CancellationTokenSource();
-					this.IsRunning = false;
-				}
-				finally
-				{
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
+					this.IsRunning = false;
 				}
 			}
 			catch (Exception ex)
