@@ -58,10 +58,7 @@ namespace OkkeiPatcher
 					break;
 			}
 
-			var alertDialog = builder.Create();
-			if (alertDialog != null)
-				if (!alertDialog.IsShowing)
-					alertDialog.Show();
+			builder.Create()?.Show();
 		}
 
 		private static void MessageBoxOkUnknownAppSourceNoticeAction(object sender, DialogClickEventArgs e)
