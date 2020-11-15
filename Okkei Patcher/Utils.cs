@@ -21,6 +21,7 @@ namespace OkkeiPatcher
 
 		public static event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public static event EventHandler<ProgressChangedEventArgs> ProgressChanged;
+		public static event EventHandler ErrorCanceled;
 
 		public static string CalculateMD5(string filename)
 		{
@@ -149,7 +150,6 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.install_error),
 							MessageBox.Code.OK)));
 
-				TokenSource = new CancellationTokenSource();
 				if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
 				if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
 			}
@@ -162,7 +162,7 @@ namespace OkkeiPatcher
 			callerActivity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
-		public static void OnUninstallResult(Activity callerActivity)
+		public static void OnUninstallResult(Activity callerActivity, CancellationToken token)
 		{
 			if (IsAppInstalled(ChaosChildPackageName))
 			{
@@ -172,16 +172,12 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.uninstall_error),
 							MessageBox.Code.OK)));
 
-				TokenSource = new CancellationTokenSource();
 				if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
 				if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
 			}
 			else
 			{
 				// Install APK
-				TokenSource = new CancellationTokenSource();
-				CancellationToken token = TokenSource.Token;
-
 				string apkMd5 = "";
 				string path = "";
 
@@ -234,7 +230,7 @@ namespace OkkeiPatcher
 												.not_trustworthy_apk_unpatch),
 											MessageBox.Code.OK)));
 
-							TokenSource.Cancel();
+							ErrorCanceled?.Invoke(null, EventArgs.Empty);
 							token.ThrowIfCancellationRequested();
 						}
 					}
@@ -254,7 +250,7 @@ namespace OkkeiPatcher
 										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
 										MessageBox.Code.OK)));
 
-						TokenSource.Cancel();
+						ErrorCanceled?.Invoke(null, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 				}
@@ -266,17 +262,14 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
 
-					TokenSource = new CancellationTokenSource();
 					if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
 					if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
 				}
 			}
 		}
 
-		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName)
+		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)
 		{
-			CancellationToken token = TokenSource.Token;
-
 			int bufferLength = 0x14000;
 			byte[] buffer = new byte[bufferLength];
 			int length;
@@ -335,10 +328,8 @@ namespace OkkeiPatcher
 				: Task.FromException(new System.OperationCanceledException());
 		}
 
-		public static async Task DownloadFile(string URL, string outFilePath, string outFileName)
+		public static async Task DownloadFile(string URL, string outFilePath, string outFileName, CancellationToken token)
 		{
-			CancellationToken token = TokenSource.Token;
-
 			Directory.CreateDirectory(outFilePath);
 			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
 
@@ -370,7 +361,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.http_file_access_error),
 									response.StatusCode.ToString()), MessageBox.Code.OK)));
 
-					TokenSource.Cancel();
+					ErrorCanceled?.Invoke(null, EventArgs.Empty);
 				}
 
 				if (!token.IsCancellationRequested)
@@ -391,7 +382,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
 							MessageBox.Code.OK)));
 
-				TokenSource.Cancel();
+				ErrorCanceled?.Invoke(null, EventArgs.Empty);
 			}
 			finally
 			{

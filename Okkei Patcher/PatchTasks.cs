@@ -20,6 +20,7 @@ namespace OkkeiPatcher
 		{
 			Utils.StatusChanged += UtilsOnStatusChanged;
 			Utils.ProgressChanged += UtilsOnProgressChanged;
+			Utils.ErrorCanceled += UtilsOnErrorCanceled;
 		}
 
 		public static PatchTasks Instance => instance.Value;
@@ -44,6 +45,7 @@ namespace OkkeiPatcher
 		public event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 		public event PropertyChangedEventHandler PropertyChanged;
+		public event EventHandler ErrorCanceled;
 
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -58,14 +60,16 @@ namespace OkkeiPatcher
 			if (this.IsRunning) ProgressChanged?.Invoke(this, e);
 		}
 
-		public async Task FinishPatch(bool processSavedata)
+		private void UtilsOnErrorCanceled(object sender, EventArgs e)
+		{
+			if (this.IsRunning) ErrorCanceled?.Invoke(this, e);
+		}
+
+		public async Task FinishPatch(bool processSavedata, CancellationToken token)
 		{
 			try
 			{
 				this.IsRunning = true;
-
-				TokenSource = new CancellationTokenSource();
-				CancellationToken token = TokenSource.Token;
 
 				Java.IO.File backupSavedata = null;
 
@@ -85,7 +89,8 @@ namespace OkkeiPatcher
 							backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
 							backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
-							await Utils.CopyFile(backupSavedata.Path, SavedataPath, SavedataFileName);
+							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
+								SavedataFileName, token);
 							token.ThrowIfCancellationRequested();
 						}
 					}
@@ -106,7 +111,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.download_obb),
 								MessageBox.Data.Empty));
 
-						await Utils.DownloadFile(ObbUrl, ObbPath, ObbFileName);
+						await Utils.DownloadFile(ObbUrl, ObbPath, ObbFileName, token);
 						token.ThrowIfCancellationRequested();
 
 						StatusChanged?.Invoke(this,
@@ -137,7 +142,6 @@ namespace OkkeiPatcher
 				finally
 				{
 					backupSavedata?.Dispose();
-					TokenSource = new CancellationTokenSource();
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					this.IsRunning = false;
 				}
@@ -148,14 +152,11 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public async Task PatchTask(Activity callerActivity, bool processSavedata)
+		public async Task PatchTask(Activity callerActivity, bool processSavedata, CancellationToken token)
 		{
 			try
 			{
 				this.IsRunning = true;
-
-				TokenSource = new CancellationTokenSource();
-				CancellationToken token = TokenSource.Token;
 
 				ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
@@ -177,7 +178,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.error_patched),
 									MessageBox.Code.OK)));
 
-						TokenSource.Cancel();
+						ErrorCanceled?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -189,7 +190,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.cc_not_found),
 									MessageBox.Code.OK)));
 
-						TokenSource.Cancel();
+						ErrorCanceled?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -201,7 +202,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
 									MessageBox.Code.OK)));
 
-						TokenSource.Cancel();
+						ErrorCanceled?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -239,7 +240,7 @@ namespace OkkeiPatcher
 										MessageBox.Data.Empty));
 
 								await Utils.CopyFile(originalSavedata.Path,
-									backupSavedata.Parent, backupSavedata.Name);
+									backupSavedata.Parent, backupSavedata.Name, token);
 								if (token.IsCancellationRequested) originalSavedata.Dispose();
 								token.ThrowIfCancellationRequested();
 
@@ -278,7 +279,7 @@ namespace OkkeiPatcher
 								MessageBox.Data.Empty));
 
 						await Utils.CopyFile(originalApkPath, unpatchedApk.Parent,
-							unpatchedApk.Name);
+							unpatchedApk.Name, token);
 						token.ThrowIfCancellationRequested();
 
 
@@ -300,7 +301,7 @@ namespace OkkeiPatcher
 										MessageBox.Data.Empty));
 
 								await Utils.CopyFile(originalApkPath, backupApk.Parent,
-									backupApk.Name);
+									backupApk.Name, token);
 								token.ThrowIfCancellationRequested();
 
 								StatusChanged?.Invoke(this,
@@ -333,7 +334,7 @@ namespace OkkeiPatcher
 									MessageBox.Data.Empty));
 
 							await Utils.DownloadFile(ScriptsUrl, scriptsZip.Parent,
-								scriptsZip.Name);
+								scriptsZip.Name, token);
 							token.ThrowIfCancellationRequested();
 
 							StatusChanged?.Invoke(this,
@@ -466,7 +467,7 @@ namespace OkkeiPatcher
 									MessageBox.Data.Empty));
 
 							await Utils.CopyFile(originalObb.Path, backupObb.Parent,
-								backupObb.Name);
+								backupObb.Name, token);
 							originalObb?.Dispose();
 							if (token.IsCancellationRequested) backupObb?.Dispose();
 							token.ThrowIfCancellationRequested();
@@ -487,7 +488,7 @@ namespace OkkeiPatcher
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
 									MessageBox.Code.OK)));
-						TokenSource.Cancel();
+						ErrorCanceled?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -506,7 +507,6 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
 
-					TokenSource = new CancellationTokenSource();
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					this.IsRunning = false;
 				}

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
-using System.Threading;
 
 namespace OkkeiPatcher
 {
@@ -21,13 +20,9 @@ namespace OkkeiPatcher
 			testkeyFile?.Close();
 			testkeyFile?.Dispose();
 		}
-
-		public static CancellationTokenSource TokenSource = new CancellationTokenSource();
 		
 		public const long TwoGb = (long)1024 * 1024 * 1024 * 2;
-
 		public static readonly X509Certificate2 Testkey;
-
 		public static readonly string PACKAGE_INSTALLED_ACTION = "com.example.android.apis.content.SESSION_API_PACKAGE_INSTALLED";
 		public static readonly string OkkeiFilesPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "OkkeiPatcher");
 		public static readonly string OkkeiFilesPathBackup = Path.Combine(OkkeiFilesPath, "backup");
