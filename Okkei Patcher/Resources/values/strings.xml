@@ -40,7 +40,8 @@
   <string name="write_scripts_md5">Writing scripts checksum...</string>
   <string name="saves_not_found_patch">Save data was not found. Okkei Patcher can not perform backup of your current save data and will continue patching process.</string>
   <string name="saves_not_found_unpatch">Save data was not found. Okkei Patcher can not perform backup of your current save data and will continue restoring process.</string>
-  <string name="obb_not_found">OBB file was not found. Okkei Patcher will abort patching process.</string>
+  <string name="obb_not_found_patch">OBB file was not found. Okkei Patcher will abort patching process.</string>
+  <string name="obb_not_found_unpatch">Backup of OBB file was not found. Okkei Patcher will abort restoring process.</string>
   <string name="checking">Checking...</string>
   <string name="restore_obb">Restoring OBB...</string>
   <string name="restore_saves">Restoring save data...</string>

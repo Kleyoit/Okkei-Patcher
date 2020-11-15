@@ -138,8 +138,8 @@ namespace OkkeiPatcher
 				{
 					backupSavedata?.Dispose();
 					TokenSource = new CancellationTokenSource();
-					this.IsRunning = false;
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
+					this.IsRunning = false;
 				}
 			}
 			catch (Exception ex)
@@ -485,7 +485,7 @@ namespace OkkeiPatcher
 						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.obb_not_found),
+									Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
 									MessageBox.Code.OK)));
 						TokenSource.Cancel();
 						token.ThrowIfCancellationRequested();

@@ -38,7 +38,8 @@
   <string name="write_scripts_md5">Вычисление хэша скриптов...</string>
   <string name="saves_not_found_patch">Файл сохранений не найден. Резервная копия файла сохранений не будет создана. Okkei Patcher продолжит процесс локализации.</string>
   <string name="saves_not_found_unpatch">Файл сохранений не найден. Резервная копия файла сохранений не будет создана. Okkei Patcher продолжит процесс восстановления.</string>
-  <string name="obb_not_found">Файл OBB не найден. Процесс локализации отменён.</string>
+  <string name="obb_not_found_patch">Файл OBB не найден. Процесс локализации отменён.</string>
+  <string name="obb_not_found_unpatch">Резервная копия файла OBB не найдена. Процесс восстановления отменён.</string>
   <string name="checking">Проверка...</string>
   <string name="restore_obb">Восстановление OBB...</string>
   <string name="restore_saves">Восстановление файла сохранений...</string>

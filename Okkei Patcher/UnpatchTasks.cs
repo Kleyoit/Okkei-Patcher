@@ -62,7 +62,10 @@ namespace OkkeiPatcher
 				TokenSource = new CancellationTokenSource();
 				CancellationToken token = TokenSource.Token;
 
-				var backupedSavedata = new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]);
+				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
+				var backupObb = new Java.IO.File(FilePaths[Files.BackupObb]);
+				var backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+				var backupSavedataCopy = new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]);
 				var appSavedata = new Java.IO.File(FilePaths[Files.OriginalSavedata]);
 
 				try
@@ -72,20 +75,30 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.restore_obb),
 							MessageBox.Data.Empty));
 
-					await Utils.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName);
+					if (!backupObb.Exists())
+					{
+						StatusChanged?.Invoke(this,
+							new StatusChangedEventArgs(null,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+									Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
+									MessageBox.Code.OK)));
+						TokenSource.Cancel();
+						token.ThrowIfCancellationRequested();
+					}
+
+					await Utils.CopyFile(backupObb.Path, ObbPath, ObbFileName);
 					token.ThrowIfCancellationRequested();
 
 					if (processSavedata)
 					{
-						if (new Java.IO.File(FilePaths[Files.BackupSavedata]).Exists())
+						if (backupSavedata.Exists())
 						{
 							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(
 									Application.Context.Resources.GetText(Resource.String.restore_saves),
 									MessageBox.Data.Empty));
 
-							await Utils.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath,
-								SavedataFileName);
+							await Utils.CopyFile(backupSavedata.Path, SavedataPath, SavedataFileName);
 							token.ThrowIfCancellationRequested();
 						}
 						else
@@ -99,32 +112,22 @@ namespace OkkeiPatcher
 					}
 
 					// Clear backup
-					Java.IO.File apk = new Java.IO.File(FilePaths[Files.BackupApk]);
-					if (apk.Exists()) apk.Delete();
+					if (backupApk.Exists()) backupApk.Delete();
+					if (backupObb.Exists()) backupObb.Delete();
 
-					Java.IO.File obb = new Java.IO.File(FilePaths[Files.BackupObb]);
-					if (obb.Exists()) obb.Delete();
-
-					Java.IO.File savedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
-					if (savedata.Exists())
+					if (backupSavedata.Exists())
 					{
-						savedata.Delete();
-						if (backupedSavedata.Exists())
+						backupSavedata.Delete();
+						if (backupSavedataCopy.Exists())
 						{
-							backupedSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
-							backupedSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+							backupSavedataCopy.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
+							backupSavedataCopy = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
-							Preferences.Set(Prefkey.savedata_md5.ToString(), Utils.CalculateMD5(backupedSavedata.Path));
+							Preferences.Set(Prefkey.savedata_md5.ToString(), Utils.CalculateMD5(backupSavedataCopy.Path));
 						}
 					}
 
 					// Finish unpatch
-					apk.Dispose();
-					obb.Dispose();
-					savedata.Dispose();
-					backupedSavedata.Dispose();
-					appSavedata.Dispose();
-
 					Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
 					StatusChanged?.Invoke(this,
@@ -134,7 +137,7 @@ namespace OkkeiPatcher
 				}
 				catch (System.OperationCanceledException)
 				{
-					if (backupedSavedata.Exists()) backupedSavedata.Delete();
+					if (backupSavedataCopy.Exists()) backupSavedataCopy.Delete();
 					if (appSavedata.Exists()) appSavedata.Delete();
 
 					StatusChanged?.Invoke(this,
@@ -144,9 +147,15 @@ namespace OkkeiPatcher
 				}
 				finally
 				{
+					backupApk.Dispose();
+					backupObb.Dispose();
+					backupSavedata.Dispose();
+					backupSavedataCopy.Dispose();
+					appSavedata.Dispose();
+
 					TokenSource = new CancellationTokenSource();
-					this.IsRunning = false;
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
+					this.IsRunning = false;
 				}
 			}
 			catch (Exception ex)
