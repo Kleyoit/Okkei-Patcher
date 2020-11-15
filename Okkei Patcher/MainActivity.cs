@@ -160,17 +160,29 @@ namespace OkkeiPatcher
 				{
 					button = FindViewById<Button>(Resource.Id.Patch);
 
-					buttonText = PatchTasks.Instance.IsRunning
-						? Resources.GetText(Resource.String.abort)
-						: Resources.GetText(Resource.String.patch);
+					if (!PatchTasks.Instance.IsRunning)
+					{
+						buttonText = Resources.GetText(Resource.String.patch);
+
+						PatchTasks.Instance.StatusChanged -= OnStatusChanged;
+						PatchTasks.Instance.ProgressChanged -= OnProgressChanged;
+						PatchTasks.Instance.PropertyChanged -= OnPropertyChanged;
+					}
+					else buttonText = Resources.GetText(Resource.String.abort);
 				}
 				else if (sender is UnpatchTasks)
 				{
 					button = FindViewById<Button>(Resource.Id.Unpatch);
 
-					buttonText = UnpatchTasks.Instance.IsRunning
-						? Resources.GetText(Resource.String.abort)
-						: Resources.GetText(Resource.String.unpatch);
+					if (!UnpatchTasks.Instance.IsRunning)
+					{
+						buttonText = Resources.GetText(Resource.String.unpatch);
+
+						UnpatchTasks.Instance.StatusChanged -= OnStatusChanged;
+						UnpatchTasks.Instance.ProgressChanged -= OnProgressChanged;
+						UnpatchTasks.Instance.PropertyChanged -= OnPropertyChanged;
+					}
+					else buttonText = Resources.GetText(Resource.String.abort);
 				}
 				else return;
 
