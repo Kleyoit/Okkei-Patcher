@@ -203,7 +203,6 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.compare_apk),
 								MessageBox.Data.Empty));
 
-
 						string apkFileMd5 = CalculateMD5(path);
 
 						if (apkMd5 == apkFileMd5)
