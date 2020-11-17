@@ -1,17 +1,21 @@
 ﻿using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
-using System.IO;
-using System.Threading;
-using Xamarin.Essentials;
-using Java.IO;
-using System.Net.Http;
-using System.Net;
 using Android.OS;
+using Java.IO;
+using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
+using File = System.IO.File;
+using OperationCanceledException = System.OperationCanceledException;
+using String = Java.Lang.String;
+using Uri = Android.Net.Uri;
 
 namespace OkkeiPatcher
 {
@@ -27,7 +31,7 @@ namespace OkkeiPatcher
 		{
 			using (var md5 = MD5.Create())
 			{
-				using (var stream = System.IO.File.OpenRead(filename))
+				using (var stream = File.OpenRead(filename))
 				{
 					var hash = md5.ComputeHash(stream);
 					return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
@@ -36,14 +40,15 @@ namespace OkkeiPatcher
 		}
 
 		/// <summary>
-		/// Compares given file with a predefined corresponding file or corresponding checksum written in preferences and returns true if checksums are equal, false otherwise. See predefined values in <see cref="FileToCompareWith"/>.
+		///     Compares given file with a predefined corresponding file or corresponding checksum written in preferences and
+		///     returns true if checksums are equal, false otherwise. See predefined values in <see cref="FileToCompareWith" />.
 		/// </summary>
 		public static bool CompareMD5(Files file)
 		{
-			bool result = false;
+			var result = false;
 
-			string firstMd5 = "";
-			string secondMd5 = "";
+			var firstMd5 = "";
+			var secondMd5 = "";
 
 			var firstFile = new Java.IO.File(FilePaths[file]);
 
@@ -66,7 +71,7 @@ namespace OkkeiPatcher
 
 		public static byte[] ReadCert(Stream certStream, int size)
 		{
-			byte[] data = new byte[size];
+			var data = new byte[size];
 			size = certStream.Read(data, 0, size);
 			certStream.Close();
 			return data;
@@ -85,7 +90,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private static void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
+		private static void AddApkToInstallSession(Uri apkUri, PackageInstaller.Session session)
 		{
 			var packageInSession = session.OpenWrite("package", 0, -1);
 			var input = new FileStream(apkUri.Path, FileMode.Open);
@@ -107,11 +112,11 @@ namespace OkkeiPatcher
 			GC.Collect();
 		}
 
-		public static void InstallPackage(Activity callerActivity, Android.Net.Uri apkUri)
+		public static void InstallPackage(Activity callerActivity, Uri apkUri)
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
 			{
-				var packageInstaller = Android.App.Application.Context.PackageManager.PackageInstaller;
+				var packageInstaller = Application.Context.PackageManager.PackageInstaller;
 				var sessionParams = new PackageInstaller.SessionParams(PackageInstallMode.FullInstall);
 				var sessionId = packageInstaller.CreateSession(sessionParams);
 				var session = packageInstaller.OpenSession(sessionId);
@@ -157,8 +162,8 @@ namespace OkkeiPatcher
 
 		public static void UninstallPackage(Activity callerActivity, string packageName)
 		{
-			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
-			Intent uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
+			var packageUri = Uri.Parse("package:" + packageName);
+			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
 			callerActivity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
@@ -178,8 +183,8 @@ namespace OkkeiPatcher
 			else
 			{
 				// Install APK
-				string apkMd5 = "";
-				string path = "";
+				var apkMd5 = "";
+				var path = "";
 
 				if (PatchTasks.Instance.IsRunning)
 				{
@@ -196,29 +201,31 @@ namespace OkkeiPatcher
 
 				try
 				{
-					if (System.IO.File.Exists(path))
+					if (File.Exists(path))
 					{
 						StatusChanged?.Invoke(null,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.compare_apk),
 								MessageBox.Data.Empty));
 
-						string apkFileMd5 = CalculateMD5(path);
+						var apkFileMd5 = CalculateMD5(path);
 
 						if (apkMd5 == apkFileMd5)
-							InstallPackage(callerActivity, Android.Net.Uri.FromFile(new Java.IO.File(path)));
+						{
+							InstallPackage(callerActivity, Uri.FromFile(new Java.IO.File(path)));
+						}
 						else
 						{
-							System.IO.File.Delete(path);
+							File.Delete(path);
 
 							if (PatchTasks.Instance.IsRunning)
 								StatusChanged?.Invoke(null,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(
-										Application.Context.Resources.GetText(Resource.String.error),
-										Application.Context.Resources.GetText(Resource.String
-											.not_trustworthy_apk_patch),
-										MessageBox.Code.OK)));
+									new StatusChangedEventArgs(null,
+										new MessageBox.Data(
+											Application.Context.Resources.GetText(Resource.String.error),
+											Application.Context.Resources.GetText(Resource.String
+												.not_trustworthy_apk_patch),
+											MessageBox.Code.OK)));
 
 							else if (UnpatchTasks.Instance.IsRunning)
 								StatusChanged?.Invoke(null,
@@ -253,7 +260,7 @@ namespace OkkeiPatcher
 						token.ThrowIfCancellationRequested();
 					}
 				}
-				catch (System.OperationCanceledException)
+				catch (OperationCanceledException)
 				{
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 					StatusChanged?.Invoke(null,
@@ -269,8 +276,8 @@ namespace OkkeiPatcher
 
 		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)
 		{
-			int bufferLength = 0x14000;
-			byte[] buffer = new byte[bufferLength];
+			var bufferLength = 0x14000;
+			var buffer = new byte[bufferLength];
 			int length;
 
 			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
@@ -289,9 +296,9 @@ namespace OkkeiPatcher
 			if (!inFilePath.StartsWith("/data"))
 			{
 				input = new FileStream(inFilePath, FileMode.Open);
-				int progressMax = (int) input.Length / bufferLength;
+				var progressMax = (int) input.Length / bufferLength;
 
-				int i = 0;
+				var i = 0;
 				while ((length = input.Read(buffer)) > 0)
 				{
 					output.Write(buffer, 0, length);
@@ -302,10 +309,10 @@ namespace OkkeiPatcher
 			}
 			else
 			{
-				int fileSize = (int) inputFile.Length();
-				int progressMax = fileSize / bufferLength;
+				var fileSize = (int) inputFile.Length();
+				var progressMax = fileSize / bufferLength;
 
-				int i = 0;
+				var i = 0;
 				while ((length = inputBaseApkStream.Read(buffer)) > 0)
 				{
 					output.Write(buffer, 0, length);
@@ -324,16 +331,17 @@ namespace OkkeiPatcher
 
 			return !token.IsCancellationRequested
 				? Task.CompletedTask
-				: Task.FromException(new System.OperationCanceledException());
+				: Task.FromException(new OperationCanceledException(token));
 		}
 
-		public static async Task DownloadFile(string URL, string outFilePath, string outFileName, CancellationToken token)
+		public static async Task DownloadFile(string URL, string outFilePath, string outFileName,
+			CancellationToken token)
 		{
 			Directory.CreateDirectory(outFilePath);
 			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
 
-			int bufferLength = 0x14000;
-			byte[] buffer = new byte[bufferLength];
+			var bufferLength = 0x14000;
+			var buffer = new byte[bufferLength];
 			int length;
 
 			var downloadedFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
@@ -342,9 +350,9 @@ namespace OkkeiPatcher
 
 			try
 			{
-				HttpResponseMessage response =
+				var response =
 					await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
-				int contentLength = -1;
+				var contentLength = -1;
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
@@ -356,7 +364,7 @@ namespace OkkeiPatcher
 					StatusChanged?.Invoke(null,
 						new StatusChangedEventArgs(null,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Java.Lang.String.Format(
+								String.Format(
 									Application.Context.Resources.GetText(Resource.String.http_file_access_error),
 									response.StatusCode.ToString()), MessageBox.Code.OK)));
 
@@ -364,16 +372,14 @@ namespace OkkeiPatcher
 				}
 
 				if (!token.IsCancellationRequested)
-				{
 					while ((length = download.Read(buffer)) > 0)
 					{
 						output.Write(buffer, 0, length);
 						ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
 						if (token.IsCancellationRequested) break;
 					}
-				}
 			}
-			catch (Exception ex) when (!(ex is System.OperationCanceledException))
+			catch (Exception ex) when (!(ex is OperationCanceledException))
 			{
 				StatusChanged?.Invoke(null,
 					new StatusChangedEventArgs(null,
@@ -396,25 +402,25 @@ namespace OkkeiPatcher
 		public static string GetBugReportText(Exception ex)
 		{
 			return
-				$"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{Utils.GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
+				$"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
 		}
 
 		public static string GetDeviceInfo()
 		{
-			string manufacturer = Build.Manufacturer;
-			string model = Build.Model;
-			string product = Build.Product;
-			string incremental = Build.VERSION.Incremental;
-			string release = Build.VERSION.Release;
-			BuildVersionCodes sdkInt = Build.VERSION.SdkInt;
+			var manufacturer = Build.Manufacturer;
+			var model = Build.Model;
+			var product = Build.Product;
+			var incremental = Build.VERSION.Incremental;
+			var release = Build.VERSION.Release;
+			var sdkInt = Build.VERSION.SdkInt;
 			return
 				$"manufacturer:       {manufacturer}\nmodel:              {model}\nproduct:            {product}\nincremental:        {incremental}\nrelease:            {release}\nsdkInt:             {sdkInt}";
 		}
 
 		public static void WriteBugReport(Exception ex)
 		{
-			string bugReport = Utils.GetBugReportText(ex);
-			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
+			var bugReport = GetBugReportText(ex);
+			File.WriteAllText(BugReportLogPath, bugReport);
 			StatusChanged?.Invoke(null,
 				new StatusChangedEventArgs(null,
 					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),

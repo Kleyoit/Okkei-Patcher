@@ -9,12 +9,18 @@ using ICSharpCode.SharpZipLib.Zip;
 using Xamarin.Essentials;
 using static SignApk.SignApk;
 using static OkkeiPatcher.GlobalData;
+using Environment = Android.OS.Environment;
+using File = Java.IO.File;
 
 namespace OkkeiPatcher
 {
 	internal class PatchTasks : INotifyPropertyChanged
 	{
 		private static readonly Lazy<PatchTasks> instance = new Lazy<PatchTasks>(() => new PatchTasks());
+
+		private static bool _saveDataBackupFromOldPatch;
+
+		private bool _isRunning;
 
 		private PatchTasks()
 		{
@@ -24,8 +30,6 @@ namespace OkkeiPatcher
 		}
 
 		public static PatchTasks Instance => instance.Value;
-
-		private bool _isRunning = false;
 
 		public bool IsRunning
 		{
@@ -40,44 +44,45 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private static bool _saveDataBackupFromOldPatch = false;
+		public event PropertyChangedEventHandler PropertyChanged;
 
 		public event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
-		public event PropertyChangedEventHandler PropertyChanged;
 		public event EventHandler ErrorCanceled;
 
-		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
+		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 
 		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
-			if (this.IsRunning) StatusChanged?.Invoke(this, e);
+			if (IsRunning) StatusChanged?.Invoke(this, e);
 		}
 
 		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			if (this.IsRunning) ProgressChanged?.Invoke(this, e);
+			if (IsRunning) ProgressChanged?.Invoke(this, e);
 		}
 
 		private void UtilsOnErrorCanceled(object sender, EventArgs e)
 		{
-			if (this.IsRunning) ErrorCanceled?.Invoke(this, e);
+			if (IsRunning) ErrorCanceled?.Invoke(this, e);
 		}
 
 		public async Task FinishPatch(bool processSavedata, CancellationToken token)
 		{
 			try
 			{
-				this.IsRunning = true;
+				IsRunning = true;
 
-				Java.IO.File backupSavedata = null;
+				File backupSavedata = null;
 
 				try
 				{
 					if (_saveDataBackupFromOldPatch && processSavedata)
 					{
-						backupSavedata = new Java.IO.File(Path.Combine(OkkeiFilesPathBackup, SavedataBackupFileName));
+						backupSavedata = new File(Path.Combine(OkkeiFilesPathBackup, SavedataBackupFileName));
 
 						if (backupSavedata.Exists())
 						{
@@ -86,8 +91,8 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.restore_old_saves),
 									MessageBox.Data.Empty));
 
-							backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
-							backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+							backupSavedata.RenameTo(new File(FilePaths[Files.BackupSavedata]));
+							backupSavedata = new File(FilePaths[Files.BackupSavedata]);
 
 							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
 								SavedataFileName, token);
@@ -97,7 +102,7 @@ namespace OkkeiPatcher
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-					Java.IO.File installedObb = new Java.IO.File(FilePaths[Files.ObbToReplace]);
+					var installedObb = new File(FilePaths[Files.ObbToReplace]);
 
 					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
@@ -130,7 +135,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.patch_success),
 							MessageBox.Data.Empty));
 				}
-				catch (System.OperationCanceledException)
+				catch (OperationCanceledException)
 				{
 					backupSavedata?.Delete();
 
@@ -143,7 +148,7 @@ namespace OkkeiPatcher
 				{
 					backupSavedata?.Dispose();
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
-					this.IsRunning = false;
+					IsRunning = false;
 				}
 			}
 			catch (Exception ex)
@@ -156,7 +161,7 @@ namespace OkkeiPatcher
 		{
 			try
 			{
-				this.IsRunning = true;
+				IsRunning = true;
 
 				ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
@@ -167,7 +172,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.checking),
 							MessageBox.Data.Empty));
 
-					bool isPatched =
+					var isPatched =
 						Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 					if (isPatched)
@@ -194,7 +199,7 @@ namespace OkkeiPatcher
 						token.ThrowIfCancellationRequested();
 					}
 
-					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
+					if (Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
 					{
 						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(null,
@@ -212,18 +217,16 @@ namespace OkkeiPatcher
 					{
 						ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-						Java.IO.File originalSavedata = new Java.IO.File(FilePaths[Files.OriginalSavedata]);
-						Java.IO.File backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+						var originalSavedata = new File(FilePaths[Files.OriginalSavedata]);
+						var backupSavedata = new File(FilePaths[Files.BackupSavedata]);
 
 						if (backupSavedata.Exists())
-						{
 							if (Utils.CompareMD5(Files.BackupSavedata))
 							{
-								PatchTasks._saveDataBackupFromOldPatch = true;
-								backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]));
-								backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+								_saveDataBackupFromOldPatch = true;
+								backupSavedata.RenameTo(new File(FilePaths[Files.SAVEDATA_BACKUP]));
+								backupSavedata = new File(FilePaths[Files.BackupSavedata]);
 							}
-						}
 
 						if (originalSavedata.Exists())
 						{
@@ -255,23 +258,25 @@ namespace OkkeiPatcher
 							}
 						}
 						else
+						{
 							StatusChanged?.Invoke(this,
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 										callerActivity.Resources.GetText(Resource.String.saves_not_found_patch),
 										MessageBox.Code.OK)));
+						}
 
 						backupSavedata.Dispose();
 					}
 
-					if (!new Java.IO.File(FilePaths[Files.SignedApk]).Exists())
+					if (!new File(FilePaths[Files.SignedApk]).Exists())
 					{
 						// Get installed CHAOS;CHILD APK
-						string originalApkPath = Application.Context.PackageManager
+						var originalApkPath = Application.Context.PackageManager
 							.GetPackageInfo(ChaosChildPackageName, 0)
 							.ApplicationInfo
 							.PublicSourceDir;
-						Java.IO.File unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
+						var unpatchedApk = new File(FilePaths[Files.TempApk]);
 
 						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
@@ -284,7 +289,7 @@ namespace OkkeiPatcher
 
 
 						// Backup APK
-						Java.IO.File backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
+						var backupApk = new File(FilePaths[Files.BackupApk]);
 
 						if (unpatchedApk.Exists())
 						{
@@ -319,7 +324,7 @@ namespace OkkeiPatcher
 						// Download scripts
 						ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-						Java.IO.File scriptsZip = new Java.IO.File(FilePaths[Files.Scripts]);
+						var scriptsZip = new File(FilePaths[Files.Scripts]);
 
 						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
@@ -349,7 +354,7 @@ namespace OkkeiPatcher
 						// Extract scripts
 						ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-						FastZip fastZip = new FastZip();
+						var fastZip = new FastZip();
 						string fileFilter = null;
 
 						StatusChanged?.Invoke(this,
@@ -364,20 +369,20 @@ namespace OkkeiPatcher
 
 
 						// Replace scripts
-						string[] filePaths = Directory.GetFiles(Path.Combine(OkkeiFilesPath, "scripts"));
-						int scriptsCount = filePaths.Length;
+						var filePaths = Directory.GetFiles(Path.Combine(OkkeiFilesPath, "scripts"));
+						var scriptsCount = filePaths.Length;
 
 						StatusChanged?.Invoke(this,
 							new StatusChangedEventArgs(
 								Application.Context.Resources.GetText(Resource.String.replace_scripts),
 								MessageBox.Data.Empty));
 
-						ZipFile zipFile = new ZipFile(unpatchedApk.Path);
+						var zipFile = new ZipFile(unpatchedApk.Path);
 
 						zipFile.BeginUpdate();
 
-						int i = 0;
-						foreach (string scriptfile in filePaths)
+						var i = 0;
+						foreach (var scriptfile in filePaths)
 						{
 							zipFile.Add(scriptfile, "assets/script/" + Path.GetFileName(scriptfile));
 							i++;
@@ -387,10 +392,8 @@ namespace OkkeiPatcher
 
 						// Remove APK signature
 						foreach (ZipEntry ze in zipFile)
-						{
 							if (ze.Name.StartsWith("META-INF/"))
 								zipFile.Delete(ze);
-						}
 
 
 						// Update APK
@@ -399,7 +402,7 @@ namespace OkkeiPatcher
 
 
 						// Delete temp files
-						foreach (string file in filePaths) File.Delete(file);
+						foreach (var file in filePaths) System.IO.File.Delete(file);
 						Directory.Delete(Path.Combine(OkkeiFilesPath, "scripts"));
 						scriptsZip?.Dispose();
 
@@ -417,10 +420,10 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.sign_apk),
 								MessageBox.Data.Empty));
 
-						FileStream apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
-						FileStream signedApkStream =
+						var apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
+						var signedApkStream =
 							new FileStream(FilePaths[Files.SignedApk], FileMode.OpenOrCreate);
-						bool signWholeFile = false;
+						var signWholeFile = false;
 
 						SignPackage(apkToSign, Testkey, signedApkStream, signWholeFile);
 
@@ -437,7 +440,7 @@ namespace OkkeiPatcher
 
 						if (token.IsCancellationRequested)
 						{
-							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
+							var signedApk = new File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
 							signedApk?.Dispose();
 
@@ -449,8 +452,8 @@ namespace OkkeiPatcher
 					// Backup OBB
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-					Java.IO.File originalObb = new Java.IO.File(FilePaths[Files.ObbToBackup]);
-					Java.IO.File backupObb = new Java.IO.File(FilePaths[Files.BackupObb]);
+					var originalObb = new File(FilePaths[Files.ObbToBackup]);
+					var backupObb = new File(FilePaths[Files.BackupObb]);
 
 					if (originalObb.Exists())
 					{
@@ -500,7 +503,7 @@ namespace OkkeiPatcher
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
-				catch (System.OperationCanceledException)
+				catch (OperationCanceledException)
 				{
 					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
@@ -508,7 +511,7 @@ namespace OkkeiPatcher
 							MessageBox.Data.Empty));
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
-					this.IsRunning = false;
+					IsRunning = false;
 				}
 			}
 			catch (Exception ex)
