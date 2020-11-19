@@ -2586,160 +2586,163 @@ namespace Patcher
 			public static int apk_not_found_unpatch = 2131361833;
 			
 			// aapt resource value: 0x7F0A002A
-			public static int attention = 2131361834;
+			public static int app_name = 2131361834;
 			
 			// aapt resource value: 0x7F0A002B
-			public static int backup_apk = 2131361835;
+			public static int attention = 2131361835;
 			
 			// aapt resource value: 0x7F0A002C
-			public static int backup_not_found = 2131361836;
+			public static int backup_apk = 2131361836;
 			
 			// aapt resource value: 0x7F0A002D
-			public static int backup_obb = 2131361837;
+			public static int backup_not_found = 2131361837;
 			
 			// aapt resource value: 0x7F0A002E
-			public static int backup_saves = 2131361838;
+			public static int backup_obb = 2131361838;
 			
 			// aapt resource value: 0x7F0A002F
-			public static int cc_not_found = 2131361839;
+			public static int backup_saves = 2131361839;
 			
 			// aapt resource value: 0x7F0A0030
-			public static int checking = 2131361840;
+			public static int cc_not_found = 2131361840;
 			
 			// aapt resource value: 0x7F0A0031
-			public static int compare_apk = 2131361841;
+			public static int checking = 2131361841;
 			
 			// aapt resource value: 0x7F0A0032
-			public static int compare_obb = 2131361842;
+			public static int compare_apk = 2131361842;
 			
 			// aapt resource value: 0x7F0A0033
-			public static int compare_saves = 2131361843;
+			public static int compare_obb = 2131361843;
 			
 			// aapt resource value: 0x7F0A0034
-			public static int compare_scripts = 2131361844;
+			public static int compare_saves = 2131361844;
 			
 			// aapt resource value: 0x7F0A0035
-			public static int copy_apk = 2131361845;
+			public static int compare_scripts = 2131361845;
 			
 			// aapt resource value: 0x7F0A0036
-			public static int dialog_exit = 2131361846;
+			public static int copy_apk = 2131361846;
 			
 			// aapt resource value: 0x7F0A0037
-			public static int dialog_ok = 2131361847;
+			public static int dialog_exit = 2131361847;
 			
 			// aapt resource value: 0x7F0A0038
-			public static int download_obb = 2131361848;
+			public static int dialog_ok = 2131361848;
 			
 			// aapt resource value: 0x7F0A0039
-			public static int download_scripts = 2131361849;
+			public static int download_obb = 2131361849;
 			
 			// aapt resource value: 0x7F0A003A
-			public static int error = 2131361850;
+			public static int download_scripts = 2131361850;
 			
 			// aapt resource value: 0x7F0A003B
-			public static int error_not_patched = 2131361851;
+			public static int error = 2131361851;
 			
 			// aapt resource value: 0x7F0A003C
-			public static int error_patched = 2131361852;
+			public static int error_not_patched = 2131361852;
 			
 			// aapt resource value: 0x7F0A003D
-			public static int exception = 2131361853;
+			public static int error_patched = 2131361853;
 			
 			// aapt resource value: 0x7F0A003E
-			public static int exception_notice = 2131361854;
+			public static int exception = 2131361854;
 			
 			// aapt resource value: 0x7F0A003F
-			public static int extract_scripts = 2131361855;
+			public static int exception_notice = 2131361855;
 			
 			// aapt resource value: 0x7F0A0040
-			public static int http_file_access_error = 2131361856;
+			public static int extract_scripts = 2131361856;
 			
 			// aapt resource value: 0x7F0A0041
-			public static int http_file_download_error = 2131361857;
+			public static int http_file_access_error = 2131361857;
 			
 			// aapt resource value: 0x7F0A0042
-			public static int install_error = 2131361858;
-			
-			// aapt resource value: 0x7F0A0045
-			public static int not_trustworthy_apk_patch = 2131361861;
-			
-			// aapt resource value: 0x7F0A0046
-			public static int not_trustworthy_apk_unpatch = 2131361862;
+			public static int http_file_download_error = 2131361858;
 			
 			// aapt resource value: 0x7F0A0043
-			public static int no_free_space_patch = 2131361859;
+			public static int install_error = 2131361859;
 			
-			// aapt resource value: 0x7F0A0044
-			public static int no_free_space_unpatch = 2131361860;
+			// aapt resource value: 0x7F0A0046
+			public static int not_trustworthy_apk_patch = 2131361862;
 			
 			// aapt resource value: 0x7F0A0047
-			public static int obb_not_found_patch = 2131361863;
+			public static int not_trustworthy_apk_unpatch = 2131361863;
+			
+			// aapt resource value: 0x7F0A0044
+			public static int no_free_space_patch = 2131361860;
+			
+			// aapt resource value: 0x7F0A0045
+			public static int no_free_space_unpatch = 2131361861;
 			
 			// aapt resource value: 0x7F0A0048
-			public static int obb_not_found_unpatch = 2131361864;
+			public static int obb_not_found_patch = 2131361864;
 			
 			// aapt resource value: 0x7F0A0049
-			public static int patch_success = 2131361865;
+			public static int obb_not_found_unpatch = 2131361865;
 			
 			// aapt resource value: 0x7F0A004A
-			public static int replace_scripts = 2131361866;
+			public static int patch_success = 2131361866;
 			
 			// aapt resource value: 0x7F0A004B
-			public static int restore_obb = 2131361867;
+			public static int replace_scripts = 2131361867;
 			
 			// aapt resource value: 0x7F0A004C
-			public static int restore_old_saves = 2131361868;
+			public static int restore_obb = 2131361868;
 			
 			// aapt resource value: 0x7F0A004D
-			public static int restore_saves = 2131361869;
+			public static int restore_old_saves = 2131361869;
 			
 			// aapt resource value: 0x7F0A004E
-			public static int savedata_checkbox = 2131361870;
+			public static int restore_saves = 2131361870;
 			
 			// aapt resource value: 0x7F0A004F
-			public static int saves_backup_not_found = 2131361871;
+			public static int savedata_checkbox = 2131361871;
 			
 			// aapt resource value: 0x7F0A0050
-			public static int saves_not_found_patch = 2131361872;
+			public static int saves_backup_not_found = 2131361872;
 			
 			// aapt resource value: 0x7F0A0051
-			public static int saves_not_found_unpatch = 2131361873;
+			public static int saves_not_found_patch = 2131361873;
 			
 			// aapt resource value: 0x7F0A0052
-			public static int search_menu_title = 2131361874;
+			public static int saves_not_found_unpatch = 2131361874;
 			
 			// aapt resource value: 0x7F0A0053
-			public static int sign_apk = 2131361875;
+			public static int search_menu_title = 2131361875;
 			
 			// aapt resource value: 0x7F0A0054
-			public static int status_bar_notification_info_overflow = 2131361876;
+			public static int sign_apk = 2131361876;
 			
 			// aapt resource value: 0x7F0A0055
-			public static int uninstall_error = 2131361877;
+			public static int status_bar_notification_info_overflow = 2131361877;
 			
 			// aapt resource value: 0x7F0A0056
-			public static int unpatch_success = 2131361878;
+			public static int uninstall_error = 2131361878;
 			
 			// aapt resource value: 0x7F0A0057
-			public static int wait_installer = 2131361879;
+			public static int unpatch_success = 2131361879;
 			
 			// aapt resource value: 0x7F0A0058
-			public static int warning = 2131361880;
+			public static int wait_installer = 2131361880;
 			
 			// aapt resource value: 0x7F0A0059
-			public static int write_apk_md5 = 2131361881;
+			public static int warning = 2131361881;
 			
 			// aapt resource value: 0x7F0A005A
-			public static int write_obb_md5 = 2131361882;
+			public static int write_apk_md5 = 2131361882;
 			
 			// aapt resource value: 0x7F0A005B
-			public static int write_patched_apk_md5 = 2131361883;
+			public static int write_obb_md5 = 2131361883;
 			
 			// aapt resource value: 0x7F0A005C
-			public static int write_saves_md5 = 2131361884;
+			public static int write_patched_apk_md5 = 2131361884;
 			
 			// aapt resource value: 0x7F0A005D
-			public static int write_scripts_md5 = 2131361885;
+			public static int write_saves_md5 = 2131361885;
+			
+			// aapt resource value: 0x7F0A005E
+			public static int write_scripts_md5 = 2131361886;
 			
 			static String()
 			{
