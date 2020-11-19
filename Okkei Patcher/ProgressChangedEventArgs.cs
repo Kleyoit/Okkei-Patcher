@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Patcher
+namespace OkkeiPatcher
 {
-	public class ProgressChangedEventArgs : EventArgs
+	internal class ProgressChangedEventArgs : EventArgs
 	{
 		public ProgressChangedEventArgs(int progress, int max)
 		{

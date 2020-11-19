@@ -13,9 +13,8 @@ using Android.Support.Design.Widget;
 using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
-using Patcher;
 using Xamarin.Essentials;
-using static Patcher.GlobalData;
+using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
@@ -31,7 +30,7 @@ namespace OkkeiPatcher
 				if (!PackageManager.CanRequestPackageInstalls())
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
-						MessageBox.Show(this, Resources.GetText(Patcher.Resource.String.error),
+						MessageBox.Show(this, Resources.GetText(Resource.String.error),
 							Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
 					});
 
@@ -62,6 +61,11 @@ namespace OkkeiPatcher
 					case (int) PackageInstallStatus.Success:
 						if (PatchTasks.Instance.IsRunning)
 						{
+							MainThread.BeginInvokeOnMainThread(() =>
+							{
+								info.Text = Resources.GetText(Resource.String.patch_success);
+							});
+
 							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
 							signedApk.Dispose();
@@ -144,7 +148,7 @@ namespace OkkeiPatcher
 				if (!PackageManager.CanRequestPackageInstalls())
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
-						MessageBox.Show(this, Resources.GetText(Patcher.Resource.String.attention),
+						MessageBox.Show(this, Resources.GetText(Resource.String.attention),
 							Resources.GetText(Resource.String.unknown_sources_notice),
 							MessageBox.Code.UnknownAppSourceNotice);
 					});
@@ -214,7 +218,7 @@ namespace OkkeiPatcher
 				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, data); });
 		}
 
-		private void OnProgressChanged(object sender, Patcher.ProgressChangedEventArgs e)
+		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			var progress = e.Progress;
 			var max = e.Max;

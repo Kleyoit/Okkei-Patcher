@@ -2,9 +2,9 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Patcher
+namespace OkkeiPatcher
 {
-	public static class GlobalData
+	internal static class GlobalData
 	{
 		public enum Files
 		{

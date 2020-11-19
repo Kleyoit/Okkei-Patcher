@@ -8,11 +8,11 @@ using Android.App;
 using ICSharpCode.SharpZipLib.Zip;
 using Xamarin.Essentials;
 using static SignApk.SignApk;
-using static Patcher.GlobalData;
+using static OkkeiPatcher.GlobalData;
 
-namespace Patcher
+namespace OkkeiPatcher
 {
-	public class PatchTasks : INotifyPropertyChanged
+	internal class PatchTasks : INotifyPropertyChanged
 	{
 		private static readonly Lazy<PatchTasks> instance = new Lazy<PatchTasks>(() => new PatchTasks());
 
@@ -32,7 +32,7 @@ namespace Patcher
 		public bool IsRunning
 		{
 			get => _isRunning;
-			internal set
+			set
 			{
 				if (value != _isRunning)
 				{

@@ -2,7 +2,7 @@
 using Android.Content;
 using Xamarin.Essentials;
 
-namespace Patcher
+namespace OkkeiPatcher
 {
 	public static class MessageBox
 	{
