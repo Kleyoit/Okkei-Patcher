@@ -154,7 +154,7 @@ namespace OkkeiPatcher
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == "IsRunning")
+			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning))
 			{
 				var button = FindViewById<Button>(Resource.Id.Patch);
 				string buttonText;
@@ -178,7 +178,7 @@ namespace OkkeiPatcher
 
 		private void OnPropertyChanged_Unpatch(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == "IsRunning")
+			if (e.PropertyName == nameof(UnpatchTasks.Instance.IsRunning))
 			{
 				var button = FindViewById<Button>(Resource.Id.Unpatch);
 				string buttonText;
@@ -266,10 +266,10 @@ namespace OkkeiPatcher
 
 		private void Clear_Click(object sender, EventArgs e)
 		{
-			TextView info = FindViewById<TextView>(Resource.Id.Status);
-
 			if (!PatchTasks.Instance.IsRunning && !UnpatchTasks.Instance.IsRunning)
 			{
+				TextView info = FindViewById<TextView>(Resource.Id.Status);
+
 				Java.IO.File apk = new Java.IO.File(FilePaths[Files.BackupApk]);
 				if (apk.Exists()) apk.Delete();
 
