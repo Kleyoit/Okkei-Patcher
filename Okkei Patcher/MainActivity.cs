@@ -75,6 +75,7 @@ namespace OkkeiPatcher
 							Task.Run(() =>
 								UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked, _tokenSource.Token));
 						}
+
 						break;
 				}
 			}

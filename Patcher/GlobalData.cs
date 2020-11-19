@@ -73,30 +73,30 @@ namespace Patcher
 
 		public static readonly Dictionary<Files, string> FilePaths = new Dictionary<Files, string>
 		{
-			{ Files.OriginalSavedata, Path.Combine(SavedataPath, SavedataFileName) },
-			{ Files.SAVEDATA_BACKUP, Path.Combine(OkkeiFilesPathBackup, SavedataBackupFileName) },
-			{ Files.BackupSavedata, Path.Combine(OkkeiFilesPathBackup, SavedataFileName) },
-			{ Files.TempApk, Path.Combine(OkkeiFilesPath, "base.apk") },
-			{ Files.BackupApk, Path.Combine(OkkeiFilesPathBackup, "backup.apk") },
-			{ Files.SignedApk, Path.Combine(OkkeiFilesPath, "signed.apk") },
-			{ Files.Scripts, Path.Combine(OkkeiFilesPath, "scripts.zip") },
-			{ Files.ObbToBackup, Path.Combine(ObbPath, ObbFileName) },
-			{ Files.ObbToReplace, Path.Combine(ObbPath, ObbFileName) },
-			{ Files.BackupObb, Path.Combine(OkkeiFilesPathBackup, ObbFileName) }
+			{Files.OriginalSavedata, Path.Combine(SavedataPath, SavedataFileName)},
+			{Files.SAVEDATA_BACKUP, Path.Combine(OkkeiFilesPathBackup, SavedataBackupFileName)},
+			{Files.BackupSavedata, Path.Combine(OkkeiFilesPathBackup, SavedataFileName)},
+			{Files.TempApk, Path.Combine(OkkeiFilesPath, "base.apk")},
+			{Files.BackupApk, Path.Combine(OkkeiFilesPathBackup, "backup.apk")},
+			{Files.SignedApk, Path.Combine(OkkeiFilesPath, "signed.apk")},
+			{Files.Scripts, Path.Combine(OkkeiFilesPath, "scripts.zip")},
+			{Files.ObbToBackup, Path.Combine(ObbPath, ObbFileName)},
+			{Files.ObbToReplace, Path.Combine(ObbPath, ObbFileName)},
+			{Files.BackupObb, Path.Combine(OkkeiFilesPathBackup, ObbFileName)}
 		};
 
 		public static readonly Dictionary<Files, string> FileToCompareWith = new Dictionary<Files, string>
 		{
-			{ Files.OriginalSavedata, Path.Combine(OkkeiFilesPathBackup, SavedataFileName) },
-			{ Files.SAVEDATA_BACKUP, Prefkey.savedata_md5.ToString() },
-			{ Files.BackupSavedata, Prefkey.savedata_md5.ToString() },
-			{ Files.TempApk, Prefkey.backup_apk_md5.ToString() },
-			{ Files.BackupApk, Prefkey.backup_apk_md5.ToString() },
-			{ Files.SignedApk, Prefkey.signed_apk_md5.ToString() },
-			{ Files.Scripts, Prefkey.signed_apk_md5.ToString() },
-			{ Files.ObbToBackup, Prefkey.backup_obb_md5.ToString() },
-			{ Files.ObbToReplace, Prefkey.downloaded_obb_md5.ToString() },
-			{ Files.BackupObb, Prefkey.backup_obb_md5.ToString() }
+			{Files.OriginalSavedata, Path.Combine(OkkeiFilesPathBackup, SavedataFileName)},
+			{Files.SAVEDATA_BACKUP, Prefkey.savedata_md5.ToString()},
+			{Files.BackupSavedata, Prefkey.savedata_md5.ToString()},
+			{Files.TempApk, Prefkey.backup_apk_md5.ToString()},
+			{Files.BackupApk, Prefkey.backup_apk_md5.ToString()},
+			{Files.SignedApk, Prefkey.signed_apk_md5.ToString()},
+			{Files.Scripts, Prefkey.signed_apk_md5.ToString()},
+			{Files.ObbToBackup, Prefkey.backup_obb_md5.ToString()},
+			{Files.ObbToReplace, Prefkey.downloaded_obb_md5.ToString()},
+			{Files.BackupObb, Prefkey.backup_obb_md5.ToString()}
 		};
 
 		static GlobalData()
