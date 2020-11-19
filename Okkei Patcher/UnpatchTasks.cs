@@ -13,6 +13,8 @@ namespace OkkeiPatcher
 	{
 		private static readonly Lazy<UnpatchTasks> instance = new Lazy<UnpatchTasks>(() => new UnpatchTasks());
 
+		private bool _isRunning;
+
 		private UnpatchTasks()
 		{
 			Utils.StatusChanged += UtilsOnStatusChanged;
@@ -21,8 +23,6 @@ namespace OkkeiPatcher
 		}
 
 		public static UnpatchTasks Instance => instance.Value;
-
-		private bool _isRunning = false;
 
 		public bool IsRunning
 		{
@@ -37,34 +37,37 @@ namespace OkkeiPatcher
 			}
 		}
 
+		public event PropertyChangedEventHandler PropertyChanged;
+
 		public event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
-		public event PropertyChangedEventHandler PropertyChanged;
 		public event EventHandler ErrorCanceled;
 
-		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "") =>
+		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+		{
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		}
 
 		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
-			if (this.IsRunning) StatusChanged?.Invoke(this, e);
+			if (IsRunning) StatusChanged?.Invoke(this, e);
 		}
 
 		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			if (this.IsRunning) ProgressChanged?.Invoke(this, e);
+			if (IsRunning) ProgressChanged?.Invoke(this, e);
 		}
 
 		private void UtilsOnErrorCanceled(object sender, EventArgs e)
 		{
-			if (this.IsRunning) ErrorCanceled?.Invoke(this, e);
+			if (IsRunning) ErrorCanceled?.Invoke(this, e);
 		}
 
 		public async Task RestoreFiles(bool processSavedata, CancellationToken token)
 		{
 			try
 			{
-				this.IsRunning = true;
+				IsRunning = true;
 
 				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
 				var backupObb = new Java.IO.File(FilePaths[Files.BackupObb]);
@@ -128,7 +131,8 @@ namespace OkkeiPatcher
 							backupSavedataCopy.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
 							backupSavedataCopy = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
-							Preferences.Set(Prefkey.savedata_md5.ToString(), Utils.CalculateMD5(backupSavedataCopy.Path));
+							Preferences.Set(Prefkey.savedata_md5.ToString(),
+								Utils.CalculateMD5(backupSavedataCopy.Path));
 						}
 					}
 
@@ -140,7 +144,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.unpatch_success),
 							MessageBox.Data.Empty));
 				}
-				catch (System.OperationCanceledException)
+				catch (OperationCanceledException)
 				{
 					if (backupSavedataCopy.Exists()) backupSavedataCopy.Delete();
 					if (appSavedata.Exists()) appSavedata.Delete();
@@ -159,7 +163,7 @@ namespace OkkeiPatcher
 					appSavedata.Dispose();
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
-					this.IsRunning = false;
+					IsRunning = false;
 				}
 			}
 			catch (Exception ex)
@@ -172,11 +176,11 @@ namespace OkkeiPatcher
 		{
 			try
 			{
-				this.IsRunning = true;
+				IsRunning = true;
 
 				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
 
-				bool isPatched =
+				var isPatched =
 					Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 				try
@@ -251,14 +255,14 @@ namespace OkkeiPatcher
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
-				catch (System.OperationCanceledException)
+				catch (OperationCanceledException)
 				{
 					StatusChanged?.Invoke(this,
 						new StatusChangedEventArgs(
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
-					this.IsRunning = false;
+					IsRunning = false;
 				}
 				finally
 				{
