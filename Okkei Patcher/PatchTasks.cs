@@ -24,7 +24,8 @@ namespace OkkeiPatcher
 		{
 			Utils.StatusChanged += UtilsOnStatusChanged;
 			Utils.ProgressChanged += UtilsOnProgressChanged;
-			Utils.ErrorCanceled += UtilsOnErrorCanceled;
+			Utils.TokenErrorOccurred += UtilsOnTokenErrorOccurred;
+			Utils.TaskErrorOccurred += UtilsOnTaskErrorOccurred;
 		}
 
 		public static PatchTasks Instance => instance.Value;
@@ -32,7 +33,7 @@ namespace OkkeiPatcher
 		public bool IsRunning
 		{
 			get => _isRunning;
-			set
+			private set
 			{
 				if (value != _isRunning)
 				{
@@ -46,7 +47,7 @@ namespace OkkeiPatcher
 
 		public event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
-		public event EventHandler ErrorCanceled;
+		public event EventHandler ErrorOccurred;
 
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
 		{
@@ -63,9 +64,14 @@ namespace OkkeiPatcher
 			if (IsRunning) ProgressChanged?.Invoke(this, e);
 		}
 
-		private void UtilsOnErrorCanceled(object sender, EventArgs e)
+		private void UtilsOnTokenErrorOccurred(object sender, EventArgs e)
 		{
-			if (IsRunning) ErrorCanceled?.Invoke(this, e);
+			if (IsRunning) ErrorOccurred?.Invoke(this, e);
+		}
+
+		private void UtilsOnTaskErrorOccurred(object sender, EventArgs e)
+		{
+			if (IsRunning) IsRunning = false;
 		}
 
 		public async Task FinishPatch(bool processSavedata, CancellationToken token)
@@ -182,7 +188,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.error_patched),
 									MessageBox.Code.OK)));
 
-						ErrorCanceled?.Invoke(this, EventArgs.Empty);
+						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -194,7 +200,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.cc_not_found),
 									MessageBox.Code.OK)));
 
-						ErrorCanceled?.Invoke(this, EventArgs.Empty);
+						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -206,7 +212,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
 									MessageBox.Code.OK)));
 
-						ErrorCanceled?.Invoke(this, EventArgs.Empty);
+						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
@@ -490,7 +496,7 @@ namespace OkkeiPatcher
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
 									MessageBox.Code.OK)));
-						ErrorCanceled?.Invoke(this, EventArgs.Empty);
+						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 

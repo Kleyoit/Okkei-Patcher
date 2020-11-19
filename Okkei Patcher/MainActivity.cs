@@ -61,11 +61,6 @@ namespace OkkeiPatcher
 					case (int) PackageInstallStatus.Success:
 						if (PatchTasks.Instance.IsRunning)
 						{
-							MainThread.BeginInvokeOnMainThread(() =>
-							{
-								info.Text = Resources.GetText(Resource.String.patch_success);
-							});
-
 							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
 							signedApk.Dispose();
@@ -168,7 +163,7 @@ namespace OkkeiPatcher
 					PatchTasks.Instance.StatusChanged -= OnStatusChanged;
 					PatchTasks.Instance.ProgressChanged -= OnProgressChanged;
 					PatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Patch;
-					PatchTasks.Instance.ErrorCanceled -= Patch_Click;
+					PatchTasks.Instance.ErrorOccurred -= Patch_Click;
 
 					_tokenSource = new CancellationTokenSource();
 				}
@@ -195,7 +190,7 @@ namespace OkkeiPatcher
 					UnpatchTasks.Instance.StatusChanged -= OnStatusChanged;
 					UnpatchTasks.Instance.ProgressChanged -= OnProgressChanged;
 					UnpatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Unpatch;
-					UnpatchTasks.Instance.ErrorCanceled -= Unpatch_Click;
+					UnpatchTasks.Instance.ErrorOccurred -= Unpatch_Click;
 
 					_tokenSource = new CancellationTokenSource();
 				}
@@ -243,7 +238,7 @@ namespace OkkeiPatcher
 					PatchTasks.Instance.StatusChanged += OnStatusChanged;
 					PatchTasks.Instance.ProgressChanged += OnProgressChanged;
 					PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
-					PatchTasks.Instance.ErrorCanceled += Patch_Click;
+					PatchTasks.Instance.ErrorOccurred += Patch_Click;
 
 					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked,
@@ -265,7 +260,7 @@ namespace OkkeiPatcher
 					UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
 					UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
 					UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
-					UnpatchTasks.Instance.ErrorCanceled += Unpatch_Click;
+					UnpatchTasks.Instance.ErrorOccurred += Unpatch_Click;
 
 					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked,

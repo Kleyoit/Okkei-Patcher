@@ -21,7 +21,8 @@ namespace OkkeiPatcher
 
 		public static event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public static event EventHandler<ProgressChangedEventArgs> ProgressChanged;
-		public static event EventHandler ErrorCanceled;
+		public static event EventHandler TokenErrorOccurred;
+		public static event EventHandler TaskErrorOccurred;
 
 		public static string CalculateMD5(string filename)
 		{
@@ -151,8 +152,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.install_error),
 							MessageBox.Code.OK)));
 
-				if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
-				if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
+				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 		}
 
@@ -173,8 +173,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.uninstall_error),
 							MessageBox.Code.OK)));
 
-				if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
-				if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
+				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 			else
 			{
@@ -232,7 +231,7 @@ namespace OkkeiPatcher
 												.not_trustworthy_apk_unpatch),
 											MessageBox.Code.OK)));
 
-							ErrorCanceled?.Invoke(null, EventArgs.Empty);
+							TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 							token.ThrowIfCancellationRequested();
 						}
 					}
@@ -252,7 +251,7 @@ namespace OkkeiPatcher
 										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
 										MessageBox.Code.OK)));
 
-						ErrorCanceled?.Invoke(null, EventArgs.Empty);
+						TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 				}
@@ -264,8 +263,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.aborted),
 							MessageBox.Data.Empty));
 
-					if (PatchTasks.Instance.IsRunning) PatchTasks.Instance.IsRunning = false;
-					if (UnpatchTasks.Instance.IsRunning) UnpatchTasks.Instance.IsRunning = false;
+					TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 			}
 		}
@@ -364,7 +362,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.http_file_access_error),
 									response.StatusCode.ToString()), MessageBox.Code.OK)));
 
-					ErrorCanceled?.Invoke(null, EventArgs.Empty);
+					TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 
 				if (!token.IsCancellationRequested)
@@ -383,7 +381,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
 							MessageBox.Code.OK)));
 
-				ErrorCanceled?.Invoke(null, EventArgs.Empty);
+				TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 			finally
 			{
