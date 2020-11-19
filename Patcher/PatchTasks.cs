@@ -390,7 +390,9 @@ namespace Patcher
 
 
 						// Remove APK signature
-						zipFile.Delete(new ZipEntry("META-INF/"));
+						foreach (ZipEntry ze in zipFile)
+							if (ze.Name.StartsWith("META-INF/"))
+								zipFile.Delete(ze);
 
 
 						// Update APK
