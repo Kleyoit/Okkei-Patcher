@@ -15,8 +15,6 @@ using Android.Widget;
 using Xamarin.Essentials;
 using Android.Content;
 using static OkkeiPatcher.GlobalData;
-using File = Java.IO.File;
-using String = Java.Lang.String;
 
 namespace OkkeiPatcher
 {
@@ -29,12 +27,14 @@ namespace OkkeiPatcher
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
 			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O)
-				if (!PackageManager.CanRequestPackageInstalls())
+			{
+				if (!this.PackageManager.CanRequestPackageInstalls())
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.error),
 							Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
 					});
+			}
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
 				Utils.OnUninstallResult(this, _tokenSource.Token);
@@ -45,11 +45,11 @@ namespace OkkeiPatcher
 
 		protected override void OnNewIntent(Intent intent)
 		{
-			var extras = intent.Extras;
+			Bundle extras = intent.Extras;
 			if (PACKAGE_INSTALLED_ACTION.Equals(intent.Action))
 			{
-				var info = FindViewById<TextView>(Resource.Id.Status);
-				var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+				TextView info = FindViewById<TextView>(Resource.Id.Status);
+				CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
 				var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 				//var message = extras.GetString(PackageInstaller.ExtraStatusMessage);
@@ -69,18 +69,14 @@ namespace OkkeiPatcher
 								info.Text = Resources.GetText(Resource.String.patch_success);
 							});
 
-							var signedApk = new File(FilePaths[Files.SignedApk]);
+							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
 							signedApk.Dispose();
 
-							Task.Run(
-								() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked, _tokenSource.Token));
+							Task.Run(() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked, _tokenSource.Token));
 						}
 						else if (UnpatchTasks.Instance.IsRunning)
-						{
-							Task.Run(() =>
-								UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked, _tokenSource.Token));
-						}
+							Task.Run(() => UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked, _tokenSource.Token));
 
 						break;
 				}
@@ -90,32 +86,32 @@ namespace OkkeiPatcher
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
-			Platform.Init(this, savedInstanceState);
+			Xamarin.Essentials.Platform.Init(this, savedInstanceState);
 			SetContentView(Resource.Layout.activity_main);
 
 
 			// Set portrait orientation
-			RequestedOrientation = ScreenOrientation.Portrait;
+			this.RequestedOrientation = ScreenOrientation.Portrait;
 
 
 			// Don't turn screen off
-			Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+			this.Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
 
 
 			// Subscribe to events
-			var fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+			FloatingActionButton fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
 			fab.Click += FabOnClick;
 
-			var patch = FindViewById<Button>(Resource.Id.Patch);
+			Button patch = FindViewById<Button>(Resource.Id.Patch);
 			patch.Click += Patch_Click;
 
-			var unpatch = FindViewById<Button>(Resource.Id.Unpatch);
+			Button unpatch = FindViewById<Button>(Resource.Id.Unpatch);
 			unpatch.Click += Unpatch_Click;
 
-			var clear = FindViewById<Button>(Resource.Id.Clear);
+			Button clear = FindViewById<Button>(Resource.Id.Clear);
 			clear.Click += Clear_Click;
 
-			var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+			CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 			checkBoxSavedata.CheckedChange += CheckBox_CheckedChange;
 
 
@@ -140,21 +136,20 @@ namespace OkkeiPatcher
 			}
 
 			// Create OkkeiPatcher directory if doesn't exist
-			else if (!Directory.Exists(OkkeiFilesPath))
-			{
-				Directory.CreateDirectory(OkkeiFilesPath);
-			}
+			else if (!Directory.Exists(OkkeiFilesPath)) Directory.CreateDirectory(OkkeiFilesPath);
 
 
 			// Request permission to install packages on first start
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-				if (!PackageManager.CanRequestPackageInstalls())
+			{
+				if (!this.PackageManager.CanRequestPackageInstalls())
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.attention),
 							Resources.GetText(Resource.String.unknown_sources_notice),
 							MessageBox.Code.UnknownAppSourceNotice);
 					});
+			}
 		}
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
@@ -175,10 +170,7 @@ namespace OkkeiPatcher
 
 					_tokenSource = new CancellationTokenSource();
 				}
-				else
-				{
-					buttonText = Resources.GetText(Resource.String.abort);
-				}
+				else buttonText = Resources.GetText(Resource.String.abort);
 
 				MainThread.BeginInvokeOnMainThread(() => { button.Text = buttonText; });
 			}
@@ -202,10 +194,7 @@ namespace OkkeiPatcher
 
 					_tokenSource = new CancellationTokenSource();
 				}
-				else
-				{
-					buttonText = Resources.GetText(Resource.String.abort);
-				}
+				else buttonText = Resources.GetText(Resource.String.abort);
 
 				MainThread.BeginInvokeOnMainThread(() => { button.Text = buttonText; });
 			}
@@ -213,8 +202,8 @@ namespace OkkeiPatcher
 
 		private void OnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
-			var info = e.Info;
-			var data = e.MessageData;
+			string info = e.Info;
+			MessageBox.Data data = e.MessageData;
 			if (info != null)
 				MainThread.BeginInvokeOnMainThread(() => { FindViewById<TextView>(Resource.Id.Status).Text = info; });
 			if (!data.Equals(MessageBox.Data.Empty))
@@ -223,16 +212,16 @@ namespace OkkeiPatcher
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			var progress = e.Progress;
-			var max = e.Max;
-			var progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
+			int progress = e.Progress;
+			int max = e.Max;
+			ProgressBar progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
 			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = max; });
 			MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = progress; });
 		}
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
-			var isChecked = e.IsChecked;
+			bool isChecked = e.IsChecked;
 			if (sender == FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata))
 				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), isChecked);
 		}
@@ -248,14 +237,11 @@ namespace OkkeiPatcher
 					PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
 					PatchTasks.Instance.ErrorCanceled += Patch_Click;
 
-					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+					CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked,
 						_tokenSource.Token));
 				}
-				else
-				{
-					_tokenSource.Cancel();
-				}
+				else _tokenSource.Cancel();
 			}
 		}
 
@@ -270,14 +256,11 @@ namespace OkkeiPatcher
 					UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
 					UnpatchTasks.Instance.ErrorCanceled += Unpatch_Click;
 
-					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+					CheckBox checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked,
 						_tokenSource.Token));
 				}
-				else
-				{
-					_tokenSource.Cancel();
-				}
+				else _tokenSource.Cancel();
 			}
 		}
 
@@ -285,15 +268,15 @@ namespace OkkeiPatcher
 		{
 			if (!PatchTasks.Instance.IsRunning && !UnpatchTasks.Instance.IsRunning)
 			{
-				var info = FindViewById<TextView>(Resource.Id.Status);
+				TextView info = FindViewById<TextView>(Resource.Id.Status);
 
-				var apk = new File(FilePaths[Files.BackupApk]);
+				Java.IO.File apk = new Java.IO.File(FilePaths[Files.BackupApk]);
 				if (apk.Exists()) apk.Delete();
 
-				var obb = new File(FilePaths[Files.BackupObb]);
+				Java.IO.File obb = new Java.IO.File(FilePaths[Files.BackupObb]);
 				if (obb.Exists()) obb.Delete();
 
-				var savedata = new File(FilePaths[Files.BackupSavedata]);
+				Java.IO.File savedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 				if (savedata.Exists()) savedata.Delete();
 
 				info.Text = Resources.GetText(Resource.String.backup_cleared);
@@ -306,17 +289,17 @@ namespace OkkeiPatcher
 
 		private void FabOnClick(object sender, EventArgs eventArgs)
 		{
-			var view = (View) sender;
+			View view = (View) sender;
 			Snackbar.Make(view,
-					String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString),
+					Java.Lang.String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString),
 					Snackbar.LengthLong)
-				.SetAction("Action", (View.IOnClickListener) null).Show();
+				.SetAction("Action", (Android.Views.View.IOnClickListener) null).Show();
 		}
 
 		public override void OnRequestPermissionsResult(int requestCode, string[] permissions,
-			[GeneratedEnum] Permission[] grantResults)
+			[GeneratedEnum] Android.Content.PM.Permission[] grantResults)
 		{
-			Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+			Xamarin.Essentials.Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
 			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
@@ -332,10 +315,7 @@ namespace OkkeiPatcher
 				}
 
 				// Create OkkeiPatcher directory if doesn't exist
-				else if (!Directory.Exists(OkkeiFilesPath))
-				{
-					Directory.CreateDirectory(OkkeiFilesPath);
-				}
+				else if (!Directory.Exists(OkkeiFilesPath)) Directory.CreateDirectory(OkkeiFilesPath);
 			}
 		}
 	}
