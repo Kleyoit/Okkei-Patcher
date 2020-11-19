@@ -40,7 +40,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private static bool _saveDataBackupFromOldPatch = false;
+		private bool _saveDataBackupFromOldPatch = false;
 
 		public event EventHandler<StatusChangedEventArgs> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
@@ -219,7 +219,7 @@ namespace OkkeiPatcher
 						{
 							if (Utils.CompareMD5(Files.BackupSavedata))
 							{
-								PatchTasks._saveDataBackupFromOldPatch = true;
+								_saveDataBackupFromOldPatch = true;
 								backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]));
 								backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 							}
