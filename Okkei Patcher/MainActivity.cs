@@ -47,7 +47,6 @@ namespace OkkeiPatcher
 			var extras = intent.Extras;
 			if (PACKAGE_INSTALLED_ACTION.Equals(intent.Action))
 			{
-				var info = FindViewById<TextView>(Resource.Id.Status);
 				var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
 				var status = extras?.GetInt(PackageInstaller.ExtraStatus);
