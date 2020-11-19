@@ -160,6 +160,7 @@ namespace OkkeiPatcher
 			try
 			{
 				IsRunning = true;
+				_saveDataBackupFromOldPatch = false;
 
 				ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
