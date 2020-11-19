@@ -8,11 +8,11 @@ using Android.App;
 using ICSharpCode.SharpZipLib.Zip;
 using Xamarin.Essentials;
 using static SignApk.SignApk;
-using static OkkeiPatcher.GlobalData;
+using static Patcher.GlobalData;
 
-namespace OkkeiPatcher
+namespace Patcher
 {
-	internal class PatchTasks : INotifyPropertyChanged
+	public class PatchTasks : INotifyPropertyChanged
 	{
 		private static readonly Lazy<PatchTasks> instance = new Lazy<PatchTasks>(() => new PatchTasks());
 
@@ -32,7 +32,7 @@ namespace OkkeiPatcher
 		public bool IsRunning
 		{
 			get => _isRunning;
-			set
+			internal set
 			{
 				if (value != _isRunning)
 				{
@@ -390,9 +390,7 @@ namespace OkkeiPatcher
 
 
 						// Remove APK signature
-						foreach (ZipEntry ze in zipFile)
-							if (ze.Name.StartsWith("META-INF/"))
-								zipFile.Delete(ze);
+						zipFile.Delete(new ZipEntry("META-INF/"));
 
 
 						// Update APK

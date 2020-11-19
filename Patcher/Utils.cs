@@ -11,11 +11,11 @@ using Android.Content.PM;
 using Android.OS;
 using Java.IO;
 using Xamarin.Essentials;
-using static OkkeiPatcher.GlobalData;
+using static Patcher.GlobalData;
 
-namespace OkkeiPatcher
+namespace Patcher
 {
-	internal static class Utils
+	public static class Utils
 	{
 		private static readonly HttpClient Client = new HttpClient();
 

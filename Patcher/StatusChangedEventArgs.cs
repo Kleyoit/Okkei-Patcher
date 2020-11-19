@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace OkkeiPatcher
+namespace Patcher
 {
-	internal class StatusChangedEventArgs : EventArgs
+	public class StatusChangedEventArgs : EventArgs
 	{
 		public StatusChangedEventArgs(string info, MessageBox.Data data)
 		{

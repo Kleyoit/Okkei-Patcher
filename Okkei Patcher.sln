@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Okkei Patcher", "Okkei Patc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignApk", "SignApk\SignApk.csproj", "{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Patcher", "Patcher\Patcher.csproj", "{03C231C3-B592-4539-8FC2-591BD7D8A161}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,14 @@ Global
 		{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}.Release|x86.ActiveCfg = Release|Any CPU
 		{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}.Release|x86.Build.0 = Release|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Debug|x86.Build.0 = Debug|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Release|Any CPU.Build.0 = Release|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Release|x86.ActiveCfg = Release|Any CPU
+		{03C231C3-B592-4539-8FC2-591BD7D8A161}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

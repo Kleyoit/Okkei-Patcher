@@ -5,11 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Xamarin.Essentials;
-using static OkkeiPatcher.GlobalData;
+using static Patcher.GlobalData;
 
-namespace OkkeiPatcher
+namespace Patcher
 {
-	internal class UnpatchTasks : INotifyPropertyChanged
+	public class UnpatchTasks : INotifyPropertyChanged
 	{
 		private static readonly Lazy<UnpatchTasks> instance = new Lazy<UnpatchTasks>(() => new UnpatchTasks());
 
@@ -27,7 +27,7 @@ namespace OkkeiPatcher
 		public bool IsRunning
 		{
 			get => _isRunning;
-			set
+			internal set
 			{
 				if (value != _isRunning)
 				{
