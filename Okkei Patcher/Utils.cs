@@ -71,7 +71,6 @@ namespace OkkeiPatcher
 			var data = new byte[size];
 			size = certStream.Read(data, 0, size);
 			certStream.Close();
-			certStream.Dispose();
 			return data;
 		}
 
@@ -79,8 +78,7 @@ namespace OkkeiPatcher
 		{
 			try
 			{
-				var packageInfo = Application.Context.PackageManager.GetPackageInfo(packageName, PackageInfoFlags.Activities);
-				packageInfo?.Dispose();
+				Application.Context.PackageManager.GetPackageInfo(packageName, PackageInfoFlags.Activities);
 				return true;
 			}
 			catch (PackageManager.NameNotFoundException)
@@ -103,7 +101,6 @@ namespace OkkeiPatcher
 			{
 				packageInSession?.Close();
 				input.Close();
-				input.Dispose();
 			}
 
 			// That this is necessary could be a Xamarin bug
@@ -133,7 +130,6 @@ namespace OkkeiPatcher
 				// Commit the session (this will start the installation workflow)
 				session.Commit(statusReceiver);
 			}
-			callerActivity.Dispose();
 		}
 
 		public static async void OnInstallResult()
@@ -165,7 +161,6 @@ namespace OkkeiPatcher
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
 			callerActivity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
-			callerActivity.Dispose();
 		}
 
 		public static void OnUninstallResult(Activity callerActivity, CancellationToken token)
@@ -271,7 +266,6 @@ namespace OkkeiPatcher
 					TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 			}
-			callerActivity.Dispose();
 		}
 
 		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)

@@ -279,10 +279,6 @@ namespace OkkeiPatcher
 			{
 				Utils.WriteBugReport(ex);
 			}
-			finally
-			{
-				callerActivity.Dispose();
-			}
 		}
 	}
 }
