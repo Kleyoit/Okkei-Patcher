@@ -22,6 +22,7 @@ namespace OkkeiPatcher
 
 		public static void Show(Activity callerActivity, Data data)
 		{
+			_getMessageBoxActivity?.Dispose();
 			_getMessageBoxActivity = callerActivity;
 
 			var builder = new AlertDialog.Builder(callerActivity);

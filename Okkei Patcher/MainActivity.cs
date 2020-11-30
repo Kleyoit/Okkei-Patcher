@@ -26,13 +26,13 @@ namespace OkkeiPatcher
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
-			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O)
-				if (!PackageManager.CanRequestPackageInstalls())
-					MainThread.BeginInvokeOnMainThread(() =>
-					{
-						MessageBox.Show(this, Resources.GetText(Resource.String.error),
-							Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
-					});
+			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O &&
+			    !PackageManager.CanRequestPackageInstalls())
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					MessageBox.Show(this, Resources.GetText(Resource.String.error),
+						Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
+				});
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
 				Utils.OnUninstallResult(this, _cts.Token);
@@ -139,14 +139,13 @@ namespace OkkeiPatcher
 
 
 			// Request permission to install packages on first start
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
-				if (!PackageManager.CanRequestPackageInstalls())
-					MainThread.BeginInvokeOnMainThread(() =>
-					{
-						MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-							Resources.GetText(Resource.String.unknown_sources_notice),
-							MessageBox.Code.UnknownAppSourceNotice);
-					});
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
+				MainThread.BeginInvokeOnMainThread(() =>
+				{ 
+					MessageBox.Show(this, Resources.GetText(Resource.String.attention), 
+						Resources.GetText(Resource.String.unknown_sources_notice), 
+						MessageBox.Code.UnknownAppSourceNotice);
+				});
 		}
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
