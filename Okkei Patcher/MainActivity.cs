@@ -22,7 +22,7 @@ namespace OkkeiPatcher
 		LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
-		private CancellationTokenSource _tokenSource = new CancellationTokenSource();
+		private CancellationTokenSource _cts = new CancellationTokenSource();
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
@@ -35,7 +35,7 @@ namespace OkkeiPatcher
 					});
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
-				Utils.OnUninstallResult(this, _tokenSource.Token);
+				Utils.OnUninstallResult(this, _cts.Token);
 
 			if (requestCode == (int) RequestCodes.InstallCode)
 				Utils.OnInstallResult();
@@ -66,12 +66,12 @@ namespace OkkeiPatcher
 							signedApk.Dispose();
 
 							Task.Run(
-								() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked, _tokenSource.Token));
+								() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked, _cts.Token));
 						}
 						else if (UnpatchTasks.Instance.IsRunning)
 						{
 							Task.Run(() =>
-								UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked, _tokenSource.Token));
+								UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked, _cts.Token));
 						}
 
 						break;
@@ -165,7 +165,8 @@ namespace OkkeiPatcher
 					PatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Patch;
 					PatchTasks.Instance.ErrorOccurred -= Patch_Click;
 
-					_tokenSource = new CancellationTokenSource();
+					_cts.Dispose();
+					_cts = new CancellationTokenSource();
 				}
 				else
 				{
@@ -192,7 +193,8 @@ namespace OkkeiPatcher
 					UnpatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Unpatch;
 					UnpatchTasks.Instance.ErrorOccurred -= Unpatch_Click;
 
-					_tokenSource = new CancellationTokenSource();
+					_cts.Dispose();
+					_cts = new CancellationTokenSource();
 				}
 				else
 				{
@@ -231,7 +233,7 @@ namespace OkkeiPatcher
 
 		private void Patch_Click(object sender, EventArgs e)
 		{
-			if (!UnpatchTasks.Instance.IsRunning && !_tokenSource.IsCancellationRequested)
+			if (!UnpatchTasks.Instance.IsRunning && !_cts.IsCancellationRequested)
 			{
 				if (!PatchTasks.Instance.IsRunning)
 				{
@@ -242,18 +244,18 @@ namespace OkkeiPatcher
 
 					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked,
-						_tokenSource.Token));
+						_cts.Token));
 				}
 				else
 				{
-					_tokenSource.Cancel();
+					_cts.Cancel();
 				}
 			}
 		}
 
 		private void Unpatch_Click(object sender, EventArgs e)
 		{
-			if (!PatchTasks.Instance.IsRunning && !_tokenSource.IsCancellationRequested)
+			if (!PatchTasks.Instance.IsRunning && !_cts.IsCancellationRequested)
 			{
 				if (!UnpatchTasks.Instance.IsRunning)
 				{
@@ -264,11 +266,11 @@ namespace OkkeiPatcher
 
 					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked,
-						_tokenSource.Token));
+						_cts.Token));
 				}
 				else
 				{
-					_tokenSource.Cancel();
+					_cts.Cancel();
 				}
 			}
 		}
