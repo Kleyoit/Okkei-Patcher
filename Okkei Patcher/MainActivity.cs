@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.IO;
 using System.Threading;
@@ -24,6 +25,18 @@ namespace OkkeiPatcher
 	{
 		private CancellationTokenSource _cts = new CancellationTokenSource();
 
+		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache = new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
+
+		private T FindCachedViewById<T>(int id) where T : View
+		{
+			if (!ViewCache.Value.TryGetValue(id, out var view))
+			{
+				view = FindViewById<T>(id);
+				ViewCache.Value.TryAdd(id, view);
+			}
+			return (T) view;
+		}
+
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
 			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O &&
@@ -46,7 +59,7 @@ namespace OkkeiPatcher
 			var extras = intent.Extras;
 			if (PACKAGE_INSTALLED_ACTION.Equals(intent.Action))
 			{
-				var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+				var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 
 				var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 				//var message = extras.GetString(PackageInstaller.ExtraStatusMessage);
@@ -95,19 +108,19 @@ namespace OkkeiPatcher
 
 
 			// Subscribe to events
-			var fab = FindViewById<FloatingActionButton>(Resource.Id.fab);
+			var fab = FindCachedViewById<FloatingActionButton>(Resource.Id.fab);
 			fab.Click += FabOnClick;
 
-			var patch = FindViewById<Button>(Resource.Id.Patch);
+			var patch = FindCachedViewById<Button>(Resource.Id.Patch);
 			patch.Click += Patch_Click;
 
-			var unpatch = FindViewById<Button>(Resource.Id.Unpatch);
+			var unpatch = FindCachedViewById<Button>(Resource.Id.Unpatch);
 			unpatch.Click += Unpatch_Click;
 
-			var clear = FindViewById<Button>(Resource.Id.Clear);
+			var clear = FindCachedViewById<Button>(Resource.Id.Clear);
 			clear.Click += Clear_Click;
 
-			var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+			var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 			checkBoxSavedata.CheckedChange += CheckBox_CheckedChange;
 
 
@@ -152,7 +165,7 @@ namespace OkkeiPatcher
 		{
 			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning))
 			{
-				var button = FindViewById<Button>(Resource.Id.Patch);
+				var button = FindCachedViewById<Button>(Resource.Id.Patch);
 				string buttonText;
 
 				if (!PatchTasks.Instance.IsRunning)
@@ -180,7 +193,7 @@ namespace OkkeiPatcher
 		{
 			if (e.PropertyName == nameof(UnpatchTasks.Instance.IsRunning))
 			{
-				var button = FindViewById<Button>(Resource.Id.Unpatch);
+				var button = FindCachedViewById<Button>(Resource.Id.Unpatch);
 				string buttonText;
 
 				if (!UnpatchTasks.Instance.IsRunning)
@@ -209,7 +222,7 @@ namespace OkkeiPatcher
 			var info = e.Info;
 			var data = e.MessageData;
 			if (info != null)
-				MainThread.BeginInvokeOnMainThread(() => { FindViewById<TextView>(Resource.Id.Status).Text = info; });
+				MainThread.BeginInvokeOnMainThread(() => { FindCachedViewById<TextView>(Resource.Id.Status).Text = info; });
 			if (!data.Equals(MessageBox.Data.Empty))
 				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, data); });
 		}
@@ -218,7 +231,7 @@ namespace OkkeiPatcher
 		{
 			var progress = e.Progress;
 			var max = e.Max;
-			var progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
+			var progressBar = FindCachedViewById<ProgressBar>(Resource.Id.progressBar);
 			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = max; });
 			MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = progress; });
 		}
@@ -226,7 +239,7 @@ namespace OkkeiPatcher
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
 			var isChecked = e.IsChecked;
-			if (sender == FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata))
+			if (sender == FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata))
 				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), isChecked);
 		}
 
@@ -241,7 +254,7 @@ namespace OkkeiPatcher
 					PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
 					PatchTasks.Instance.ErrorOccurred += Patch_Click;
 
-					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+					var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked,
 						_cts.Token));
 				}
@@ -263,7 +276,7 @@ namespace OkkeiPatcher
 					UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
 					UnpatchTasks.Instance.ErrorOccurred += Unpatch_Click;
 
-					var checkBoxSavedata = FindViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+					var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked,
 						_cts.Token));
 				}
@@ -278,7 +291,7 @@ namespace OkkeiPatcher
 		{
 			if (!PatchTasks.Instance.IsRunning && !UnpatchTasks.Instance.IsRunning)
 			{
-				var info = FindViewById<TextView>(Resource.Id.Status);
+				var info = FindCachedViewById<TextView>(Resource.Id.Status);
 
 				var apk = new Java.IO.File(FilePaths[Files.BackupApk]);
 				if (apk.Exists()) apk.Delete();
