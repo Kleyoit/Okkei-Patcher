@@ -25,17 +25,21 @@ namespace OkkeiPatcher
 	{
 		private CancellationTokenSource _cts = new CancellationTokenSource();
 
-		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache = new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
+		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache =
+			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
 
-		private T FindCachedViewById<T>(int id) where T : View
+#nullable enable
+		private T? FindCachedViewById<T>(int id) where T : View
 		{
 			if (!ViewCache.Value.TryGetValue(id, out var view))
 			{
 				view = FindViewById<T>(id);
-				ViewCache.Value.TryAdd(id, view);
+				if (view != null) ViewCache.Value.TryAdd(id, view);
 			}
-			return (T) view;
+
+			return (T?) view;
 		}
+#nullable disable
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
@@ -222,7 +226,10 @@ namespace OkkeiPatcher
 			var info = e.Info;
 			var data = e.MessageData;
 			if (info != null)
-				MainThread.BeginInvokeOnMainThread(() => { FindCachedViewById<TextView>(Resource.Id.Status).Text = info; });
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					FindCachedViewById<TextView>(Resource.Id.Status).Text = info;
+				});
 			if (!data.Equals(MessageBox.Data.Empty))
 				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, data); });
 		}
