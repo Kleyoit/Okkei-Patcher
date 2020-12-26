@@ -24,6 +24,7 @@ namespace OkkeiPatcher
 		{
 			Utils.StatusChanged += UtilsOnStatusChanged;
 			Utils.ProgressChanged += UtilsOnProgressChanged;
+			Utils.MessageGenerated += UtilsOnMessageGenerated;
 			Utils.TokenErrorOccurred += UtilsOnTokenErrorOccurred;
 			Utils.TaskErrorOccurred += UtilsOnTaskErrorOccurred;
 		}
@@ -45,8 +46,9 @@ namespace OkkeiPatcher
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public event EventHandler<StatusChangedEventArgs> StatusChanged;
+		public event EventHandler<string> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
+		public event EventHandler<MessageBox.Data> MessageGenerated;
 		public event EventHandler ErrorOccurred;
 
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -54,7 +56,7 @@ namespace OkkeiPatcher
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
+		private void UtilsOnStatusChanged(object sender, string e)
 		{
 			if (IsRunning) StatusChanged?.Invoke(this, e);
 		}
@@ -62,6 +64,11 @@ namespace OkkeiPatcher
 		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			if (IsRunning) ProgressChanged?.Invoke(this, e);
+		}
+
+		private void UtilsOnMessageGenerated(object sender, MessageBox.Data e)
+		{
+			if (IsRunning) MessageGenerated?.Invoke(this, e);
 		}
 
 		private void UtilsOnTokenErrorOccurred(object sender, EventArgs e)
@@ -91,9 +98,7 @@ namespace OkkeiPatcher
 						if (backupSavedata.Exists())
 						{
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.restore_old_saves),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.restore_old_saves));
 
 							backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
 							backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
@@ -108,25 +113,18 @@ namespace OkkeiPatcher
 
 					var installedObb = new Java.IO.File(FilePaths[Files.ObbToReplace]);
 
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.compare_obb),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
 					if (!Utils.CompareMD5(Files.ObbToReplace) || !installedObb.Exists())
 					{
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.download_obb),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.download_obb));
 
 						await Utils.DownloadFile(ObbUrl, ObbPath, ObbFileName, token);
 						token.ThrowIfCancellationRequested();
 
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.write_obb_md5),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
 						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), Utils.CalculateMD5(installedObb.Path));
 						Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
@@ -134,19 +132,13 @@ namespace OkkeiPatcher
 
 					installedObb.Dispose();
 
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.patch_success),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.patch_success));
 				}
 				catch (OperationCanceledException)
 				{
 					backupSavedata?.Delete();
 
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.aborted),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.aborted));
 				}
 				finally
 				{
@@ -161,7 +153,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public async Task PatchTask(Activity callerActivity, bool processSavedata, CancellationToken token)
+		public async Task PatchTask(Activity activity, bool processSavedata, CancellationToken token)
 		{
 			try
 			{
@@ -172,46 +164,39 @@ namespace OkkeiPatcher
 
 				try
 				{
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.checking),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.checking));
 
 					var isPatched =
 						Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 					if (isPatched)
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.error_patched),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.error_patched),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
 					if (!Utils.IsAppInstalled(ChaosChildPackageName))
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.cc_not_found),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.cc_not_found),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
 					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -236,16 +221,12 @@ namespace OkkeiPatcher
 						if (originalSavedata.Exists())
 						{
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.compare_saves),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.compare_saves));
 
 							if (!Utils.CompareMD5(Files.OriginalSavedata))
 							{
 								StatusChanged?.Invoke(this,
-									new StatusChangedEventArgs(
-										Application.Context.Resources.GetText(Resource.String.backup_saves),
-										MessageBox.Data.Empty));
+									Application.Context.Resources.GetText(Resource.String.backup_saves));
 
 								await Utils.CopyFile(originalSavedata.Path,
 									backupSavedata.Parent, backupSavedata.Name, token);
@@ -253,9 +234,7 @@ namespace OkkeiPatcher
 								token.ThrowIfCancellationRequested();
 
 								StatusChanged?.Invoke(this,
-									new StatusChangedEventArgs(
-										Application.Context.Resources.GetText(Resource.String.write_saves_md5),
-										MessageBox.Data.Empty));
+									Application.Context.Resources.GetText(Resource.String.write_saves_md5));
 
 								Preferences.Set(Prefkey.savedata_md5.ToString(),
 									Utils.CalculateMD5(originalSavedata.Path));
@@ -264,12 +243,11 @@ namespace OkkeiPatcher
 						}
 						else
 						{
-							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
-										callerActivity.Resources.GetText(Resource.String.saves_not_found_patch),
-										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-										null, null)));
+							MessageGenerated?.Invoke(this,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+									activity.Resources.GetText(Resource.String.saves_not_found_patch),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null));
 						}
 
 						backupSavedata.Dispose();
@@ -285,9 +263,7 @@ namespace OkkeiPatcher
 						var unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
 
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.copy_apk),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.copy_apk));
 
 						await Utils.CopyFile(originalApkPath, unpatchedApk.Parent,
 							unpatchedApk.Name, token);
@@ -300,25 +276,19 @@ namespace OkkeiPatcher
 						if (unpatchedApk.Exists())
 						{
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.compare_apk),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.compare_apk));
 
 							if (!Utils.CompareMD5(Files.TempApk) || !backupApk.Exists())
 							{
 								StatusChanged?.Invoke(this,
-									new StatusChangedEventArgs(
-										Application.Context.Resources.GetText(Resource.String.backup_apk),
-										MessageBox.Data.Empty));
+									Application.Context.Resources.GetText(Resource.String.backup_apk));
 
 								await Utils.CopyFile(originalApkPath, backupApk.Parent,
 									backupApk.Name, token);
 								token.ThrowIfCancellationRequested();
 
 								StatusChanged?.Invoke(this,
-									new StatusChangedEventArgs(
-										Application.Context.Resources.GetText(Resource.String.write_apk_md5),
-										MessageBox.Data.Empty));
+									Application.Context.Resources.GetText(Resource.String.write_apk_md5));
 
 								Preferences.Set(Prefkey.backup_apk_md5.ToString(), Utils.CalculateMD5(backupApk.Path));
 							}
@@ -333,25 +303,19 @@ namespace OkkeiPatcher
 						var scriptsZip = new Java.IO.File(FilePaths[Files.Scripts]);
 
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.compare_scripts),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.compare_scripts));
 
 						if (!Utils.CompareMD5(Files.Scripts) || !scriptsZip.Exists())
 						{
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.download_scripts),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.download_scripts));
 
 							await Utils.DownloadFile(ScriptsUrl, scriptsZip.Parent,
 								scriptsZip.Name, token);
 							token.ThrowIfCancellationRequested();
 
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.write_scripts_md5),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.write_scripts_md5));
 
 							Preferences.Set(Prefkey.scripts_md5.ToString(), Utils.CalculateMD5(scriptsZip.Path));
 						}
@@ -364,9 +328,7 @@ namespace OkkeiPatcher
 						string fileFilter = null;
 
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.extract_scripts),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.extract_scripts));
 
 						fastZip.ExtractZip(scriptsZip.Path, Path.Combine(OkkeiFilesPath, "scripts"),
 							fileFilter);
@@ -379,9 +341,7 @@ namespace OkkeiPatcher
 						var scriptsCount = filePaths.Length;
 
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.replace_scripts),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.replace_scripts));
 
 						var zipFile = new ZipFile(unpatchedApk.Path);
 
@@ -422,9 +382,7 @@ namespace OkkeiPatcher
 
 						// Sign APK
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.sign_apk),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.sign_apk));
 
 						var apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
 						var signedApkStream =
@@ -434,9 +392,7 @@ namespace OkkeiPatcher
 						SignPackage(apkToSign, Testkey, signedApkStream, signWholeFile);
 
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.write_patched_apk_md5),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.write_patched_apk_md5));
 
 						Preferences.Set(Prefkey.signed_apk_md5.ToString(),
 							Utils.CalculateMD5(FilePaths[Files.SignedApk]));
@@ -464,16 +420,12 @@ namespace OkkeiPatcher
 					if (originalObb.Exists())
 					{
 						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.compare_obb),
-								MessageBox.Data.Empty));
+							Application.Context.Resources.GetText(Resource.String.compare_obb));
 
 						if (!Utils.CompareMD5(Files.ObbToBackup) || !backupObb.Exists())
 						{
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.backup_obb),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.backup_obb));
 
 							await Utils.CopyFile(originalObb.Path, backupObb.Parent,
 								backupObb.Name, token);
@@ -482,9 +434,7 @@ namespace OkkeiPatcher
 							token.ThrowIfCancellationRequested();
 
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.write_obb_md5),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
 							Preferences.Set(Prefkey.backup_obb_md5.ToString(), Utils.CalculateMD5(backupObb.Path));
 							backupObb?.Dispose();
@@ -492,30 +442,26 @@ namespace OkkeiPatcher
 					}
 					else
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
-					StatusChanged?.Invoke(null, new StatusChangedEventArgs("", MessageBox.Data.Empty));
+					StatusChanged?.Invoke(null, string.Empty);
 
 
 					// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
-					Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
+					Utils.UninstallPackage(activity, ChaosChildPackageName);
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 				catch (OperationCanceledException)
 				{
 					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.aborted),
-							MessageBox.Data.Empty));
+						Application.Context.Resources.GetText(Resource.String.aborted));
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					IsRunning = false;

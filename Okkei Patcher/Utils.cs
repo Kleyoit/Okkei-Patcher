@@ -19,8 +19,9 @@ namespace OkkeiPatcher
 	{
 		private static readonly HttpClient Client = new HttpClient();
 
-		public static event EventHandler<StatusChangedEventArgs> StatusChanged;
+		public static event EventHandler<string> StatusChanged;
 		public static event EventHandler<ProgressChangedEventArgs> ProgressChanged;
+		public static event EventHandler<MessageBox.Data> MessageGenerated;
 		public static event EventHandler TokenErrorOccurred;
 		public static event EventHandler TaskErrorOccurred;
 
@@ -109,7 +110,7 @@ namespace OkkeiPatcher
 			GC.Collect();
 		}
 
-		public static void InstallPackage(Activity callerActivity, Android.Net.Uri apkUri)
+		public static void InstallPackage(Activity activity, Android.Net.Uri apkUri)
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
 			{
@@ -121,10 +122,10 @@ namespace OkkeiPatcher
 				AddApkToInstallSession(apkUri, session);
 
 				// Create an install status receiver
-				var intent = new Intent(callerActivity, callerActivity.Class);
+				var intent = new Intent(activity, activity.Class);
 				intent.SetAction(PACKAGE_INSTALLED_ACTION);
 				var pendingIntent =
-					PendingIntent.GetActivity(callerActivity, 0, intent, PendingIntentFlags.UpdateCurrent);
+					PendingIntent.GetActivity(activity, 0, intent, PendingIntentFlags.UpdateCurrent);
 				var statusReceiver = pendingIntent.IntentSender;
 
 				// Commit the session (this will start the installation workflow)
@@ -134,47 +135,40 @@ namespace OkkeiPatcher
 
 		public static async void OnInstallResult()
 		{
-			StatusChanged?.Invoke(null,
-				new StatusChangedEventArgs(
-					Application.Context.Resources.GetText(Resource.String.wait_installer),
-					MessageBox.Data.Empty));
+			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.wait_installer));
 
 			await Task.Delay(6000);
 
 			if (!IsAppInstalled(ChaosChildPackageName))
 			{
 				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
-
-				StatusChanged?.Invoke(null,
-					new StatusChangedEventArgs(
-						Application.Context.Resources.GetText(Resource.String.aborted),
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.install_error),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null)));
-
+				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
+				MessageGenerated?.Invoke(null, new MessageBox.Data(
+					Application.Context.Resources.GetText(Resource.String.error),
+					Application.Context.Resources.GetText(Resource.String.install_error),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+					null, null));
 				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 		}
 
-		public static void UninstallPackage(Activity callerActivity, string packageName)
+		public static void UninstallPackage(Activity activity, string packageName)
 		{
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
-			callerActivity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
+			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
-		public static void OnUninstallResult(Activity callerActivity, CancellationToken token)
+		public static void OnUninstallResult(Activity activity, CancellationToken token)
 		{
 			if (IsAppInstalled(ChaosChildPackageName))
 			{
-				StatusChanged?.Invoke(null,
-					new StatusChangedEventArgs(Application.Context.Resources.GetText(Resource.String.aborted),
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.uninstall_error),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null)));
-
+				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
+				MessageGenerated?.Invoke(null, new MessageBox.Data(
+					Application.Context.Resources.GetText(Resource.String.error),
+					Application.Context.Resources.GetText(Resource.String.uninstall_error),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+					null, null));
 				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 			else
@@ -200,42 +194,35 @@ namespace OkkeiPatcher
 				{
 					if (System.IO.File.Exists(path))
 					{
-						StatusChanged?.Invoke(null,
-							new StatusChangedEventArgs(
-								Application.Context.Resources.GetText(Resource.String.compare_apk),
-								MessageBox.Data.Empty));
+						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
 						var apkFileMd5 = CalculateMD5(path);
 
 						if (apkMd5 == apkFileMd5)
 						{
-							InstallPackage(callerActivity, Android.Net.Uri.FromFile(new Java.IO.File(path)));
+							InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)));
 						}
 						else
 						{
 							System.IO.File.Delete(path);
 
 							if (PatchTasks.Instance.IsRunning)
-								StatusChanged?.Invoke(null,
-									new StatusChangedEventArgs(null,
-										new MessageBox.Data(
-											Application.Context.Resources.GetText(Resource.String.error),
-											Application.Context.Resources.GetText(Resource.String
-												.not_trustworthy_apk_patch),
-											Application.Context.Resources.GetText(Resource.String.dialog_ok),
-											null,
-											null, null)));
+								MessageGenerated?.Invoke(null, new MessageBox.Data(
+									Application.Context.Resources.GetText(Resource.String.error),
+									Application.Context.Resources.GetText(Resource.String
+										.not_trustworthy_apk_patch),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok),
+									null,
+									null, null));
 
 							else if (UnpatchTasks.Instance.IsRunning)
-								StatusChanged?.Invoke(null,
-									new StatusChangedEventArgs(null,
-										new MessageBox.Data(
-											Application.Context.Resources.GetText(Resource.String.error),
-											Application.Context.Resources.GetText(Resource.String
-												.not_trustworthy_apk_unpatch),
-											Application.Context.Resources.GetText(Resource.String.dialog_ok),
-											null,
-											null, null)));
+								MessageGenerated?.Invoke(null, new MessageBox.Data(
+									Application.Context.Resources.GetText(Resource.String.error),
+									Application.Context.Resources.GetText(Resource.String
+										.not_trustworthy_apk_unpatch),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok),
+									null,
+									null, null));
 
 							TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 							token.ThrowIfCancellationRequested();
@@ -244,20 +231,18 @@ namespace OkkeiPatcher
 					else
 					{
 						if (PatchTasks.Instance.IsRunning)
-							StatusChanged?.Invoke(null,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-										Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
-										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-										null, null)));
+							MessageGenerated?.Invoke(null,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+									Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null));
 
 						else if (UnpatchTasks.Instance.IsRunning)
-							StatusChanged?.Invoke(null,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
-										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-										null, null)));
+							MessageGenerated?.Invoke(null,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+									Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null));
 
 						TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
@@ -266,11 +251,7 @@ namespace OkkeiPatcher
 				catch (System.OperationCanceledException)
 				{
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
-					StatusChanged?.Invoke(null,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.aborted),
-							MessageBox.Data.Empty));
-
+					StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
 					TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 			}
@@ -352,8 +333,7 @@ namespace OkkeiPatcher
 
 			try
 			{
-				var response =
-					await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
+				var response = await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
 				var contentLength = -1;
 
 				if (response.StatusCode == HttpStatusCode.OK)
@@ -363,15 +343,13 @@ namespace OkkeiPatcher
 				}
 				else
 				{
-					StatusChanged?.Invoke(null,
-						new StatusChangedEventArgs(null,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Java.Lang.String.Format(
-									Application.Context.Resources.GetText(Resource.String.http_file_access_error),
-									response.StatusCode.ToString()),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null)));
-
+					MessageGenerated?.Invoke(null,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Java.Lang.String.Format(
+								Application.Context.Resources.GetText(Resource.String.http_file_access_error),
+								response.StatusCode.ToString()),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null));
 					TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 
@@ -385,13 +363,11 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex) when (!(ex is System.OperationCanceledException))
 			{
-				StatusChanged?.Invoke(null,
-					new StatusChangedEventArgs(null,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null)));
-
+				MessageGenerated?.Invoke(null,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+						null, null));
 				TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 			finally
@@ -426,12 +402,16 @@ namespace OkkeiPatcher
 		{
 			var bugReport = GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
-			StatusChanged?.Invoke(null,
-				new StatusChangedEventArgs(null,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
-						Application.Context.Resources.GetText(Resource.String.exception_notice),
-						Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-						() => { System.Environment.Exit(0); }, null)));
+			MessageGenerated?.Invoke(null,
+				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
+					Application.Context.Resources.GetText(Resource.String.exception_notice),
+					Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+					() => { System.Environment.Exit(0); }, null));
+		}
+
+		public static void CreateOkkeiDirectory()
+		{
+			if (!Directory.Exists(OkkeiFilesPath)) Directory.CreateDirectory(OkkeiFilesPath);
 		}
 	}
 }

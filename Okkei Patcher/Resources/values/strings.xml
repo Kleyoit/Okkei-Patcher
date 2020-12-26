@@ -18,7 +18,9 @@
   <string name="aborted">Operation aborted.</string>
   <string name="backup_cleared">Backup cleared.</string>
   <string name="no_install_permission">Okkei Patcher can\'t get permission to install packages.</string>
-  <string name="no_storage_permission">Okkei Patcher requires permission to read and write to external storage to proceed. Would you like to try to grant permission again? Otherwise Okkei Patcher will be closed.</string>
+  <string name="no_storage_permission">Okkei Patcher can\'t get permission to read from and write to external storage.</string>
+  <string name="no_storage_permission_rationale">Okkei Patcher requires permission to read from and write to external storage to proceed. Would you like to try to grant permission again? Otherwise Okkei Patcher will be closed.</string>
+  <string name="no_storage_permission_settings">Okkei Patcher requires permission to read from and write to external storage to proceed. Would you like to try to grant permission again? If you click OK you will be redirected to Okkei Patcher settings where you should go to permissions settings and enable storage permission. Otherwise Okkei Patcher will be closed.</string>
   <string name="unknown_sources_notice">Okkei Patcher requires permission to install applications from unknown sources to continue. After pressing the OK button you will be redirected to your device settings where you should enable this option. Then you can return to Okkei Patcher using the back button or gesture.</string>
   <string name="restore_old_saves">Restoring old save data...</string>
   <string name="compare_obb">Comparing OBB checksums...</string>

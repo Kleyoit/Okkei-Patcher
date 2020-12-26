@@ -5,21 +5,21 @@ namespace OkkeiPatcher
 {
 	public static class MessageBox
 	{
-		public static void Show(Activity callerActivity, string title, string message, string buttonText, Action action)
+		public static void Show(Activity activity, string title, string message, string buttonText, Action action)
 		{
-			Show(callerActivity, new Data(title, message, buttonText, string.Empty, action, () => { }));
+			Show(activity, new Data(title, message, buttonText, string.Empty, action, null));
 		}
 
-		public static void Show(Activity callerActivity, string title, string message, string positiveButtonText,
+		public static void Show(Activity activity, string title, string message, string positiveButtonText,
 			string negativeButtonText, Action positiveAction, Action negativeAction)
 		{
-			Show(callerActivity,
+			Show(activity,
 				new Data(title, message, positiveButtonText, negativeButtonText, positiveAction, negativeAction));
 		}
 
-		public static void Show(Activity callerActivity, Data data)
+		public static void Show(Activity activity, Data data)
 		{
-			var builder = new AlertDialog.Builder(callerActivity);
+			var builder = new AlertDialog.Builder(activity);
 			var cancelable = data.NegativeButtonText != null;
 
 			builder.SetTitle(data.Title);
@@ -42,10 +42,11 @@ namespace OkkeiPatcher
 			public Action PositiveAction { get; }
 			public Action NegativeAction { get; }
 
-			public static readonly Data Empty = new Data(null, null, null, null, null, null);
+			//public static readonly Data Empty = new Data(null, null, null, null, null, null);
 
 			public Data(string title, string message, string positiveButtonText, string negativeButtonText,
-				Action positiveAction, Action negativeAction)
+				Action positiveAction,
+				Action negativeAction)
 			{
 				Title = title;
 				Message = message;

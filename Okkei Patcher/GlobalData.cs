@@ -29,12 +29,15 @@ namespace OkkeiPatcher
 			backup_obb_md5,
 			backup_apk_md5,
 			backup_restore_savedata,
-			apk_is_patched
+			apk_is_patched,
+			extstorage_permission_denied
 		}
 
 		public enum RequestCodes
 		{
-			UnknownAppSourceCode,
+			UnknownAppSourceSettingsCode,
+			StoragePermissionSettingsCode,
+			StoragePermissionRequestCode,
 			UninstallCode,
 			InstallCode
 		}

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Android;
@@ -23,10 +22,10 @@ namespace OkkeiPatcher
 		LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
-		private CancellationTokenSource _cts = new CancellationTokenSource();
-
 		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache =
 			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
+
+		private CancellationTokenSource _cts = new CancellationTokenSource();
 
 #nullable enable
 		private T? FindCachedViewById<T>(int id) where T : View
@@ -44,31 +43,42 @@ namespace OkkeiPatcher
 		private void RequestInstallPackagesPermission()
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-						Resources.GetText(Resource.String.unknown_sources_notice),
-						Resources.GetText(Resource.String.dialog_ok),
-						() =>
-						{
-							var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
-								Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-							StartActivityForResult(intent, (int) GlobalData.RequestCodes.UnknownAppSourceCode);
-						});
-				});
+				MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+					Resources.GetText(Resource.String.unknown_sources_notice),
+					Resources.GetText(Resource.String.dialog_ok),
+					() =>
+					{
+						var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
+							Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
+						StartActivityForResult(intent, (int) RequestCodes.UnknownAppSourceSettingsCode);
+					});
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
-			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O &&
+			if (requestCode == (int) RequestCodes.UnknownAppSourceSettingsCode &&
+			    Build.VERSION.SdkInt >= BuildVersionCodes.O &&
 			    !PackageManager.CanRequestPackageInstalls())
-				MainThread.BeginInvokeOnMainThread(() =>
+				MessageBox.Show(this, Resources.GetText(Resource.String.error),
+					Resources.GetText(Resource.String.no_install_permission),
+					Resources.GetText(Resource.String.dialog_exit),
+					() => { System.Environment.Exit(0); });
+
+			if (requestCode == (int) RequestCodes.StoragePermissionSettingsCode)
+			{
+				if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 				{
 					MessageBox.Show(this, Resources.GetText(Resource.String.error),
-						Resources.GetText(Resource.String.no_install_permission),
+						Resources.GetText(Resource.String.no_storage_permission),
 						Resources.GetText(Resource.String.dialog_exit),
 						() => { System.Environment.Exit(0); });
-				});
+				}
+				else
+				{
+					Utils.CreateOkkeiDirectory();
+					RequestInstallPackagesPermission();
+				}
+			}
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
 				Utils.OnUninstallResult(this, _cts.Token);
@@ -159,21 +169,33 @@ namespace OkkeiPatcher
 				checkBoxSavedata.Checked = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
 
 
-			// Request read/write external storage permissions on first start
+			// Request read/write external storage permissions
 			if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 			{
-				string[] extStoragePermissions =
-					{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
-				RequestPermissions(extStoragePermissions, 0);
+				if (!Preferences.Get(Prefkey.extstorage_permission_denied.ToString(), false))
+				{
+					string[] extStoragePermissions =
+						{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
+					RequestPermissions(extStoragePermissions, (int) RequestCodes.StoragePermissionRequestCode);
+				}
+				else
+				{
+					MessageBox.Show(this, Resources.GetText(Resource.String.error),
+						Resources.GetText(Resource.String.no_storage_permission_settings),
+						Resources.GetText(Resource.String.dialog_ok),
+						Resources.GetText(Resource.String.dialog_exit),
+						() =>
+						{
+							var intent = new Intent(Android.Provider.Settings.ActionApplicationDetailsSettings,
+								Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
+							StartActivityForResult(intent, (int) RequestCodes.StoragePermissionSettingsCode);
+						},
+						() => { System.Environment.Exit(0); });
+				}
 			}
 			else
 			{
-				// Create OkkeiPatcher directory if doesn't exist
-				if (!Directory.Exists(OkkeiFilesPath))
-				{
-					Directory.CreateDirectory(OkkeiFilesPath);
-				}
-
+				Utils.CreateOkkeiDirectory();
 				RequestInstallPackagesPermission();
 			}
 		}
@@ -187,27 +209,34 @@ namespace OkkeiPatcher
 
 
 			// Request read/write external storage permissions on first start
-			if (requestCode == 0)
+			if (requestCode == (int) RequestCodes.StoragePermissionRequestCode)
 			{
 				if (grantResults[0] != Permission.Granted)
 				{
 					if (ShouldShowRequestPermissionRationale(permissions[0]))
+					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.error),
-							Resources.GetText(Resource.String.no_storage_permission),
+							Resources.GetText(Resource.String.no_storage_permission_rationale),
 							Resources.GetText(Resource.String.dialog_ok),
 							Resources.GetText(Resource.String.dialog_exit),
-							() => { RequestPermissions(permissions, 0); },
+							() => { RequestPermissions(permissions, (int) RequestCodes.StoragePermissionRequestCode); },
 							() => { System.Environment.Exit(0); });
-					else System.Environment.Exit(0);
+					}
+					else
+					{
+						Preferences.Set(Prefkey.extstorage_permission_denied.ToString(), true);
+
+						MessageBox.Show(this, Resources.GetText(Resource.String.error),
+							Resources.GetText(Resource.String.no_storage_permission),
+							Resources.GetText(Resource.String.dialog_exit),
+							() => { System.Environment.Exit(0); });
+					}
 				}
 				else
 				{
-					// Create OkkeiPatcher directory if doesn't exist
-					if (!Directory.Exists(OkkeiFilesPath))
-					{
-						Directory.CreateDirectory(OkkeiFilesPath);
-					}
+					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 
+					Utils.CreateOkkeiDirectory();
 					RequestInstallPackagesPermission();
 				}
 			}
@@ -226,6 +255,7 @@ namespace OkkeiPatcher
 
 					PatchTasks.Instance.StatusChanged -= OnStatusChanged;
 					PatchTasks.Instance.ProgressChanged -= OnProgressChanged;
+					PatchTasks.Instance.MessageGenerated -= OnMessageGenerated;
 					PatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Patch;
 					PatchTasks.Instance.ErrorOccurred -= Patch_Click;
 
@@ -254,6 +284,7 @@ namespace OkkeiPatcher
 
 					UnpatchTasks.Instance.StatusChanged -= OnStatusChanged;
 					UnpatchTasks.Instance.ProgressChanged -= OnProgressChanged;
+					UnpatchTasks.Instance.MessageGenerated -= OnMessageGenerated;
 					UnpatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Unpatch;
 					UnpatchTasks.Instance.ErrorOccurred -= Unpatch_Click;
 
@@ -269,17 +300,14 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private void OnStatusChanged(object sender, StatusChangedEventArgs e)
+		private void OnStatusChanged(object sender, string e)
 		{
-			var info = e.Info;
-			var data = e.MessageBoxData;
-			if (info != null)
-				MainThread.BeginInvokeOnMainThread(() =>
-				{
-					FindCachedViewById<TextView>(Resource.Id.Status).Text = info;
-				});
-			if (!data.Equals(MessageBox.Data.Empty))
-				MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, data); });
+			MainThread.BeginInvokeOnMainThread(() => { FindCachedViewById<TextView>(Resource.Id.Status).Text = e; });
+		}
+
+		private void OnMessageGenerated(object sender, MessageBox.Data e)
+		{
+			MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, e); });
 		}
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -308,6 +336,7 @@ namespace OkkeiPatcher
 				{
 					PatchTasks.Instance.StatusChanged += OnStatusChanged;
 					PatchTasks.Instance.ProgressChanged += OnProgressChanged;
+					PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
 					PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
 					PatchTasks.Instance.ErrorOccurred += Patch_Click;
 
@@ -330,6 +359,7 @@ namespace OkkeiPatcher
 				{
 					UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
 					UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
+					UnpatchTasks.Instance.MessageGenerated += OnMessageGenerated;
 					UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
 					UnpatchTasks.Instance.ErrorOccurred += Unpatch_Click;
 

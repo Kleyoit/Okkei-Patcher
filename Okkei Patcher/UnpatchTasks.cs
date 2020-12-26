@@ -19,6 +19,7 @@ namespace OkkeiPatcher
 		{
 			Utils.StatusChanged += UtilsOnStatusChanged;
 			Utils.ProgressChanged += UtilsOnProgressChanged;
+			Utils.MessageGenerated += UtilsOnMessageGenerated;
 			Utils.TokenErrorOccurred += UtilsOnTokenErrorOccurred;
 			Utils.TaskErrorOccurred += UtilsOnTaskErrorOccurred;
 		}
@@ -40,8 +41,9 @@ namespace OkkeiPatcher
 
 		public event PropertyChangedEventHandler PropertyChanged;
 
-		public event EventHandler<StatusChangedEventArgs> StatusChanged;
+		public event EventHandler<string> StatusChanged;
 		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
+		public event EventHandler<MessageBox.Data> MessageGenerated;
 		public event EventHandler ErrorOccurred;
 
 		private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
@@ -49,7 +51,7 @@ namespace OkkeiPatcher
 			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		private void UtilsOnStatusChanged(object sender, StatusChangedEventArgs e)
+		private void UtilsOnStatusChanged(object sender, string e)
 		{
 			if (IsRunning) StatusChanged?.Invoke(this, e);
 		}
@@ -57,6 +59,11 @@ namespace OkkeiPatcher
 		private void UtilsOnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
 			if (IsRunning) ProgressChanged?.Invoke(this, e);
+		}
+
+		private void UtilsOnMessageGenerated(object sender, MessageBox.Data e)
+		{
+			if (IsRunning) MessageGenerated?.Invoke(this, e);
 		}
 
 		private void UtilsOnTokenErrorOccurred(object sender, EventArgs e)
@@ -83,19 +90,15 @@ namespace OkkeiPatcher
 
 				try
 				{
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.restore_obb),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.restore_obb));
 
 					if (!backupObb.Exists())
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -108,9 +111,7 @@ namespace OkkeiPatcher
 						if (backupSavedata.Exists())
 						{
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.restore_saves),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.restore_saves));
 
 							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
 								SavedataFileName, token);
@@ -118,12 +119,11 @@ namespace OkkeiPatcher
 						}
 						else
 						{
-							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
-										Application.Context.Resources.GetText(Resource.String.saves_backup_not_found),
-										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-										null, null)));
+							MessageGenerated?.Invoke(this,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+									Application.Context.Resources.GetText(Resource.String.saves_backup_not_found),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null));
 						}
 					}
 
@@ -147,20 +147,14 @@ namespace OkkeiPatcher
 					// Finish unpatch
 					Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.unpatch_success),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.unpatch_success));
 				}
 				catch (OperationCanceledException)
 				{
 					if (backupSavedataCopy.Exists()) backupSavedataCopy.Delete();
 					if (appSavedata.Exists()) appSavedata.Delete();
 
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.aborted),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.aborted));
 				}
 				finally
 				{
@@ -180,7 +174,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public async Task UnpatchTask(Activity callerActivity, bool processSavedata, CancellationToken token)
+		public async Task UnpatchTask(Activity activity, bool processSavedata, CancellationToken token)
 		{
 			try
 			{
@@ -195,36 +189,33 @@ namespace OkkeiPatcher
 				{
 					if (!isPatched)
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.error_not_patched),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.error_not_patched),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
 					if (!backupApk.Exists())
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.backup_not_found),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.backup_not_found),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
 
 					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
 					{
-						StatusChanged?.Invoke(this,
-							new StatusChangedEventArgs(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.no_free_space_unpatch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null)));
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.no_free_space_unpatch),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -235,9 +226,7 @@ namespace OkkeiPatcher
 						{
 							// Backup save data
 							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(
-									Application.Context.Resources.GetText(Resource.String.backup_saves),
-									MessageBox.Data.Empty));
+								Application.Context.Resources.GetText(Resource.String.backup_saves));
 
 							await Utils.CopyFile(FilePaths[Files.OriginalSavedata],
 								OkkeiFilesPathBackup, SavedataBackupFileName, token);
@@ -245,34 +234,30 @@ namespace OkkeiPatcher
 						}
 						else
 						{
-							StatusChanged?.Invoke(this,
-								new StatusChangedEventArgs(null,
-									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
-										Application.Context.Resources.GetText(Resource.String.saves_not_found_unpatch),
-										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-										null, null)));
+							MessageGenerated?.Invoke(this,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+									Application.Context.Resources.GetText(Resource.String.saves_not_found_unpatch),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null));
 						}
 					}
 
-					StatusChanged?.Invoke(this, new StatusChangedEventArgs("", MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, string.Empty);
 
 
 					// Uninstall CHAOS;CHILD and install backup, then restore OBB and save data if checked
 					// Install backup immediately if CHAOS;CHILD is not installed
 					if (Utils.IsAppInstalled(ChaosChildPackageName))
-						Utils.UninstallPackage(callerActivity, ChaosChildPackageName);
+						Utils.UninstallPackage(activity, ChaosChildPackageName);
 					else
-						Utils.InstallPackage(callerActivity,
+						Utils.InstallPackage(activity,
 							Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk])));
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 				catch (OperationCanceledException)
 				{
-					StatusChanged?.Invoke(this,
-						new StatusChangedEventArgs(
-							Application.Context.Resources.GetText(Resource.String.aborted),
-							MessageBox.Data.Empty));
+					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.aborted));
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					IsRunning = false;
 				}
