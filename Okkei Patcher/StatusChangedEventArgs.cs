@@ -7,10 +7,10 @@ namespace OkkeiPatcher
 		public StatusChangedEventArgs(string info, MessageBox.Data data)
 		{
 			Info = info;
-			MessageData = data;
+			MessageBoxData = data;
 		}
 
 		public string Info { get; }
-		public MessageBox.Data MessageData { get; }
+		public MessageBox.Data MessageBoxData { get; }
 	}
 }

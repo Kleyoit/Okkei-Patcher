@@ -150,7 +150,8 @@ namespace OkkeiPatcher
 						Application.Context.Resources.GetText(Resource.String.aborted),
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 							Application.Context.Resources.GetText(Resource.String.install_error),
-							MessageBox.Code.OK)));
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null)));
 
 				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
@@ -171,7 +172,8 @@ namespace OkkeiPatcher
 					new StatusChangedEventArgs(Application.Context.Resources.GetText(Resource.String.aborted),
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 							Application.Context.Resources.GetText(Resource.String.uninstall_error),
-							MessageBox.Code.OK)));
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null)));
 
 				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
@@ -220,7 +222,9 @@ namespace OkkeiPatcher
 											Application.Context.Resources.GetText(Resource.String.error),
 											Application.Context.Resources.GetText(Resource.String
 												.not_trustworthy_apk_patch),
-											MessageBox.Code.OK)));
+											Application.Context.Resources.GetText(Resource.String.dialog_ok),
+											null,
+											null, null)));
 
 							else if (UnpatchTasks.Instance.IsRunning)
 								StatusChanged?.Invoke(null,
@@ -229,7 +233,9 @@ namespace OkkeiPatcher
 											Application.Context.Resources.GetText(Resource.String.error),
 											Application.Context.Resources.GetText(Resource.String
 												.not_trustworthy_apk_unpatch),
-											MessageBox.Code.OK)));
+											Application.Context.Resources.GetText(Resource.String.dialog_ok),
+											null,
+											null, null)));
 
 							TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 							token.ThrowIfCancellationRequested();
@@ -242,14 +248,16 @@ namespace OkkeiPatcher
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 										Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
-										MessageBox.Code.OK)));
+										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+										null, null)));
 
 						else if (UnpatchTasks.Instance.IsRunning)
 							StatusChanged?.Invoke(null,
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 										Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
-										MessageBox.Code.OK)));
+										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+										null, null)));
 
 						TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
@@ -360,7 +368,9 @@ namespace OkkeiPatcher
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 								Java.Lang.String.Format(
 									Application.Context.Resources.GetText(Resource.String.http_file_access_error),
-									response.StatusCode.ToString()), MessageBox.Code.OK)));
+									response.StatusCode.ToString()),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null)));
 
 					TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
@@ -379,7 +389,8 @@ namespace OkkeiPatcher
 					new StatusChangedEventArgs(null,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-							MessageBox.Code.OK)));
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null)));
 
 				TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
@@ -419,7 +430,8 @@ namespace OkkeiPatcher
 				new StatusChangedEventArgs(null,
 					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
 						Application.Context.Resources.GetText(Resource.String.exception_notice),
-						MessageBox.Code.Exit)));
+						Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+						() => { System.Environment.Exit(0); }, null)));
 		}
 	}
 }

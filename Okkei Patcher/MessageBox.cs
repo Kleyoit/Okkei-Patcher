@@ -1,77 +1,58 @@
-﻿using Android.App;
-using Android.Content;
-using Xamarin.Essentials;
+﻿using System;
+using Android.App;
 
 namespace OkkeiPatcher
 {
 	public static class MessageBox
 	{
-		public enum Code
+		public static void Show(Activity callerActivity, string title, string message, string buttonText, Action action)
 		{
-			OK,
-			UnknownAppSourceNotice,
-			Exit
+			Show(callerActivity, new Data(title, message, buttonText, string.Empty, action, () => { }));
 		}
 
-		private static Activity _getMessageBoxActivity;
-
-		public static void Show(Activity callerActivity, string title, string message, Code id)
+		public static void Show(Activity callerActivity, string title, string message, string positiveButtonText,
+			string negativeButtonText, Action positiveAction, Action negativeAction)
 		{
-			Show(callerActivity, new Data(title, message, id));
+			Show(callerActivity,
+				new Data(title, message, positiveButtonText, negativeButtonText, positiveAction, negativeAction));
 		}
 
 		public static void Show(Activity callerActivity, Data data)
 		{
-			_getMessageBoxActivity = callerActivity;
-
 			var builder = new AlertDialog.Builder(callerActivity);
+			var cancelable = data.NegativeButtonText != null;
+
 			builder.SetTitle(data.Title);
 			builder.SetMessage(data.Message);
-			builder.SetCancelable(false);
-			switch (data.Id)
-			{
-				case Code.OK:
-					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_ok),
-						delegate { });
-					break;
-				case Code.UnknownAppSourceNotice:
-					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_ok),
-						MessageBoxOkUnknownAppSourceNoticeAction);
-					break;
-				case Code.Exit:
-					builder.SetPositiveButton(Application.Context.Resources.GetText(Resource.String.dialog_exit),
-						MessageBoxExitAction);
-					break;
-			}
+			builder.SetCancelable(cancelable);
+
+			builder.SetPositiveButton(data.PositiveButtonText, (sender, e) => { data.PositiveAction?.Invoke(); });
+			if (cancelable)
+				builder.SetNegativeButton(data.NegativeButtonText, (sender, e) => { data.NegativeAction?.Invoke(); });
 
 			builder.Create()?.Show();
-		}
-
-		private static void MessageBoxOkUnknownAppSourceNoticeAction(object sender, DialogClickEventArgs e)
-		{
-			var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
-				Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-			_getMessageBoxActivity.StartActivityForResult(intent, (int) GlobalData.RequestCodes.UnknownAppSourceCode);
-		}
-
-		private static void MessageBoxExitAction(object sender, DialogClickEventArgs e)
-		{
-			System.Environment.Exit(0);
 		}
 
 		public struct Data
 		{
 			public string Title { get; }
 			public string Message { get; }
-			public Code Id { get; }
+			public string PositiveButtonText { get; }
+			public string NegativeButtonText { get; }
+			public Action PositiveAction { get; }
+			public Action NegativeAction { get; }
 
-			public static Data Empty => new Data(string.Empty, string.Empty, Code.OK);
+			public static readonly Data Empty = new Data(null, null, null, null, null, null);
 
-			public Data(string title, string message, Code id)
+			public Data(string title, string message, string positiveButtonText, string negativeButtonText,
+				Action positiveAction, Action negativeAction)
 			{
 				Title = title;
 				Message = message;
-				Id = id;
+				PositiveButtonText = positiveButtonText;
+				NegativeButtonText = negativeButtonText;
+				PositiveAction = positiveAction;
+				NegativeAction = negativeAction;
 			}
 		}
 	}

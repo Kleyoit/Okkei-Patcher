@@ -25,7 +25,6 @@ namespace OkkeiPatcher
 		
 		public static void UpdateIdValues()
 		{
-			global::SignApk.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
 			global::Xamarin.Essentials.Resource.Attribute.alpha = global::OkkeiPatcher.Resource.Attribute.alpha;
 			global::Xamarin.Essentials.Resource.Attribute.coordinatorLayoutStyle = global::OkkeiPatcher.Resource.Attribute.coordinatorLayoutStyle;
 			global::Xamarin.Essentials.Resource.Attribute.font = global::OkkeiPatcher.Resource.Attribute.font;
@@ -4387,11 +4386,11 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0E0050
 			public const int mtrl_chip_close_icon_content_description = 2131624016;
 			
-			// aapt resource value: 0x7F0E0054
-			public const int not_trustworthy_apk_patch = 2131624020;
-			
 			// aapt resource value: 0x7F0E0055
-			public const int not_trustworthy_apk_unpatch = 2131624021;
+			public const int not_trustworthy_apk_patch = 2131624021;
+			
+			// aapt resource value: 0x7F0E0056
+			public const int not_trustworthy_apk_unpatch = 2131624022;
 			
 			// aapt resource value: 0x7F0E0051
 			public const int no_free_space_patch = 2131624017;
@@ -4402,101 +4401,104 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0E0053
 			public const int no_install_permission = 2131624019;
 			
-			// aapt resource value: 0x7F0E0056
-			public const int obb_not_found_patch = 2131624022;
+			// aapt resource value: 0x7F0E0054
+			public const int no_storage_permission = 2131624020;
 			
 			// aapt resource value: 0x7F0E0057
-			public const int obb_not_found_unpatch = 2131624023;
+			public const int obb_not_found_patch = 2131624023;
 			
 			// aapt resource value: 0x7F0E0058
-			public const int okkei = 2131624024;
+			public const int obb_not_found_unpatch = 2131624024;
 			
 			// aapt resource value: 0x7F0E0059
-			public const int password_toggle_content_description = 2131624025;
+			public const int okkei = 2131624025;
 			
 			// aapt resource value: 0x7F0E005A
-			public const int patch = 2131624026;
+			public const int password_toggle_content_description = 2131624026;
 			
 			// aapt resource value: 0x7F0E005B
-			public const int patch_success = 2131624027;
+			public const int patch = 2131624027;
 			
 			// aapt resource value: 0x7F0E005C
-			public const int path_password_eye = 2131624028;
+			public const int patch_success = 2131624028;
 			
 			// aapt resource value: 0x7F0E005D
-			public const int path_password_eye_mask_strike_through = 2131624029;
+			public const int path_password_eye = 2131624029;
 			
 			// aapt resource value: 0x7F0E005E
-			public const int path_password_eye_mask_visible = 2131624030;
+			public const int path_password_eye_mask_strike_through = 2131624030;
 			
 			// aapt resource value: 0x7F0E005F
-			public const int path_password_strike_through = 2131624031;
+			public const int path_password_eye_mask_visible = 2131624031;
 			
 			// aapt resource value: 0x7F0E0060
-			public const int replace_scripts = 2131624032;
+			public const int path_password_strike_through = 2131624032;
 			
 			// aapt resource value: 0x7F0E0061
-			public const int restore_obb = 2131624033;
+			public const int replace_scripts = 2131624033;
 			
 			// aapt resource value: 0x7F0E0062
-			public const int restore_old_saves = 2131624034;
+			public const int restore_obb = 2131624034;
 			
 			// aapt resource value: 0x7F0E0063
-			public const int restore_saves = 2131624035;
+			public const int restore_old_saves = 2131624035;
 			
 			// aapt resource value: 0x7F0E0064
-			public const int savedata_checkbox = 2131624036;
+			public const int restore_saves = 2131624036;
 			
 			// aapt resource value: 0x7F0E0065
-			public const int saves_backup_not_found = 2131624037;
+			public const int savedata_checkbox = 2131624037;
 			
 			// aapt resource value: 0x7F0E0066
-			public const int saves_not_found_patch = 2131624038;
+			public const int saves_backup_not_found = 2131624038;
 			
 			// aapt resource value: 0x7F0E0067
-			public const int saves_not_found_unpatch = 2131624039;
+			public const int saves_not_found_patch = 2131624039;
 			
 			// aapt resource value: 0x7F0E0068
-			public const int search_menu_title = 2131624040;
+			public const int saves_not_found_unpatch = 2131624040;
 			
 			// aapt resource value: 0x7F0E0069
-			public const int sign_apk = 2131624041;
+			public const int search_menu_title = 2131624041;
 			
 			// aapt resource value: 0x7F0E006A
-			public const int status_bar_notification_info_overflow = 2131624042;
+			public const int sign_apk = 2131624042;
 			
 			// aapt resource value: 0x7F0E006B
-			public const int uninstall_error = 2131624043;
+			public const int status_bar_notification_info_overflow = 2131624043;
 			
 			// aapt resource value: 0x7F0E006C
-			public const int unknown_sources_notice = 2131624044;
+			public const int uninstall_error = 2131624044;
 			
 			// aapt resource value: 0x7F0E006D
-			public const int unpatch = 2131624045;
+			public const int unknown_sources_notice = 2131624045;
 			
 			// aapt resource value: 0x7F0E006E
-			public const int unpatch_success = 2131624046;
+			public const int unpatch = 2131624046;
 			
 			// aapt resource value: 0x7F0E006F
-			public const int wait_installer = 2131624047;
+			public const int unpatch_success = 2131624047;
 			
 			// aapt resource value: 0x7F0E0070
-			public const int warning = 2131624048;
+			public const int wait_installer = 2131624048;
 			
 			// aapt resource value: 0x7F0E0071
-			public const int write_apk_md5 = 2131624049;
+			public const int warning = 2131624049;
 			
 			// aapt resource value: 0x7F0E0072
-			public const int write_obb_md5 = 2131624050;
+			public const int write_apk_md5 = 2131624050;
 			
 			// aapt resource value: 0x7F0E0073
-			public const int write_patched_apk_md5 = 2131624051;
+			public const int write_obb_md5 = 2131624051;
 			
 			// aapt resource value: 0x7F0E0074
-			public const int write_saves_md5 = 2131624052;
+			public const int write_patched_apk_md5 = 2131624052;
 			
 			// aapt resource value: 0x7F0E0075
-			public const int write_scripts_md5 = 2131624053;
+			public const int write_saves_md5 = 2131624053;
+			
+			// aapt resource value: 0x7F0E0076
+			public const int write_scripts_md5 = 2131624054;
 			
 			static String()
 			{

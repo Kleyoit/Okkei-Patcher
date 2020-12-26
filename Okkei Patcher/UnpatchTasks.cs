@@ -94,7 +94,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
-									MessageBox.Code.OK)));
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -121,7 +122,8 @@ namespace OkkeiPatcher
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 										Application.Context.Resources.GetText(Resource.String.saves_backup_not_found),
-										MessageBox.Code.OK)));
+										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+										null, null)));
 						}
 					}
 
@@ -197,7 +199,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.error_not_patched),
-									MessageBox.Code.OK)));
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -208,7 +211,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.backup_not_found),
-									MessageBox.Code.OK)));
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -219,7 +223,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.no_free_space_unpatch),
-									MessageBox.Code.OK)));
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -244,7 +249,8 @@ namespace OkkeiPatcher
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 										Application.Context.Resources.GetText(Resource.String.saves_not_found_unpatch),
-										MessageBox.Code.OK)));
+										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+										null, null)));
 						}
 					}
 

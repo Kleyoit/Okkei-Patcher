@@ -41,6 +41,23 @@ namespace OkkeiPatcher
 		}
 #nullable disable
 
+		private void RequestInstallPackagesPermission()
+		{
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+						Resources.GetText(Resource.String.unknown_sources_notice),
+						Resources.GetText(Resource.String.dialog_ok),
+						() =>
+						{
+							var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
+								Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
+							StartActivityForResult(intent, (int) GlobalData.RequestCodes.UnknownAppSourceCode);
+						});
+				});
+		}
+
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
 			if (requestCode == (int) RequestCodes.UnknownAppSourceCode && Build.VERSION.SdkInt >= BuildVersionCodes.O &&
@@ -48,7 +65,9 @@ namespace OkkeiPatcher
 				MainThread.BeginInvokeOnMainThread(() =>
 				{
 					MessageBox.Show(this, Resources.GetText(Resource.String.error),
-						Resources.GetText(Resource.String.no_install_permission), MessageBox.Code.Exit);
+						Resources.GetText(Resource.String.no_install_permission),
+						Resources.GetText(Resource.String.dialog_exit),
+						() => { System.Environment.Exit(0); });
 				});
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
@@ -147,22 +166,51 @@ namespace OkkeiPatcher
 					{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
 				RequestPermissions(extStoragePermissions, 0);
 			}
-
-			// Create OkkeiPatcher directory if doesn't exist
-			else if (!Directory.Exists(OkkeiFilesPath))
+			else
 			{
-				Directory.CreateDirectory(OkkeiFilesPath);
-			}
-
-
-			// Request permission to install packages on first start
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
-				MainThread.BeginInvokeOnMainThread(() =>
+				// Create OkkeiPatcher directory if doesn't exist
+				if (!Directory.Exists(OkkeiFilesPath))
 				{
-					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-						Resources.GetText(Resource.String.unknown_sources_notice),
-						MessageBox.Code.UnknownAppSourceNotice);
-				});
+					Directory.CreateDirectory(OkkeiFilesPath);
+				}
+
+				RequestInstallPackagesPermission();
+			}
+		}
+
+		public override void OnRequestPermissionsResult(int requestCode, string[] permissions,
+			[GeneratedEnum] Permission[] grantResults)
+		{
+			Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
+
+
+			// Request read/write external storage permissions on first start
+			if (requestCode == 0)
+			{
+				if (grantResults[0] != Permission.Granted)
+				{
+					if (ShouldShowRequestPermissionRationale(permissions[0]))
+						MessageBox.Show(this, Resources.GetText(Resource.String.error),
+							Resources.GetText(Resource.String.no_storage_permission),
+							Resources.GetText(Resource.String.dialog_ok),
+							Resources.GetText(Resource.String.dialog_exit),
+							() => { RequestPermissions(permissions, 0); },
+							() => { System.Environment.Exit(0); });
+					else System.Environment.Exit(0);
+				}
+				else
+				{
+					// Create OkkeiPatcher directory if doesn't exist
+					if (!Directory.Exists(OkkeiFilesPath))
+					{
+						Directory.CreateDirectory(OkkeiFilesPath);
+					}
+
+					RequestInstallPackagesPermission();
+				}
+			}
 		}
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
@@ -224,7 +272,7 @@ namespace OkkeiPatcher
 		private void OnStatusChanged(object sender, StatusChangedEventArgs e)
 		{
 			var info = e.Info;
-			var data = e.MessageData;
+			var data = e.MessageBoxData;
 			if (info != null)
 				MainThread.BeginInvokeOnMainThread(() =>
 				{
@@ -246,8 +294,10 @@ namespace OkkeiPatcher
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
 		{
 			var isChecked = e.IsChecked;
-			if (sender == FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata))
-				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), isChecked);
+			var prefkey = Prefkey.backup_restore_savedata.ToString();
+			if (sender == FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata) &&
+			    Preferences.Get(prefkey, true) != isChecked)
+				Preferences.Set(prefkey, isChecked);
 		}
 
 		private void Patch_Click(object sender, EventArgs e)
@@ -324,32 +374,6 @@ namespace OkkeiPatcher
 					Java.Lang.String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString),
 					Snackbar.LengthLong)
 				.SetAction("Action", (View.IOnClickListener) null).Show();
-		}
-
-		public override void OnRequestPermissionsResult(int requestCode, string[] permissions,
-			[GeneratedEnum] Permission[] grantResults)
-		{
-			Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-
-			// Request read/write external storage permissions on first start
-			if (requestCode == 0)
-			{
-				if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
-				{
-					string[] extStoragePermissions =
-						{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
-					RequestPermissions(extStoragePermissions, 0);
-				}
-
-				// Create OkkeiPatcher directory if doesn't exist
-				else if (!Directory.Exists(OkkeiFilesPath))
-				{
-					Directory.CreateDirectory(OkkeiFilesPath);
-				}
-			}
 		}
 	}
 }

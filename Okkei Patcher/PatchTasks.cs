@@ -186,8 +186,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.error_patched),
-									MessageBox.Code.OK)));
-
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -198,8 +198,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.cc_not_found),
-									MessageBox.Code.OK)));
-
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -210,8 +210,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
-									MessageBox.Code.OK)));
-
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
@@ -268,7 +268,8 @@ namespace OkkeiPatcher
 								new StatusChangedEventArgs(null,
 									new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 										callerActivity.Resources.GetText(Resource.String.saves_not_found_patch),
-										MessageBox.Code.OK)));
+										Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+										null, null)));
 						}
 
 						backupSavedata.Dispose();
@@ -495,7 +496,8 @@ namespace OkkeiPatcher
 							new StatusChangedEventArgs(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
-									MessageBox.Code.OK)));
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null)));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
 						token.ThrowIfCancellationRequested();
 					}
