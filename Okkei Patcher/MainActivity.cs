@@ -75,6 +75,7 @@ namespace OkkeiPatcher
 				}
 				else
 				{
+					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 					Utils.CreateOkkeiDirectory();
 					RequestInstallPackagesPermission();
 				}
@@ -195,6 +196,7 @@ namespace OkkeiPatcher
 			}
 			else
 			{
+				Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 				Utils.CreateOkkeiDirectory();
 				RequestInstallPackagesPermission();
 			}
@@ -235,7 +237,6 @@ namespace OkkeiPatcher
 				else
 				{
 					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
-
 					Utils.CreateOkkeiDirectory();
 					RequestInstallPackagesPermission();
 				}
