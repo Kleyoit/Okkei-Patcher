@@ -352,12 +352,12 @@ namespace OkkeiPatcher
 
 						zipFile.BeginUpdate();
 
-						var i = 0;
+						var progress = 0;
 						foreach (var scriptfile in filePaths)
 						{
 							zipFile.Add(scriptfile, "assets/script/" + Path.GetFileName(scriptfile));
-							i++;
-							ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(i, scriptsCount));
+							++progress;
+							ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, scriptsCount));
 						}
 
 
