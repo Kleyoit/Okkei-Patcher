@@ -304,7 +304,7 @@ namespace OkkeiPatcher
 				inputFile.Dispose();
 				javaInputStream.Dispose();
 			}
-			
+
 			output.Dispose();
 
 			var outFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
