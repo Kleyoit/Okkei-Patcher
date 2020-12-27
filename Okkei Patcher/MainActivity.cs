@@ -300,15 +300,11 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private void OnStatusChanged(object sender, string e)
-		{
+		private void OnStatusChanged(object sender, string e) =>
 			MainThread.BeginInvokeOnMainThread(() => { FindCachedViewById<TextView>(Resource.Id.Status).Text = e; });
-		}
 
-		private void OnMessageGenerated(object sender, MessageBox.Data e)
-		{
+		private void OnMessageGenerated(object sender, MessageBox.Data e) =>
 			MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, e); });
-		}
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{

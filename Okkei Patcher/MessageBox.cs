@@ -7,7 +7,7 @@ namespace OkkeiPatcher
 	{
 		public static void Show(Activity activity, string title, string message, string buttonText, Action action)
 		{
-			Show(activity, new Data(title, message, buttonText, string.Empty, action, null));
+			Show(activity, new Data(title, message, buttonText, null, action, null));
 		}
 
 		public static void Show(Activity activity, string title, string message, string positiveButtonText,
