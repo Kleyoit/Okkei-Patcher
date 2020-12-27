@@ -326,7 +326,7 @@ namespace OkkeiPatcher
 
 		private void Patch_Click(object sender, EventArgs e)
 		{
-			if (!UnpatchTasks.Instance.IsRunning && !_cts.IsCancellationRequested)
+			if ((!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
 				if (!PatchTasks.Instance.IsRunning)
 				{
@@ -349,7 +349,7 @@ namespace OkkeiPatcher
 
 		private void Unpatch_Click(object sender, EventArgs e)
 		{
-			if (!PatchTasks.Instance.IsRunning && !_cts.IsCancellationRequested)
+			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
 				if (!UnpatchTasks.Instance.IsRunning)
 				{

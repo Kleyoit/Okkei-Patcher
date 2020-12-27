@@ -24,6 +24,8 @@ namespace OkkeiPatcher
 			Utils.TaskErrorOccurred += UtilsOnTaskErrorOccurred;
 		}
 
+		public static bool IsInstantiated => instance.IsValueCreated;
+
 		public static UnpatchTasks Instance => instance.Value;
 
 		public bool IsRunning
@@ -100,7 +102,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					await Utils.CopyFile(backupObb.Path, ObbPath, ObbFileName, token);
@@ -195,7 +197,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					if (!backupApk.Exists())
@@ -206,7 +208,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
@@ -217,7 +219,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					if (processSavedata)

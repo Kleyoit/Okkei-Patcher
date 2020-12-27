@@ -91,17 +91,18 @@ namespace OkkeiPatcher
 		private static void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
 		{
 			var packageInSession = session.OpenWrite("package", 0, -1);
-			var input = new FileStream(apkUri.Path, FileMode.Open);
+			FileStream input = null;
+			if (apkUri.Path != null) input = new FileStream(apkUri.Path, FileMode.Open);
 
 			try
 			{
 				if (input != null && packageInSession != null) input.CopyTo(packageInSession);
-				else throw new Exception("InputStream or session is null");
+				else throw new Exception("InputStream and/or session is null");
 			}
 			finally
 			{
 				packageInSession?.Close();
-				input.Close();
+				input?.Close();
 			}
 
 			// That this is necessary could be a Xamarin bug
@@ -225,7 +226,7 @@ namespace OkkeiPatcher
 									null, null));
 
 							TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
-							token.ThrowIfCancellationRequested();
+							throw new System.OperationCanceledException("The operation was canceled.", token);
 						}
 					}
 					else
@@ -245,7 +246,7 @@ namespace OkkeiPatcher
 									null, null));
 
 						TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new System.OperationCanceledException("The operation was canceled.", token);
 					}
 				}
 				catch (System.OperationCanceledException)

@@ -29,6 +29,8 @@ namespace OkkeiPatcher
 			Utils.TaskErrorOccurred += UtilsOnTaskErrorOccurred;
 		}
 
+		public static bool IsInstantiated => instance.IsValueCreated;
+
 		public static PatchTasks Instance => instance.Value;
 
 		public bool IsRunning
@@ -177,7 +179,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					if (!Utils.IsAppInstalled(ChaosChildPackageName))
@@ -188,7 +190,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
@@ -198,7 +200,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 
@@ -230,8 +232,11 @@ namespace OkkeiPatcher
 
 								await Utils.CopyFile(originalSavedata.Path,
 									backupSavedata.Parent, backupSavedata.Name, token);
-								if (token.IsCancellationRequested) originalSavedata.Dispose();
-								token.ThrowIfCancellationRequested();
+								if (token.IsCancellationRequested)
+								{
+									originalSavedata.Dispose();
+									throw new OperationCanceledException("The operation was canceled.", token);
+								}
 
 								StatusChanged?.Invoke(this,
 									Application.Context.Resources.GetText(Resource.String.write_saves_md5));
@@ -370,13 +375,13 @@ namespace OkkeiPatcher
 						// Delete temp files
 						foreach (var file in filePaths) File.Delete(file);
 						Directory.Delete(Path.Combine(OkkeiFilesPath, "scripts"));
-						scriptsZip?.Dispose();
+						scriptsZip.Dispose();
 
 						if (token.IsCancellationRequested)
 						{
 							if (unpatchedApk.Exists()) unpatchedApk.Delete();
-							unpatchedApk?.Dispose();
-							token.ThrowIfCancellationRequested();
+							unpatchedApk.Dispose();
+							throw new OperationCanceledException("The operation was canceled.", token);
 						}
 
 
@@ -398,15 +403,15 @@ namespace OkkeiPatcher
 							Utils.CalculateMD5(FilePaths[Files.SignedApk]));
 
 						if (unpatchedApk.Exists()) unpatchedApk.Delete();
-						unpatchedApk?.Dispose();
+						unpatchedApk.Dispose();
 
 						if (token.IsCancellationRequested)
 						{
 							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
 							if (signedApk.Exists()) signedApk.Delete();
-							signedApk?.Dispose();
+							signedApk.Dispose();
 
-							token.ThrowIfCancellationRequested();
+							throw new OperationCanceledException("The operation was canceled.", token);
 						}
 					}
 
@@ -429,15 +434,18 @@ namespace OkkeiPatcher
 
 							await Utils.CopyFile(originalObb.Path, backupObb.Parent,
 								backupObb.Name, token);
-							originalObb?.Dispose();
-							if (token.IsCancellationRequested) backupObb?.Dispose();
-							token.ThrowIfCancellationRequested();
+							originalObb.Dispose();
+							if (token.IsCancellationRequested)
+							{
+								backupObb.Dispose();
+								throw new OperationCanceledException("The operation was canceled.", token);
+							}
 
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
 							Preferences.Set(Prefkey.backup_obb_md5.ToString(), Utils.CalculateMD5(backupObb.Path));
-							backupObb?.Dispose();
+							backupObb.Dispose();
 						}
 					}
 					else
@@ -447,7 +455,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 						ErrorOccurred?.Invoke(this, EventArgs.Empty);
-						token.ThrowIfCancellationRequested();
+						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
 					StatusChanged?.Invoke(null, string.Empty);
