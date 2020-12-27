@@ -115,7 +115,7 @@ namespace OkkeiPatcher
 
 					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-					if (!Utils.CompareMD5(Files.ObbToReplace) || !installedObb.Exists())
+					if (!installedObb.Exists() || !Utils.CompareMD5(Files.ObbToReplace))
 					{
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.download_obb));
@@ -278,7 +278,7 @@ namespace OkkeiPatcher
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-							if (!Utils.CompareMD5(Files.TempApk) || !backupApk.Exists())
+							if (!backupApk.Exists() || !Utils.CompareMD5(Files.TempApk))
 							{
 								StatusChanged?.Invoke(this,
 									Application.Context.Resources.GetText(Resource.String.backup_apk));
@@ -305,7 +305,7 @@ namespace OkkeiPatcher
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.compare_scripts));
 
-						if (!Utils.CompareMD5(Files.Scripts) || !scriptsZip.Exists())
+						if (!scriptsZip.Exists() || !Utils.CompareMD5(Files.Scripts))
 						{
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.download_scripts));
@@ -422,7 +422,7 @@ namespace OkkeiPatcher
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-						if (!Utils.CompareMD5(Files.ObbToBackup) || !backupObb.Exists())
+						if (!backupObb.Exists() || !Utils.CompareMD5(Files.ObbToBackup))
 						{
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.backup_obb));

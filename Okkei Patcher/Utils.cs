@@ -265,7 +265,7 @@ namespace OkkeiPatcher
 
 			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 
-			Directory.CreateDirectory(outFilePath);
+			if (!Directory.Exists(outFilePath)) Directory.CreateDirectory(outFilePath);
 
 			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
 
