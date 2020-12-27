@@ -267,48 +267,47 @@ namespace OkkeiPatcher
 
 			Directory.CreateDirectory(outFilePath);
 
-			FileStream input = null;
-
-			var inputFile = new Java.IO.File(inFilePath);
-
-			InputStream inputBaseApkStream = new FileInputStream(inputFile);
-
 			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
-			var outFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
 
-			if (!inFilePath.StartsWith("/data"))
+			int progressMax;
+			var progress = 0;
+
+			if (inFilePath.StartsWith("/storage") || inFilePath.StartsWith("/sdcard"))
 			{
-				input = new FileStream(inFilePath, FileMode.Open);
-				var progressMax = (int) input.Length / bufferLength;
+				var inputStream = new FileStream(inFilePath, FileMode.Open);
+				progressMax = (int) inputStream.Length / bufferLength;
 
-				var i = 0;
-				while ((length = input.Read(buffer)) > 0)
+				while ((length = inputStream.Read(buffer)) > 0)
 				{
 					output.Write(buffer, 0, length);
-					i++;
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(i, progressMax));
+					++progress;
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
 					if (token.IsCancellationRequested) break;
 				}
+
+				inputStream.Dispose();
 			}
 			else
 			{
-				var fileSize = (int) inputFile.Length();
-				var progressMax = fileSize / bufferLength;
+				var inputFile = new Java.IO.File(inFilePath);
+				InputStream javaInputStream = new FileInputStream(inputFile);
+				progressMax = (int) inputFile.Length() / bufferLength;
 
-				var i = 0;
-				while ((length = inputBaseApkStream.Read(buffer)) > 0)
+				while ((length = javaInputStream.Read(buffer)) > 0)
 				{
 					output.Write(buffer, 0, length);
-					i++;
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(i, progressMax));
+					++progress;
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
 					if (token.IsCancellationRequested) break;
 				}
-			}
 
-			input?.Dispose();
-			inputFile.Dispose();
-			inputBaseApkStream.Dispose();
+				inputFile.Dispose();
+				javaInputStream.Dispose();
+			}
+			
 			output.Dispose();
+
+			var outFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
 			if (token.IsCancellationRequested && outFile.Exists()) outFile.Delete();
 			outFile.Dispose();
 
