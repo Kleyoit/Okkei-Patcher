@@ -32,7 +32,7 @@ namespace OkkeiPatcher
 				using (var stream = System.IO.File.OpenRead(filename))
 				{
 					var hash = md5.ComputeHash(stream);
-					return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+					return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
 				}
 			}
 		}
@@ -45,8 +45,8 @@ namespace OkkeiPatcher
 		{
 			var result = false;
 
-			var firstMd5 = "";
-			var secondMd5 = "";
+			var firstMd5 = string.Empty;
+			var secondMd5 = string.Empty;
 
 			var firstFile = new Java.IO.File(FilePaths[file]);
 
@@ -55,14 +55,17 @@ namespace OkkeiPatcher
 				case Files.OriginalSavedata:
 					var secondFile = new Java.IO.File(FileToCompareWith[file]);
 					if (secondFile.Exists()) secondMd5 = CalculateMD5(secondFile.Path);
+					secondFile.Dispose();
 					break;
 				default:
-					secondMd5 = Preferences.Get(FileToCompareWith[file], "");
+					secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
 					break;
 			}
 
-			if (firstFile.Exists() && secondMd5 != "") firstMd5 = CalculateMD5(firstFile.Path);
-			if (firstMd5 == secondMd5 && firstMd5 != "" && secondMd5 != "") result = true;
+			if (firstFile.Exists() && secondMd5 != string.Empty) firstMd5 = CalculateMD5(firstFile.Path);
+			firstFile.Dispose();
+
+			if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
 
 			return result;
 		}
@@ -175,19 +178,19 @@ namespace OkkeiPatcher
 			else
 			{
 				// Install APK
-				var apkMd5 = "";
-				var path = "";
+				var apkMd5 = string.Empty;
+				var path = string.Empty;
 
 				if (PatchTasks.Instance.IsRunning)
 				{
 					if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
-						apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), "");
+						apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
 					path = FilePaths[Files.SignedApk];
 				}
 				else if (UnpatchTasks.Instance.IsRunning)
 				{
 					if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
-						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), "");
+						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), string.Empty);
 					path = FilePaths[Files.BackupApk];
 				}
 
@@ -338,7 +341,7 @@ namespace OkkeiPatcher
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
-					contentLength = (int) response.Content.Headers.ContentLength;
+					contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
 					download = await response.Content.ReadAsStreamAsync();
 				}
 				else
