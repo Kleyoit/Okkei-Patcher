@@ -408,10 +408,5 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 					() => { System.Environment.Exit(0); }, null));
 		}
-
-		public static void CreateOkkeiDirectory()
-		{
-			if (!Directory.Exists(OkkeiFilesPath)) Directory.CreateDirectory(OkkeiFilesPath);
-		}
 	}
 }

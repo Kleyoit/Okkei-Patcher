@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Android;
@@ -76,7 +77,7 @@ namespace OkkeiPatcher
 				else
 				{
 					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
-					Utils.CreateOkkeiDirectory();
+					Directory.CreateDirectory(OkkeiFilesPath);
 					RequestInstallPackagesPermission();
 				}
 			}
@@ -197,7 +198,7 @@ namespace OkkeiPatcher
 			else
 			{
 				Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
-				Utils.CreateOkkeiDirectory();
+				Directory.CreateDirectory(OkkeiFilesPath);
 				RequestInstallPackagesPermission();
 			}
 		}
@@ -237,7 +238,7 @@ namespace OkkeiPatcher
 				else
 				{
 					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
-					Utils.CreateOkkeiDirectory();
+					Directory.CreateDirectory(OkkeiFilesPath);
 					RequestInstallPackagesPermission();
 				}
 			}
