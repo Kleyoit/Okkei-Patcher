@@ -65,7 +65,8 @@ namespace OkkeiPatcher
 					Resources.GetText(Resource.String.dialog_exit),
 					() => { System.Environment.Exit(0); });
 
-			if (requestCode == (int) RequestCodes.StoragePermissionSettingsCode && Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			if (requestCode == (int) RequestCodes.StoragePermissionSettingsCode &&
+			    Build.VERSION.SdkInt >= BuildVersionCodes.M)
 			{
 				if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 				{
@@ -172,7 +173,8 @@ namespace OkkeiPatcher
 
 
 			// Request read/write external storage permissions
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.M && CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.M &&
+			    CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 			{
 				if (!Preferences.Get(Prefkey.extstorage_permission_denied.ToString(), false))
 				{
@@ -212,7 +214,8 @@ namespace OkkeiPatcher
 
 
 			// Request read/write external storage permissions on first start
-			if (requestCode == (int) RequestCodes.StoragePermissionRequestCode && Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			if (requestCode == (int) RequestCodes.StoragePermissionRequestCode &&
+			    Build.VERSION.SdkInt >= BuildVersionCodes.M)
 			{
 				if (grantResults[0] != Permission.Granted)
 				{
