@@ -330,8 +330,6 @@ namespace OkkeiPatcher
 			var buffer = new byte[bufferLength];
 			int length;
 
-			var downloadedFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
-
 			Stream download = null;
 
 			try
@@ -378,6 +376,7 @@ namespace OkkeiPatcher
 				//await Task.Delay(1);    // Xamarin debugger bug workaround
 				download?.Dispose();
 				output.Dispose();
+				var downloadedFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
 				if (token.IsCancellationRequested && downloadedFile.Exists()) downloadedFile.Delete();
 				downloadedFile.Dispose();
 			}
