@@ -410,7 +410,7 @@ namespace OkkeiPatcher
 			var view = (View) sender;
 			var text = Java.Lang.String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString);
 
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.LollipopMr1)
 				Snackbar.Make(view, text, Snackbar.LengthLong)
 					.SetAction("Action", (View.IOnClickListener) null).Show();
 			else Toast.MakeText(this, text, ToastLength.Long);
