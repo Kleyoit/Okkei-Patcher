@@ -4486,25 +4486,22 @@ namespace OkkeiPatcher
 			public const int unpatch_success = 2131624049;
 			
 			// aapt resource value: 0x7F0E0072
-			public const int wait_installer = 2131624050;
+			public const int warning = 2131624050;
 			
 			// aapt resource value: 0x7F0E0073
-			public const int warning = 2131624051;
+			public const int write_apk_md5 = 2131624051;
 			
 			// aapt resource value: 0x7F0E0074
-			public const int write_apk_md5 = 2131624052;
+			public const int write_obb_md5 = 2131624052;
 			
 			// aapt resource value: 0x7F0E0075
-			public const int write_obb_md5 = 2131624053;
+			public const int write_patched_apk_md5 = 2131624053;
 			
 			// aapt resource value: 0x7F0E0076
-			public const int write_patched_apk_md5 = 2131624054;
+			public const int write_saves_md5 = 2131624054;
 			
 			// aapt resource value: 0x7F0E0077
-			public const int write_saves_md5 = 2131624055;
-			
-			// aapt resource value: 0x7F0E0078
-			public const int write_scripts_md5 = 2131624056;
+			public const int write_scripts_md5 = 2131624055;
 			
 			static String()
 			{

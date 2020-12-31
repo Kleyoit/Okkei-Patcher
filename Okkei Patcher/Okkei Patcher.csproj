@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="MainActivity.cs" />
     <Compile Include="MessageBox.cs" />
+    <Compile Include="PackageInstallObserver.cs" />
     <Compile Include="PatchTasks.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Resources\Resource.designer.cs" />

@@ -54,7 +54,6 @@
   <string name="backup_not_found">Резервная копия CHAOS;CHILD не найдена.</string>
   <string name="no_free_space_patch">Недостаточно свободного места. Убедитесь, что на устройстве свободно как минимум 2 ГБ для создания резервной копии.</string>
   <string name="no_free_space_unpatch">Недостаточно свободного места. Убедитесь, что на устройстве свободно как минимум 2 ГБ для восстановления резервной копии.</string>
-  <string name="wait_installer">Ожидание ответа от установщика...</string>
   <string name="install_error">Произошла ошибка при установке APK. Пожалуйста, попробуйте заново.</string>
   <string name="uninstall_error">CHAOS;CHILD не был удалён с устройства. Пожалуйста, попробуйте заново.</string>
   <string name="not_trustworthy_apk_patch">Возможно, APK для установки не был создан с помощью Okkei Patcher. Пожалуйста, начните процесс локализации заново.</string>

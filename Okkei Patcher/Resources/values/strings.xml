@@ -55,7 +55,6 @@
   <string name="backup_not_found">Backup of CHAOS;CHILD was not found.</string>
   <string name="no_free_space_patch">Not enough free disk space. Ensure that you have at least 2 GB for a backup.</string>
   <string name="no_free_space_unpatch">Not enough free disk space. Ensure that you have at least 2 GB to restore your backup.</string>
-  <string name="wait_installer">Waiting for response from package installer...</string>
   <string name="install_error">An error occurred while installing APK. Please try again.</string>
   <string name="uninstall_error">CHAOS;CHILD was not uninstalled. Please try again.</string>
   <string name="not_trustworthy_apk_patch">APK to be installed might be not created by Okkei Patcher. Please restart patching process.</string>

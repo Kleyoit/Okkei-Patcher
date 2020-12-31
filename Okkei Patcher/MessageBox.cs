@@ -19,6 +19,8 @@ namespace OkkeiPatcher
 
 		public static void Show(Activity activity, Data data)
 		{
+			if (data.Equals(Data.Empty)) return;
+
 			var builder = new AlertDialog.Builder(activity);
 			var cancelable = data.NegativeButtonText != null;
 
@@ -42,7 +44,7 @@ namespace OkkeiPatcher
 			public Action PositiveAction { get; }
 			public Action NegativeAction { get; }
 
-			//public static readonly Data Empty = new Data(null, null, null, null, null, null);
+			public static readonly Data Empty = new Data(null, null, null, null, null, null);
 
 			public Data(string title, string message, string positiveButtonText, string negativeButtonText,
 				Action positiveAction,

@@ -127,33 +127,34 @@ namespace OkkeiPatcher
 
 				// Create an install status receiver
 				var intent = new Intent(activity, activity.Class);
-				intent.SetAction(PACKAGE_INSTALLED_ACTION);
+				intent.SetAction(ActionPackageInstalled);
+
 				var pendingIntent =
-					PendingIntent.GetActivity(activity, 0, intent, PendingIntentFlags.UpdateCurrent);
-				var statusReceiver = pendingIntent.IntentSender;
+					PendingIntent.GetActivity(activity, (int) RequestCodes.PendingIntentInstallCode, intent,
+						PendingIntentFlags.UpdateCurrent);
+
+				var observer = new PackageInstallObserver(packageInstaller);
+				observer.InstallFailed += OnInstallFailed;
+				packageInstaller.RegisterSessionCallback(observer);
+
+				var statusReceiver = pendingIntent?.IntentSender;
 
 				// Commit the session (this will start the installation workflow)
-				session.Commit(statusReceiver);
+				session?.Commit(statusReceiver);
 			}
 		}
 
-		public static async void OnInstallResult()
+		private static void OnInstallFailed(object sender, EventArgs e)
 		{
-			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.wait_installer));
-
-			await Task.Delay(6000);
-
-			if (!IsAppInstalled(ChaosChildPackageName))
-			{
-				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
-				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-				MessageGenerated?.Invoke(null, new MessageBox.Data(
-					Application.Context.Resources.GetText(Resource.String.error),
-					Application.Context.Resources.GetText(Resource.String.install_error),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-					null, null));
-				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
-			}
+			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
+			MessageGenerated?.Invoke(null, new MessageBox.Data(
+				Application.Context.Resources.GetText(Resource.String.error),
+				Application.Context.Resources.GetText(Resource.String.install_error),
+				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+				null, null));
+			TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
+			((PackageInstallObserver) sender).InstallFailed -= OnInstallFailed;
 		}
 
 		public static void UninstallPackage(Activity activity, string packageName)

@@ -85,29 +85,25 @@ namespace OkkeiPatcher
 
 			if (requestCode == (int) RequestCodes.UninstallCode)
 				Utils.OnUninstallResult(this, _cts.Token);
-
-			if (requestCode == (int) RequestCodes.InstallCode)
-				Utils.OnInstallResult();
 		}
 
 		protected override void OnNewIntent(Intent intent)
 		{
-			var extras = intent.Extras;
-			if (PACKAGE_INSTALLED_ACTION.Equals(intent.Action))
+			if (ActionPackageInstalled.Equals(intent.Action))
 			{
-				var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-
+				var extras = intent.Extras;
 				var status = extras?.GetInt(PackageInstaller.ExtraStatus);
-				//var message = extras.GetString(PackageInstaller.ExtraStatusMessage);
+				//var message = extras?.GetString(PackageInstaller.ExtraStatusMessage);
 
 				switch (status)
 				{
 					case (int) PackageInstallStatus.PendingUserAction:
 						// Ask user to confirm the installation
 						var confirmIntent = (Intent) extras.Get(Intent.ExtraIntent);
-						StartActivityForResult(confirmIntent, (int) RequestCodes.InstallCode);
+						StartActivity(confirmIntent);
 						break;
 					case (int) PackageInstallStatus.Success:
+						var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 						if (PatchTasks.Instance.IsRunning)
 						{
 							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
@@ -305,11 +301,15 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private void OnStatusChanged(object sender, string e) =>
+		private void OnStatusChanged(object sender, string e)
+		{
 			MainThread.BeginInvokeOnMainThread(() => { FindCachedViewById<TextView>(Resource.Id.Status).Text = e; });
+		}
 
-		private void OnMessageGenerated(object sender, MessageBox.Data e) =>
+		private void OnMessageGenerated(object sender, MessageBox.Data e)
+		{
 			MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, e); });
+		}
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
