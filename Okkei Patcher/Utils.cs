@@ -142,9 +142,25 @@ namespace OkkeiPatcher
 				// Commit the session (this will start the installation workflow)
 				session?.Commit(statusReceiver);
 			}
+			else
+			{
+				var intent = new Intent(Intent.ActionInstallPackage);
+				intent.SetData(apkUri);
+				intent.SetFlags(ActivityFlags.GrantReadUriPermission);
+				intent.PutExtra(Intent.ExtraNotUnknownSource, false);
+				intent.PutExtra(Intent.ExtraReturnResult, true);
+				intent.PutExtra(Intent.ExtraInstallerPackageName, AppInfo.PackageName);
+				activity.StartActivityForResult(intent, (int) RequestCodes.KitKatInstallCode);
+			}
 		}
 
 		private static void OnInstallFailed(object sender, EventArgs e)
+		{
+			NotifyInstallFailed();
+			((PackageInstallObserver) sender).InstallFailed -= OnInstallFailed;
+		}
+
+		public static void NotifyInstallFailed()
 		{
 			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
@@ -154,7 +170,6 @@ namespace OkkeiPatcher
 				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 				null, null));
 			TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
-			((PackageInstallObserver) sender).InstallFailed -= OnInstallFailed;
 		}
 
 		public static void UninstallPackage(Activity activity, string packageName)

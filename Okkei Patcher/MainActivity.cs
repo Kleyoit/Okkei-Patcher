@@ -57,34 +57,41 @@ namespace OkkeiPatcher
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
-			if (requestCode == (int) RequestCodes.UnknownAppSourceSettingsCode &&
-			    Build.VERSION.SdkInt >= BuildVersionCodes.O &&
-			    !PackageManager.CanRequestPackageInstalls())
-				MessageBox.Show(this, Resources.GetText(Resource.String.error),
-					Resources.GetText(Resource.String.no_install_permission),
-					Resources.GetText(Resource.String.dialog_exit),
-					() => { System.Environment.Exit(0); });
-
-			if (requestCode == (int) RequestCodes.StoragePermissionSettingsCode &&
-			    Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			switch (requestCode)
 			{
-				if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
-				{
-					MessageBox.Show(this, Resources.GetText(Resource.String.error),
-						Resources.GetText(Resource.String.no_storage_permission),
-						Resources.GetText(Resource.String.dialog_exit),
-						() => { System.Environment.Exit(0); });
-				}
-				else
-				{
-					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
-					Directory.CreateDirectory(OkkeiFilesPath);
-					RequestInstallPackagesPermission();
-				}
-			}
+				case (int) RequestCodes.UnknownAppSourceSettingsCode:
+					if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
+						MessageBox.Show(this, Resources.GetText(Resource.String.error),
+							Resources.GetText(Resource.String.no_install_permission),
+							Resources.GetText(Resource.String.dialog_exit),
+							() => { System.Environment.Exit(0); });
+					break;
+				case (int) RequestCodes.StoragePermissionSettingsCode:
+					if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+					{
+						if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
+						{
+							MessageBox.Show(this, Resources.GetText(Resource.String.error),
+								Resources.GetText(Resource.String.no_storage_permission),
+								Resources.GetText(Resource.String.dialog_exit),
+								() => { System.Environment.Exit(0); });
+						}
+						else
+						{
+							Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
+							Directory.CreateDirectory(OkkeiFilesPath);
+							RequestInstallPackagesPermission();
+						}
+					}
 
-			if (requestCode == (int) RequestCodes.UninstallCode)
-				Utils.OnUninstallResult(this, _cts.Token);
+					break;
+				case (int) RequestCodes.UninstallCode:
+					Utils.OnUninstallResult(this, _cts.Token);
+					break;
+				case (int) RequestCodes.KitKatInstallCode:
+					Utils.NotifyInstallFailed();
+					break;
+			}
 		}
 
 		protected override void OnNewIntent(Intent intent)

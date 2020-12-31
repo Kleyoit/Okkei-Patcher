@@ -39,7 +39,8 @@ namespace OkkeiPatcher
 			StoragePermissionSettingsCode,
 			StoragePermissionRequestCode,
 			UninstallCode,
-			PendingIntentInstallCode
+			PendingIntentInstallCode,
+			KitKatInstallCode
 		}
 
 		public const long TwoGb = (long) 1024 * 1024 * 1024 * 2;
