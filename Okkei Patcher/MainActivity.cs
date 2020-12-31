@@ -89,7 +89,7 @@ namespace OkkeiPatcher
 					Utils.OnUninstallResult(this, _cts.Token);
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
-					Utils.NotifyInstallFailed();
+					if (resultCode != Result.Ok) Utils.NotifyInstallFailed();
 					break;
 			}
 		}
