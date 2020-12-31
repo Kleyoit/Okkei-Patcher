@@ -172,6 +172,22 @@ namespace OkkeiPatcher
 			TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 		}
 
+		public static void OnInstallSuccess(bool processSavedata, CancellationToken token)
+		{
+			if (PatchTasks.Instance.IsRunning)
+			{
+				var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
+				if (signedApk.Exists()) signedApk.Delete();
+				signedApk.Dispose();
+
+				Task.Run(() => PatchTasks.Instance.FinishPatch(processSavedata, token));
+			}
+			else if (UnpatchTasks.Instance.IsRunning)
+			{
+				Task.Run(() => UnpatchTasks.Instance.RestoreFiles(processSavedata, token));
+			}
+		}
+
 		public static void UninstallPackage(Activity activity, string packageName)
 		{
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);

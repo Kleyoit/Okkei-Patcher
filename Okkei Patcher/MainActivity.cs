@@ -89,7 +89,12 @@ namespace OkkeiPatcher
 					Utils.OnUninstallResult(this, _cts.Token);
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
-					if (resultCode != Result.Ok) Utils.NotifyInstallFailed();
+					if (resultCode == Result.Ok)
+					{
+						var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+						Utils.OnInstallSuccess(checkBoxSavedata.Checked, _cts.Token);
+					}
+					else Utils.NotifyInstallFailed();
 					break;
 			}
 		}
@@ -111,21 +116,7 @@ namespace OkkeiPatcher
 						break;
 					case (int) PackageInstallStatus.Success:
 						var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-						if (PatchTasks.Instance.IsRunning)
-						{
-							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
-							if (signedApk.Exists()) signedApk.Delete();
-							signedApk.Dispose();
-
-							Task.Run(
-								() => PatchTasks.Instance.FinishPatch(checkBoxSavedata.Checked, _cts.Token));
-						}
-						else if (UnpatchTasks.Instance.IsRunning)
-						{
-							Task.Run(() =>
-								UnpatchTasks.Instance.RestoreFiles(checkBoxSavedata.Checked, _cts.Token));
-						}
-
+						Utils.OnInstallSuccess(checkBoxSavedata.Checked, _cts.Token);
 						break;
 				}
 			}
