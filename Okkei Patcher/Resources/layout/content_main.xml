@@ -1,79 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-
-<LinearLayout
-  xmlns:android="http://schemas.android.com/apk/res/android"
-  xmlns:app="http://schemas.android.com/apk/res-auto"
-  xmlns:tools="http://schemas.android.com/tools"
-  android:orientation="vertical"
-  android:layout_width="match_parent"
-  android:layout_height="fill_parent"
-  app:layout_behavior="@string/appbar_scrolling_view_behavior"
-  tools:showIn="@layout/activity_main"
-  android:minWidth="25px"
-  android:minHeight="25px">
-
-  <ImageView
-    android:src="@drawable/okkei"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="150dp"
-    android:id="@+id/OkkeiImage"
-    android:scaleType="fitCenter"
-    android:layout_marginTop="10dp"
-    android:layout_marginBottom="10dp"
-    android:contentDescription="@string/okkei" />
+    android:layout_height="fill_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:showIn="@layout/activity_main">
 
-  <TableRow
-    android:minWidth="25px"
-    android:minHeight="25px"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/tableRow"
-    android:gravity="center"
-    android:paddingStart="25dp"
-    android:paddingEnd="25dp">
+    <ImageView
+        android:id="@+id/OkkeiImage"
+        android:layout_width="0dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="16dp"
+        android:contentDescription="@string/okkei"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/okkei" />
+
     <Button
-      android:text="@string/patch"
-      android:textSize="12dp"
-      android:id="@+id/Patch"
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent"
-      android:layout_marginRight="5dp" />
+        android:id="@+id/Unpatch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="5dp"
+        android:text="@string/unpatch"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/Clear"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/Patch"
+        app:layout_constraintTop_toBottomOf="@+id/OkkeiImage" />
+
     <Button
-      android:text="@string/unpatch"
-      android:textSize="12dp"
-      android:id="@+id/Unpatch"
-      android:layout_width="100dp"
-      android:layout_height="match_parent" />
+        android:id="@+id/Clear"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="5dp"
+        android:text="@string/clear"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/Unpatch"
+        app:layout_constraintTop_toBottomOf="@+id/OkkeiImage" />
+
     <Button
-      android:text="@string/clear"
-      android:textSize="11dp"
-      android:id="@+id/Clear"
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent"
-      android:layout_marginLeft="5dp" />
-  </TableRow>
+        android:id="@+id/Patch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="5dp"
+        android:text="@string/patch"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toStartOf="@+id/Unpatch"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/OkkeiImage" />
 
-  <CheckBox
-    android:text="@string/savedata_checkbox"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="20dp"
-    android:id="@+id/CheckBoxSavedata"
-    android:checked="true" />
+    <CheckBox
+        android:id="@+id/CheckBoxSavedata"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:checked="true"
+        android:text="@string/savedata_checkbox"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/Patch"
+        app:layout_constraintTop_toBottomOf="@+id/Patch" />
 
-  <TextView
-    android:text=""
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/Status"
-    android:textAlignment="center"
-    android:layout_marginTop="30dp" />
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:max="100"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/Status"
+        app:layout_constraintVertical_bias="0.0" />
 
-  <ProgressBar
-    style="?android:attr/progressBarStyleHorizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/progressBar"
-    android:max="100" />
+    <TextView
+        android:id="@+id/Status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/CheckBoxSavedata" />
 
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>
