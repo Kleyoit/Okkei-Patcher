@@ -309,7 +309,7 @@ namespace OkkeiPatcher
 			int progressMax;
 			var progress = 0;
 
-			if (inFilePath.StartsWith("/storage") || inFilePath.StartsWith("/sdcard"))
+			if (inFilePath.StartsWith(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath))
 			{
 				var inputStream = new FileStream(inFilePath, FileMode.Open);
 				progressMax = (int) inputStream.Length / bufferLength;
