@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Okkei Patcher")]
-[assembly: AssemblyCopyright("©2020 solru. All rights reserved.")]
+[assembly: AssemblyCopyright("©2021 solru. All rights reserved.")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 [assembly: ComVisible(false)]
