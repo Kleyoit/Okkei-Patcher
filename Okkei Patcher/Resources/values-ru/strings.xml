@@ -35,6 +35,7 @@
   <string name="extract_scripts">Распаковка скриптов...</string>
   <string name="replace_scripts">Замена скриптов...</string>
   <string name="sign_apk">Подпись APK...</string>
+  <string name="installing">Установка...</string>
   <string name="write_obb_md5">Вычисление хэша OBB...</string>
   <string name="write_saves_md5">Вычисление хэша файла сохранений...</string>
   <string name="write_apk_md5">Вычисление хэша APK...</string>

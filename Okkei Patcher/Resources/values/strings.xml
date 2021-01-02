@@ -36,6 +36,7 @@
   <string name="extract_scripts">Extracting scripts...</string>
   <string name="replace_scripts">Replacing scripts...</string>
   <string name="sign_apk">Signing APK...</string>
+  <string name="installing">Installing...</string>
   <string name="write_obb_md5">Writing OBB checksum...</string>
   <string name="write_saves_md5">Writing save data checksum...</string>
   <string name="write_apk_md5">Writing APK checksum...</string>
