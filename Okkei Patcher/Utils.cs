@@ -236,7 +236,8 @@ namespace OkkeiPatcher
 
 						if (apkMd5 == apkFileMd5)
 						{
-							StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.installing));
+							StatusChanged?.Invoke(null,
+								Application.Context.Resources.GetText(Resource.String.installing));
 							InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)));
 						}
 						else

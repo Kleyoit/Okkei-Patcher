@@ -21,7 +21,7 @@ namespace OkkeiPatcher
 		{
 			if (data.Equals(Data.Empty)) return;
 
-			var builder = new AlertDialog.Builder(activity);
+			var builder = new AndroidX.AppCompat.App.AlertDialog.Builder(activity);
 			var cancelable = data.NegativeButtonText != null;
 
 			builder.SetTitle(data.Title);

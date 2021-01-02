@@ -10,16 +10,17 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using Android.Runtime;
-using Android.Support.Design.Widget;
-using Android.Support.V7.App;
 using Android.Views;
 using Android.Widget;
+using AndroidX.AppCompat.App;
+using Google.Android.Material.FloatingActionButton;
+using Google.Android.Material.Snackbar;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	[Activity(Label = "@string/app_name", Theme = "@style/Theme.MaterialComponents", MainLauncher = true,
+	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true,
 		LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
@@ -94,7 +95,11 @@ namespace OkkeiPatcher
 						var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
 						Utils.OnInstallSuccess(checkBoxSavedata.Checked, _cts.Token);
 					}
-					else Utils.NotifyInstallFailed();
+					else
+					{
+						Utils.NotifyInstallFailed();
+					}
+
 					break;
 			}
 		}
@@ -401,7 +406,7 @@ namespace OkkeiPatcher
 			var view = (View) sender;
 			Snackbar.Make(view,
 					Java.Lang.String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString),
-					Snackbar.LengthLong)
+					BaseTransientBottomBar.LengthLong)
 				.SetAction("Action", (View.IOnClickListener) null).Show();
 		}
 	}
