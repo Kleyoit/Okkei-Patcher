@@ -178,9 +178,13 @@ namespace OkkeiPatcher
 
 
 			// Set "Clear backup" button state depending on backup existence
-			if (!Directory.Exists(OkkeiFilesPathBackup) || Utils.IsDirectoryEmpty(OkkeiFilesPathBackup))
-				clear.Enabled = false;
-			else clear.Enabled = true;
+			clear.Enabled = false;
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
+			{
+				if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted)
+					clear.Enabled = Utils.IsBackupAvailable();
+			}
+			else clear.Enabled = Utils.IsBackupAvailable();
 
 
 			// Restore previous state of checkbox or set pref on first start
@@ -260,6 +264,9 @@ namespace OkkeiPatcher
 				{
 					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 					Directory.CreateDirectory(OkkeiFilesPath);
+
+					FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable();
+
 					RequestInstallPackagesPermission();
 				}
 			}
@@ -285,11 +292,8 @@ namespace OkkeiPatcher
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
 
-					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-					{
-						button.Enabled = false;
-						FindCachedViewById<Button>(Resource.Id.Clear).Enabled = true;
-					}
+					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) button.Enabled = false;
+					FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable();
 				}
 				else
 				{
@@ -320,12 +324,8 @@ namespace OkkeiPatcher
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
 
-					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-					{
-						button.Enabled = false;
-						if (Utils.IsDirectoryEmpty(OkkeiFilesPathBackup))
-							FindCachedViewById<Button>(Resource.Id.Clear).Enabled = false;
-					}
+					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) button.Enabled = false;
+					FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable();
 				}
 				else
 				{

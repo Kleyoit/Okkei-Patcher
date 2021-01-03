@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -461,10 +460,9 @@ namespace OkkeiPatcher
 					() => { System.Environment.Exit(0); }, null));
 		}
 
-		public static bool IsDirectoryEmpty(string path)
+		public static bool IsBackupAvailable()
 		{
-			if (Directory.Exists(path)) return !Directory.EnumerateFileSystemEntries(path).Any();
-			return true;
+			return System.IO.File.Exists(FilePaths[Files.BackupApk]) && System.IO.File.Exists(FilePaths[Files.BackupObb]);
 		}
 	}
 }
