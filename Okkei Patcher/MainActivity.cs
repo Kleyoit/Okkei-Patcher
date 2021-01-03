@@ -164,6 +164,25 @@ namespace OkkeiPatcher
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
 
+			// Set buttons state depending on patch status
+			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+			{
+				patch.Enabled = false;
+				unpatch.Enabled = true;
+			}
+			else
+			{
+				patch.Enabled = true;
+				unpatch.Enabled = false;
+			}
+
+
+			// Set "Clear backup" button state depending on backup existence
+			if (!Directory.Exists(OkkeiFilesPathBackup) || Utils.IsDirectoryEmpty(OkkeiFilesPathBackup))
+				clear.Enabled = false;
+			else clear.Enabled = true;
+
+
 			// Restore previous state of checkbox or set pref on first start
 			if (!Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString()))
 				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
@@ -265,6 +284,12 @@ namespace OkkeiPatcher
 
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
+
+					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+					{
+						button.Enabled = false;
+						FindCachedViewById<Button>(Resource.Id.Clear).Enabled = true;
+					}
 				}
 				else
 				{
@@ -294,6 +319,13 @@ namespace OkkeiPatcher
 
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
+
+					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+					{
+						button.Enabled = false;
+						if (Utils.IsDirectoryEmpty(OkkeiFilesPathBackup))
+							FindCachedViewById<Button>(Resource.Id.Clear).Enabled = false;
+					}
 				}
 				else
 				{
