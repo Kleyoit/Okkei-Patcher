@@ -277,12 +277,9 @@ namespace OkkeiPatcher
 			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning))
 			{
 				var button = FindCachedViewById<Button>(Resource.Id.Patch);
-				string buttonText;
 
 				if (!PatchTasks.Instance.IsRunning)
 				{
-					buttonText = Resources.GetText(Resource.String.patch);
-
 					PatchTasks.Instance.StatusChanged -= OnStatusChanged;
 					PatchTasks.Instance.ProgressChanged -= OnProgressChanged;
 					PatchTasks.Instance.MessageGenerated -= OnMessageGenerated;
@@ -292,15 +289,22 @@ namespace OkkeiPatcher
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
 
-					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) button.Enabled = false;
-					FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable();
+					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.patch); });
+
+					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+					{
+						button.Enabled = false;
+						MainThread.BeginInvokeOnMainThread(() =>
+							FindCachedViewById<Button>(Resource.Id.Unpatch).Enabled = true);
+					}
+
+					MainThread.BeginInvokeOnMainThread(() =>
+						FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable());
 				}
 				else
 				{
-					buttonText = Resources.GetText(Resource.String.abort);
+					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.abort); });
 				}
-
-				MainThread.BeginInvokeOnMainThread(() => { button.Text = buttonText; });
 			}
 		}
 
@@ -309,12 +313,9 @@ namespace OkkeiPatcher
 			if (e.PropertyName == nameof(UnpatchTasks.Instance.IsRunning))
 			{
 				var button = FindCachedViewById<Button>(Resource.Id.Unpatch);
-				string buttonText;
 
 				if (!UnpatchTasks.Instance.IsRunning)
 				{
-					buttonText = Resources.GetText(Resource.String.unpatch);
-
 					UnpatchTasks.Instance.StatusChanged -= OnStatusChanged;
 					UnpatchTasks.Instance.ProgressChanged -= OnProgressChanged;
 					UnpatchTasks.Instance.MessageGenerated -= OnMessageGenerated;
@@ -324,15 +325,22 @@ namespace OkkeiPatcher
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
 
-					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) button.Enabled = false;
-					FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable();
+					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.unpatch); });
+
+					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+					{
+						button.Enabled = false;
+						MainThread.BeginInvokeOnMainThread(() =>
+							FindCachedViewById<Button>(Resource.Id.Patch).Enabled = true);
+					}
+
+					MainThread.BeginInvokeOnMainThread(() =>
+						FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable());
 				}
 				else
 				{
-					buttonText = Resources.GetText(Resource.String.abort);
+					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.abort); });
 				}
-
-				MainThread.BeginInvokeOnMainThread(() => { button.Text = buttonText; });
 			}
 		}
 
