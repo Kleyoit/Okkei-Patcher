@@ -15,29 +15,12 @@
     <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
     <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
     <item name="toolbarStyle">@style/Widget.App.Toolbar</item>
+    <item name="checkboxStyle">@style/Widget.App.CheckBox</item>
   </style>
 
-  <style name="Widget.App.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
-    <item name="materialThemeOverlay">@style/ThemeOverlay.App.Toolbar</item>
-  </style>
-
-  <style name="ThemeOverlay.App.Toolbar" parent="">
-    <item name="colorPrimary">@color/colorPrimary</item>
-    <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
-    <item name="colorOnPrimary">@color/colorOnPrimary</item>
-  </style>
-
-  <style name="Widget.App.Snackbar.TextView" parent="Widget.MaterialComponents.Snackbar.TextView">
-    <item name="android:textColor">@android:color/white</item>
-  </style>
-
-  <style name="Widget.App.Snackbar" parent="Widget.MaterialComponents.Snackbar">
-    <item name="materialThemeOverlay">@style/ThemeOverlay.App.Snackbar</item>
-  </style>
-
-  <style name="ThemeOverlay.App.Snackbar" parent="">
-    <item name="colorPrimary">@color/colorPrimaryVariant</item>
-    <item name="colorOnSurface">@color/material_grey_800</item>
+  <style name="AppTheme.NoActionBar">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
   </style>
 
   <style name="AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
@@ -53,9 +36,35 @@
     <item name="android:textColor">@color/colorPrimaryVariant</item>
   </style>
 
-  <style name="AppTheme.NoActionBar">
-    <item name="windowActionBar">false</item>
-    <item name="windowNoTitle">true</item>
+  <style name="Widget.App.Snackbar" parent="Widget.MaterialComponents.Snackbar">
+    <item name="materialThemeOverlay">@style/ThemeOverlay.App.Snackbar</item>
+  </style>
+
+  <style name="ThemeOverlay.App.Snackbar" parent="">
+    <item name="colorPrimary">@color/colorPrimaryVariant</item>
+    <item name="colorOnSurface">@color/material_grey_800</item>
+  </style>
+
+  <style name="Widget.App.Snackbar.TextView" parent="Widget.MaterialComponents.Snackbar.TextView">
+    <item name="android:textColor">@android:color/white</item>
+  </style>
+
+  <style name="Widget.App.Toolbar" parent="Widget.MaterialComponents.Toolbar.Primary">
+    <item name="materialThemeOverlay">@style/ThemeOverlay.App.Toolbar</item>
+  </style>
+
+  <style name="ThemeOverlay.App.Toolbar" parent="">
+    <item name="colorPrimary">@color/colorPrimary</item>
+    <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+    <item name="colorOnPrimary">@color/colorOnPrimary</item>
+  </style>
+
+  <style name="Widget.App.CheckBox" parent="Widget.MaterialComponents.CompoundButton.CheckBox">
+    <item name="materialThemeOverlay">@style/ThemeOverlay.App.CheckBox</item>
+  </style>
+
+  <style name="ThemeOverlay.App.CheckBox" parent="">
+    <item name="colorOnSurface">@color/colorOnPrimary</item>
   </style>
 
 </resources>
