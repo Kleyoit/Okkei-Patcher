@@ -27,14 +27,29 @@ namespace OkkeiPatcher
 
 		public static string CalculateMD5(string filename)
 		{
-			using (var md5 = MD5.Create())
+			using var md5 = MD5.Create();
+			using var stream = System.IO.File.OpenRead(filename);
+
+			const int bufferLength = 0x100000;
+			var buffer = new byte[bufferLength];
+			int length;
+
+			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+
+			var progressMax = (int) Math.Ceiling((double) stream.Length / bufferLength);
+			var progress = 0;
+
+			while ((length = stream.Read(buffer)) > 0)
 			{
-				using (var stream = System.IO.File.OpenRead(filename))
-				{
-					var hash = md5.ComputeHash(stream);
-					return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
-				}
+				++progress;
+				if (progress != progressMax)
+					md5.TransformBlock(buffer, 0, bufferLength, buffer, 0);
+				else
+					md5.TransformFinalBlock(buffer, 0, length);
+				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
 			}
+
+			return BitConverter.ToString(md5.Hash).Replace("-", string.Empty).ToLowerInvariant();
 		}
 
 		/// <summary>
@@ -297,7 +312,7 @@ namespace OkkeiPatcher
 
 		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)
 		{
-			var bufferLength = 0x14000;
+			const int bufferLength = 0x14000;
 			var buffer = new byte[bufferLength];
 			int length;
 
@@ -360,7 +375,7 @@ namespace OkkeiPatcher
 			Directory.CreateDirectory(outFilePath);
 			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
 
-			var bufferLength = 0x14000;
+			const int bufferLength = 0x14000;
 			var buffer = new byte[bufferLength];
 			int length;
 

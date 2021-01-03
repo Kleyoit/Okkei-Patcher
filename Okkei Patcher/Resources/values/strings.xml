@@ -8,6 +8,7 @@
   <string name="savedata_checkbox">Backup/restore save data</string>
   <string name="dialog_ok">OK</string>
   <string name="dialog_exit">EXIT</string>
+  <string name="dialog_cancel">CANCEL</string>
   <string name="abort">Abort</string>
   <string name="error">Error</string>
   <string name="attention">Attention</string>
@@ -22,6 +23,8 @@
   <string name="no_storage_permission_rationale">Okkei Patcher requires permission to read from and write to external storage to proceed. Would you like to try to grant permission again? Otherwise Okkei Patcher will be closed.</string>
   <string name="no_storage_permission_settings">Okkei Patcher requires permission to read from and write to external storage to proceed. Would you like to try to grant permission again? If you click OK you will be redirected to Okkei Patcher settings where you should go to permissions settings and enable storage permission. Otherwise Okkei Patcher will be closed.</string>
   <string name="unknown_sources_notice">Okkei Patcher requires permission to install applications from unknown sources to continue. After pressing the OK button you will be redirected to your device settings where you should enable this option. Then you can return to Okkei Patcher using the back button or gesture.</string>
+  <string name="long_process_warning">This process can take quite a long time. If you abort it or close Okkei Patcher your CHAOS;CHILD installation and/or Okkei Patcher data may be damaged. Are you sure you want to start the process?</string>
+  <string name="clear_backup_warning">You're about to clear a backup of your old CHAOS;CHILD installation. This operation cannot be canceled. Are you sure you want to clear backup?</string>
   <string name="restore_old_saves">Restoring old save data...</string>
   <string name="compare_obb">Comparing OBB checksums...</string>
   <string name="compare_saves">Comparing save data checksums...</string>

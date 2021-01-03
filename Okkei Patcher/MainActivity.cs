@@ -336,17 +336,22 @@ namespace OkkeiPatcher
 		{
 			if ((!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
-				if (!PatchTasks.Instance.IsRunning)
+				if (!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning)
 				{
-					PatchTasks.Instance.StatusChanged += OnStatusChanged;
-					PatchTasks.Instance.ProgressChanged += OnProgressChanged;
-					PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
-					PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
-					PatchTasks.Instance.ErrorOccurred += Patch_Click;
+					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
+						Resources.GetText(Resource.String.long_process_warning),
+						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+						() =>
+						{
+							PatchTasks.Instance.StatusChanged += OnStatusChanged;
+							PatchTasks.Instance.ProgressChanged += OnProgressChanged;
+							PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
+							PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
+							PatchTasks.Instance.ErrorOccurred += Patch_Click;
 
-					var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-					Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked,
-						_cts.Token));
+							var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+							Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked, _cts.Token));
+						}, null);
 				}
 				else
 				{
@@ -359,17 +364,23 @@ namespace OkkeiPatcher
 		{
 			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
-				if (!UnpatchTasks.Instance.IsRunning)
+				if (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning)
 				{
-					UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
-					UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
-					UnpatchTasks.Instance.MessageGenerated += OnMessageGenerated;
-					UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
-					UnpatchTasks.Instance.ErrorOccurred += Unpatch_Click;
+					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
+						Resources.GetText(Resource.String.long_process_warning),
+						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+						() =>
+						{
+							UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
+							UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
+							UnpatchTasks.Instance.MessageGenerated += OnMessageGenerated;
+							UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
+							UnpatchTasks.Instance.ErrorOccurred += Unpatch_Click;
 
-					var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-					Task.Run(() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked,
-						_cts.Token));
+							var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+							Task.Run(
+								() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked, _cts.Token));
+						}, null);
 				}
 				else
 				{
@@ -380,24 +391,31 @@ namespace OkkeiPatcher
 
 		private void Clear_Click(object sender, EventArgs e)
 		{
-			if (!PatchTasks.Instance.IsRunning && !UnpatchTasks.Instance.IsRunning)
+			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
+			    (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning))
 			{
-				var info = FindCachedViewById<TextView>(Resource.Id.Status);
+				MessageBox.Show(this, Resources.GetText(Resource.String.warning),
+					Resources.GetText(Resource.String.clear_backup_warning),
+					Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+					() =>
+					{
+						var info = FindCachedViewById<TextView>(Resource.Id.Status);
 
-				var apk = new Java.IO.File(FilePaths[Files.BackupApk]);
-				if (apk.Exists()) apk.Delete();
+						var apk = new Java.IO.File(FilePaths[Files.BackupApk]);
+						if (apk.Exists()) apk.Delete();
 
-				var obb = new Java.IO.File(FilePaths[Files.BackupObb]);
-				if (obb.Exists()) obb.Delete();
+						var obb = new Java.IO.File(FilePaths[Files.BackupObb]);
+						if (obb.Exists()) obb.Delete();
 
-				var savedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
-				if (savedata.Exists()) savedata.Delete();
+						var savedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+						if (savedata.Exists()) savedata.Delete();
 
-				info.Text = Resources.GetText(Resource.String.backup_cleared);
+						info.Text = Resources.GetText(Resource.String.backup_cleared);
 
-				apk.Dispose();
-				obb.Dispose();
-				savedata.Dispose();
+						apk.Dispose();
+						obb.Dispose();
+						savedata.Dispose();
+					}, null);
 			}
 		}
 
