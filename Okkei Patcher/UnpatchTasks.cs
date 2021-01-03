@@ -252,8 +252,11 @@ namespace OkkeiPatcher
 					if (Utils.IsAppInstalled(ChaosChildPackageName))
 						Utils.UninstallPackage(activity, ChaosChildPackageName);
 					else
+					{
+						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.installing));
 						MainThread.BeginInvokeOnMainThread(() => Utils.InstallPackage(activity,
 							Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
+					}
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}

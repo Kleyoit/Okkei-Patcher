@@ -25,6 +25,7 @@ namespace OkkeiPatcher
 		
 		public static void UpdateIdValues()
 		{
+			global::SignApk.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
 			global::Xamarin.Essentials.Resource.Attribute.alpha = global::OkkeiPatcher.Resource.Attribute.alpha;
 			global::Xamarin.Essentials.Resource.Attribute.font = global::OkkeiPatcher.Resource.Attribute.font;
 			global::Xamarin.Essentials.Resource.Attribute.fontProviderAuthority = global::OkkeiPatcher.Resource.Attribute.fontProviderAuthority;
@@ -6903,6 +6904,9 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0F002F
 			public const int clear = 2131689519;
 			
+			// aapt resource value: 0x7F0F0030
+			public const int clear_backup_warning = 2131689520;
+			
 			// aapt resource value: 0x7F0F0031
 			public const int clear_text_end_icon_content_description = 2131689521;
 			
@@ -6923,6 +6927,9 @@ namespace OkkeiPatcher
 			
 			// aapt resource value: 0x7F0F0037
 			public const int copy_toast_msg = 2131689527;
+			
+			// aapt resource value: 0x7F0F0038
+			public const int dialog_cancel = 2131689528;
 			
 			// aapt resource value: 0x7F0F0039
 			public const int dialog_exit = 2131689529;
@@ -6998,6 +7005,9 @@ namespace OkkeiPatcher
 			
 			// aapt resource value: 0x7F0F0051
 			public const int item_view_role_description = 2131689553;
+			
+			// aapt resource value: 0x7F0F0052
+			public const int long_process_warning = 2131689554;
 			
 			// aapt resource value: 0x7F0F0053
 			public const int material_slider_range_end = 2131689555;
