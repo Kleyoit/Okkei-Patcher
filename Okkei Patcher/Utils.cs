@@ -25,7 +25,7 @@ namespace OkkeiPatcher
 		public static event EventHandler TokenErrorOccurred;
 		public static event EventHandler TaskErrorOccurred;
 
-		public static string CalculateMD5(string filename)
+		public static Task<string> CalculateMD5(string filename, CancellationToken token)
 		{
 			using var md5 = MD5.Create();
 			using var stream = System.IO.File.OpenRead(filename);
@@ -41,6 +41,7 @@ namespace OkkeiPatcher
 
 			while ((length = stream.Read(buffer)) > 0)
 			{
+				if (token.IsCancellationRequested) break;
 				++progress;
 				if (progress != progressMax)
 					md5.TransformBlock(buffer, 0, bufferLength, buffer, 0);
@@ -49,40 +50,50 @@ namespace OkkeiPatcher
 				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
 			}
 
-			return BitConverter.ToString(md5.Hash).Replace("-", string.Empty).ToLowerInvariant();
+			token.ThrowIfCancellationRequested();
+
+			return Task.FromResult(BitConverter.ToString(md5.Hash).Replace("-", string.Empty).ToLowerInvariant());
 		}
 
 		/// <summary>
 		///     Compares given file with a predefined corresponding file or corresponding checksum written in preferences and
 		///     returns true if checksums are equal, false otherwise. See predefined values in <see cref="FileToCompareWith" />.
 		/// </summary>
-		public static bool CompareMD5(Files file)
+		public static Task<bool> CompareMD5(Files file, CancellationToken token)
 		{
 			var result = false;
 
-			var firstMd5 = string.Empty;
-			var secondMd5 = string.Empty;
-
 			var firstFile = new Java.IO.File(FilePaths[file]);
+			Java.IO.File secondFile = null;
 
-			switch (file)
+			try
 			{
-				case Files.OriginalSavedata:
-					var secondFile = new Java.IO.File(FileToCompareWith[file]);
-					if (secondFile.Exists()) secondMd5 = CalculateMD5(secondFile.Path);
-					secondFile.Dispose();
-					break;
-				default:
-					secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
-					break;
+				var firstMd5 = string.Empty;
+				var secondMd5 = string.Empty;
+
+				switch (file)
+				{
+					case Files.OriginalSavedata:
+						secondFile = new Java.IO.File(FileToCompareWith[file]);
+						if (secondFile.Exists()) secondMd5 = CalculateMD5(secondFile.Path, token).Result;
+						break;
+					default:
+						secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
+						break;
+				}
+
+				if (firstFile.Exists() && secondMd5 != string.Empty)
+					firstMd5 = CalculateMD5(firstFile.Path, token).Result;
+
+				if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
+			}
+			finally
+			{
+				firstFile.Dispose();
+				secondFile?.Dispose();
 			}
 
-			if (firstFile.Exists() && secondMd5 != string.Empty) firstMd5 = CalculateMD5(firstFile.Path);
-			firstFile.Dispose();
-
-			if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
-
-			return result;
+			return Task.FromResult(result);
 		}
 
 		public static byte[] ReadCert(Stream certStream, int size)
@@ -247,7 +258,7 @@ namespace OkkeiPatcher
 					{
 						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-						var apkFileMd5 = CalculateMD5(path);
+						var apkFileMd5 = CalculateMD5(path, token).Result;
 
 						if (apkMd5 == apkFileMd5)
 						{
@@ -332,10 +343,10 @@ namespace OkkeiPatcher
 
 				while ((length = inputStream.Read(buffer)) > 0)
 				{
+					if (token.IsCancellationRequested) break;
 					output.Write(buffer, 0, length);
 					++progress;
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
-					if (token.IsCancellationRequested) break;
 				}
 
 				inputStream.Dispose();
@@ -348,10 +359,10 @@ namespace OkkeiPatcher
 
 				while ((length = javaInputStream.Read(buffer)) > 0)
 				{
+					if (token.IsCancellationRequested) break;
 					output.Write(buffer, 0, length);
 					++progress;
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
-					if (token.IsCancellationRequested) break;
 				}
 
 				inputFile.Dispose();
@@ -364,9 +375,9 @@ namespace OkkeiPatcher
 			if (token.IsCancellationRequested && outFile.Exists()) outFile.Delete();
 			outFile.Dispose();
 
-			return !token.IsCancellationRequested
-				? Task.CompletedTask
-				: Task.FromException(new System.OperationCanceledException(token));
+			token.ThrowIfCancellationRequested();
+
+			return Task.CompletedTask;
 		}
 
 		public static async Task DownloadFile(string URL, string outFilePath, string outFileName,
@@ -406,9 +417,9 @@ namespace OkkeiPatcher
 				if (!token.IsCancellationRequested)
 					while ((length = download.Read(buffer)) > 0)
 					{
+						if (token.IsCancellationRequested) break;
 						output.Write(buffer, 0, length);
 						ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
-						if (token.IsCancellationRequested) break;
 					}
 			}
 			catch (Exception ex) when (!(ex is System.OperationCanceledException))
@@ -428,6 +439,7 @@ namespace OkkeiPatcher
 				var downloadedFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
 				if (token.IsCancellationRequested && downloadedFile.Exists()) downloadedFile.Delete();
 				downloadedFile.Dispose();
+				token.ThrowIfCancellationRequested();
 			}
 		}
 
@@ -462,7 +474,8 @@ namespace OkkeiPatcher
 
 		public static bool IsBackupAvailable()
 		{
-			return System.IO.File.Exists(FilePaths[Files.BackupApk]) && System.IO.File.Exists(FilePaths[Files.BackupObb]);
+			return System.IO.File.Exists(FilePaths[Files.BackupApk]) &&
+			       System.IO.File.Exists(FilePaths[Files.BackupObb]);
 		}
 	}
 }

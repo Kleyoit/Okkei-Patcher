@@ -90,6 +90,7 @@ namespace OkkeiPatcher
 				IsRunning = true;
 
 				Java.IO.File backupSavedata = null;
+				var installedObb = new Java.IO.File(FilePaths[Files.ObbToReplace]);
 
 				try
 				{
@@ -107,32 +108,27 @@ namespace OkkeiPatcher
 
 							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
 								SavedataFileName, token);
-							token.ThrowIfCancellationRequested();
 						}
 					}
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-					var installedObb = new Java.IO.File(FilePaths[Files.ObbToReplace]);
-
 					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-					if (!installedObb.Exists() || !Utils.CompareMD5(Files.ObbToReplace))
+					if (!installedObb.Exists() || !Utils.CompareMD5(Files.ObbToReplace, token).Result)
 					{
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.download_obb));
 
 						await Utils.DownloadFile(ObbUrl, ObbPath, ObbFileName, token);
-						token.ThrowIfCancellationRequested();
 
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
-						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), Utils.CalculateMD5(installedObb.Path));
+						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(),
+							Utils.CalculateMD5(installedObb.Path, token).Result);
 						Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
 					}
-
-					installedObb.Dispose();
 
 					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.patch_success));
 				}
@@ -145,6 +141,7 @@ namespace OkkeiPatcher
 				finally
 				{
 					backupSavedata?.Dispose();
+					installedObb.Dispose();
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					IsRunning = false;
 				}
@@ -163,6 +160,14 @@ namespace OkkeiPatcher
 				_saveDataBackupFromOldPatch = false;
 
 				ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
+
+				var originalSavedata = new Java.IO.File(FilePaths[Files.OriginalSavedata]);
+				var backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+				var unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
+				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
+				var scriptsZip = new Java.IO.File(FilePaths[Files.Scripts]);
+				var originalObb = new Java.IO.File(FilePaths[Files.ObbToBackup]);
+				var backupObb = new Java.IO.File(FilePaths[Files.BackupObb]);
 
 				try
 				{
@@ -209,11 +214,8 @@ namespace OkkeiPatcher
 					{
 						ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-						var originalSavedata = new Java.IO.File(FilePaths[Files.OriginalSavedata]);
-						var backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
-
 						if (backupSavedata.Exists())
-							if (Utils.CompareMD5(Files.BackupSavedata))
+							if (Utils.CompareMD5(Files.BackupSavedata, token).Result)
 							{
 								_saveDataBackupFromOldPatch = true;
 								backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]));
@@ -225,25 +227,19 @@ namespace OkkeiPatcher
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.compare_saves));
 
-							if (!Utils.CompareMD5(Files.OriginalSavedata))
+							if (!Utils.CompareMD5(Files.OriginalSavedata, token).Result)
 							{
 								StatusChanged?.Invoke(this,
 									Application.Context.Resources.GetText(Resource.String.backup_saves));
 
 								await Utils.CopyFile(originalSavedata.Path,
 									backupSavedata.Parent, backupSavedata.Name, token);
-								if (token.IsCancellationRequested)
-								{
-									originalSavedata.Dispose();
-									throw new OperationCanceledException("The operation was canceled.", token);
-								}
 
 								StatusChanged?.Invoke(this,
 									Application.Context.Resources.GetText(Resource.String.write_saves_md5));
 
 								Preferences.Set(Prefkey.savedata_md5.ToString(),
-									Utils.CalculateMD5(originalSavedata.Path));
-								originalSavedata.Dispose();
+									Utils.CalculateMD5(originalSavedata.Path, token).Result);
 							}
 						}
 						else
@@ -254,75 +250,64 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 									null, null));
 						}
-
-						backupSavedata.Dispose();
 					}
 
-					if (!new Java.IO.File(FilePaths[Files.SignedApk]).Exists())
+					if (!File.Exists(FilePaths[Files.SignedApk]))
 					{
 						// Get installed CHAOS;CHILD APK
 						var originalApkPath = Application.Context.PackageManager
 							.GetPackageInfo(ChaosChildPackageName, 0)
 							.ApplicationInfo
 							.PublicSourceDir;
-						var unpatchedApk = new Java.IO.File(FilePaths[Files.TempApk]);
 
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.copy_apk));
 
 						await Utils.CopyFile(originalApkPath, unpatchedApk.Parent,
 							unpatchedApk.Name, token);
-						token.ThrowIfCancellationRequested();
 
 
 						// Backup APK
-						var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
-
 						if (unpatchedApk.Exists())
 						{
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-							if (!backupApk.Exists() || !Utils.CompareMD5(Files.TempApk))
+							if (!backupApk.Exists() || !Utils.CompareMD5(Files.TempApk, token).Result)
 							{
 								StatusChanged?.Invoke(this,
 									Application.Context.Resources.GetText(Resource.String.backup_apk));
 
 								await Utils.CopyFile(originalApkPath, backupApk.Parent,
 									backupApk.Name, token);
-								token.ThrowIfCancellationRequested();
 
 								StatusChanged?.Invoke(this,
 									Application.Context.Resources.GetText(Resource.String.write_apk_md5));
 
-								Preferences.Set(Prefkey.backup_apk_md5.ToString(), Utils.CalculateMD5(backupApk.Path));
+								Preferences.Set(Prefkey.backup_apk_md5.ToString(),
+									Utils.CalculateMD5(backupApk.Path, token).Result);
 							}
 						}
-
-						backupApk.Dispose();
 
 
 						// Download scripts
 						ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
-
-						var scriptsZip = new Java.IO.File(FilePaths[Files.Scripts]);
-
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.compare_scripts));
 
-						if (!scriptsZip.Exists() || !Utils.CompareMD5(Files.Scripts))
+						if (!scriptsZip.Exists() || !Utils.CompareMD5(Files.Scripts, token).Result)
 						{
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.download_scripts));
 
 							await Utils.DownloadFile(ScriptsUrl, scriptsZip.Parent,
 								scriptsZip.Name, token);
-							token.ThrowIfCancellationRequested();
 
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.write_scripts_md5));
 
-							Preferences.Set(Prefkey.scripts_md5.ToString(), Utils.CalculateMD5(scriptsZip.Path));
+							Preferences.Set(Prefkey.scripts_md5.ToString(),
+								Utils.CalculateMD5(scriptsZip.Path, token).Result);
 						}
 
 
@@ -375,12 +360,10 @@ namespace OkkeiPatcher
 						// Delete temp files
 						foreach (var file in filePaths) File.Delete(file);
 						Directory.Delete(Path.Combine(OkkeiFilesPath, "scripts"));
-						scriptsZip.Dispose();
 
 						if (token.IsCancellationRequested)
 						{
 							if (unpatchedApk.Exists()) unpatchedApk.Delete();
-							unpatchedApk.Dispose();
 							throw new OperationCanceledException("The operation was canceled.", token);
 						}
 
@@ -396,21 +379,20 @@ namespace OkkeiPatcher
 
 						SignPackage(apkToSign, Testkey, signedApkStream, signWholeFile);
 
+						apkToSign.Dispose();
+						signedApkStream.Dispose();
+
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.write_patched_apk_md5));
 
 						Preferences.Set(Prefkey.signed_apk_md5.ToString(),
-							Utils.CalculateMD5(FilePaths[Files.SignedApk]));
+							Utils.CalculateMD5(FilePaths[Files.SignedApk], token).Result);
 
 						if (unpatchedApk.Exists()) unpatchedApk.Delete();
-						unpatchedApk.Dispose();
 
 						if (token.IsCancellationRequested)
 						{
-							var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
-							if (signedApk.Exists()) signedApk.Delete();
-							signedApk.Dispose();
-
+							if (File.Exists(FilePaths[Files.SignedApk])) File.Delete(FilePaths[Files.SignedApk]);
 							throw new OperationCanceledException("The operation was canceled.", token);
 						}
 					}
@@ -419,33 +401,24 @@ namespace OkkeiPatcher
 					// Backup OBB
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 
-					var originalObb = new Java.IO.File(FilePaths[Files.ObbToBackup]);
-					var backupObb = new Java.IO.File(FilePaths[Files.BackupObb]);
-
 					if (originalObb.Exists())
 					{
 						StatusChanged?.Invoke(this,
 							Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-						if (!backupObb.Exists() || !Utils.CompareMD5(Files.ObbToBackup))
+						if (!backupObb.Exists() || !Utils.CompareMD5(Files.ObbToBackup, token).Result)
 						{
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.backup_obb));
 
 							await Utils.CopyFile(originalObb.Path, backupObb.Parent,
 								backupObb.Name, token);
-							originalObb.Dispose();
-							if (token.IsCancellationRequested)
-							{
-								backupObb.Dispose();
-								throw new OperationCanceledException("The operation was canceled.", token);
-							}
 
 							StatusChanged?.Invoke(this,
 								Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
-							Preferences.Set(Prefkey.backup_obb_md5.ToString(), Utils.CalculateMD5(backupObb.Path));
-							backupObb.Dispose();
+							Preferences.Set(Prefkey.backup_obb_md5.ToString(),
+								Utils.CalculateMD5(backupObb.Path, token).Result);
 						}
 					}
 					else
@@ -473,6 +446,16 @@ namespace OkkeiPatcher
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					IsRunning = false;
+				}
+				finally
+				{
+					originalSavedata.Dispose();
+					backupSavedata.Dispose();
+					unpatchedApk.Dispose();
+					backupApk.Dispose();
+					scriptsZip.Dispose();
+					originalObb.Dispose();
+					backupObb.Dispose();
 				}
 			}
 			catch (Exception ex)

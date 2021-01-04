@@ -106,7 +106,6 @@ namespace OkkeiPatcher
 					}
 
 					await Utils.CopyFile(backupObb.Path, ObbPath, ObbFileName, token);
-					token.ThrowIfCancellationRequested();
 
 					if (processSavedata)
 					{
@@ -117,7 +116,6 @@ namespace OkkeiPatcher
 
 							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
 								SavedataFileName, token);
-							token.ThrowIfCancellationRequested();
 						}
 						else
 						{
@@ -142,7 +140,7 @@ namespace OkkeiPatcher
 							backupSavedataCopy = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
 							Preferences.Set(Prefkey.savedata_md5.ToString(),
-								Utils.CalculateMD5(backupSavedataCopy.Path));
+								Utils.CalculateMD5(backupSavedataCopy.Path, token).Result);
 						}
 					}
 
@@ -182,8 +180,6 @@ namespace OkkeiPatcher
 			{
 				IsRunning = true;
 
-				var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
-
 				var isPatched =
 					Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
@@ -200,7 +196,7 @@ namespace OkkeiPatcher
 						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
-					if (!backupApk.Exists())
+					if (!Utils.IsBackupAvailable())
 					{
 						MessageGenerated?.Invoke(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
@@ -232,7 +228,6 @@ namespace OkkeiPatcher
 
 							await Utils.CopyFile(FilePaths[Files.OriginalSavedata],
 								OkkeiFilesPathBackup, SavedataBackupFileName, token);
-							token.ThrowIfCancellationRequested();
 						}
 						else
 						{
@@ -265,10 +260,6 @@ namespace OkkeiPatcher
 					StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.aborted));
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 					IsRunning = false;
-				}
-				finally
-				{
-					backupApk.Dispose();
 				}
 			}
 			catch (Exception ex)
