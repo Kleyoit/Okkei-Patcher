@@ -266,6 +266,15 @@ namespace OkkeiPatcher
 			}
 		}
 
+		protected override void OnRestart()
+		{
+			base.OnRestart();
+
+			FindCachedViewById<Button>(Resource.Id.patchButton).Invalidate();
+			FindCachedViewById<Button>(Resource.Id.unpatchButton).Invalidate();
+			FindCachedViewById<Button>(Resource.Id.clearDataButton).Invalidate();
+		}
+
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning))
