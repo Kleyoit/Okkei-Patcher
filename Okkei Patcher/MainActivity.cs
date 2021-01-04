@@ -293,9 +293,11 @@ namespace OkkeiPatcher
 
 					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
 					{
-						button.Enabled = false;
 						MainThread.BeginInvokeOnMainThread(() =>
-							FindCachedViewById<Button>(Resource.Id.Unpatch).Enabled = true);
+						{
+							button.Enabled = false;
+							FindCachedViewById<Button>(Resource.Id.Unpatch).Enabled = true;
+						});
 					}
 
 					MainThread.BeginInvokeOnMainThread(() =>
@@ -329,9 +331,11 @@ namespace OkkeiPatcher
 
 					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
 					{
-						button.Enabled = false;
 						MainThread.BeginInvokeOnMainThread(() =>
-							FindCachedViewById<Button>(Resource.Id.Patch).Enabled = true);
+						{
+							button.Enabled = false;
+							FindCachedViewById<Button>(Resource.Id.Patch).Enabled = true;
+						});
 					}
 
 					MainThread.BeginInvokeOnMainThread(() =>
@@ -455,6 +459,8 @@ namespace OkkeiPatcher
 						apk.Dispose();
 						obb.Dispose();
 						savedata.Dispose();
+
+						FindCachedViewById<Button>(Resource.Id.Patch).Enabled = false;
 					}, null);
 			}
 		}
