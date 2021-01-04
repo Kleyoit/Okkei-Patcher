@@ -22,11 +22,10 @@ namespace OkkeiPatcher
 			if (data.Equals(Data.Empty)) return;
 
 			var builder = new AndroidX.AppCompat.App.AlertDialog.Builder(activity);
-			var cancelable = false;
 
 			builder.SetTitle(data.Title);
 			builder.SetMessage(data.Message);
-			builder.SetCancelable(cancelable);
+			builder.SetCancelable(false);
 
 			builder.SetPositiveButton(data.PositiveButtonText, (sender, e) => { data.PositiveAction?.Invoke(); });
 			if (data.NegativeButtonText != null)
