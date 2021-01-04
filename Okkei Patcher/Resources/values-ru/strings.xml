@@ -3,11 +3,11 @@
 <resources>
   <string name="action_settings">Настройки</string>
   <string name="patch">Патч</string>
-  <string name="unpatch">Восст.</string>
-  <string name="clear">Удалить копию</string>
+  <string name="unpatch">Восстановить</string>
+  <string name="clear_data">Очистить все данные</string>
   <string name="savedata_checkbox">Делать копию/восст. сохранения</string>
-  <string name="dialog_exit">ВЫХОД</string>
-  <string name="dialog_cancel">ОТМЕНА</string>
+  <string name="dialog_exit">Выход</string>
+  <string name="dialog_cancel">Отмена</string>
   <string name="abort">Стоп</string>
   <string name="error">Ошибка</string>
   <string name="attention">Внимание</string>
@@ -16,14 +16,19 @@
   <string name="patch_success">Локализация прошла успешно.</string>
   <string name="unpatch_success">Резервная копия восстановлена успешно.</string>
   <string name="aborted">Операция отменена.</string>
-  <string name="backup_cleared">Резервная копия удалена.</string>
+  <string name="data_cleared">Все данные очищены.</string>
   <string name="no_install_permission">Okkei Patcher не может получить разрешение на установку пакетов приложений.</string>
   <string name="no_storage_permission">Okkei Patcher не может получить разрешение на чтение и запись внутренней памяти устройства.</string>
   <string name="no_storage_permission_rationale">Okkei Patcher требует разрешения на чтение и запись внутренней памяти устройства для продолжения работы. Хотите ли Вы попытаться дать разрешение ещё раз? В противном случае Okkei Patcher будет закрыт.</string>
   <string name="no_storage_permission_settings">Okkei Patcher требует разрешения на чтение и запись внутренней памяти устройства для продолжения работы. Хотите ли Вы попытаться дать разрешение ещё раз? Если Вы нажмёте OK, откроются настройки Okkei Patcher, где Вы должны перейти в меню с разрешениями и активировать разрешение на доступ к внутренней памяти. В противном случае Okkei Patcher будет закрыт.</string>
   <string name="unknown_sources_notice">Okkei Patcher требует разрешения на установку пакетов приложений из неизвестных источников для продолжения работы. После нажатия на кнопку OK откроется страница с настройками, где Вы должны активировать данную опцию. После этого Вы можете вернуться в Okkei Patcher с помощью кнопки или жеста Назад.</string>
   <string name="long_process_warning">Данный процесс может занять длительное время. Если Вы отмените его или закроете Okkei Patcher, данные установки CHAOS;CHILD и/или данные Okkei Patcher могут быть повреждены. Вы уверены, что хотите начать процесс?</string>
-  <string name="clear_backup_warning">Вы собираетесь удалить резервную копию предыдущей установки CHAOS;CHILD. Данная операция не может быть отменена. Вы уверены, что хотите удалить резервную копию?</string>
+  <string name="clear_data_warning">Вы собираетесь очистить ВСЕ данные Okkei Patcher, включая резервную копию предыдущей установки CHAOS;CHILD. Используйте эту опцию ТОЛЬКО при переустановке CHAOS;CHILD из-за повреждения данных. Данная операция не может быть отменена. Вы уверены, что хотите очистить все данные?</string>
+  <string name="abort_warning">Вы уверены, что хотите остановить процесс? Данные установки CHAOS;CHILD и/или данные Okkei Patcher могут быть повреждены.</string>
+  <string name="install_prompt_patch">Сейчас последует запрос на установку пропатченного CHAOS;CHILD. Пожалуйста, подтвердите установку.</string>
+  <string name="install_prompt_unpatch">Сейчас последует запрос на установку оригинального немодифицированного CHAOS;CHILD. Пожалуйста, подтвердите установку.</string>
+  <string name="uninstall_prompt_patch">Сейчас последует запрос на удаление немодифицированного CHAOS;CHILD. Пожалуйста, подтвердите удаление.</string>
+  <string name="uninstall_prompt_unpatch">Сейчас последует запрос на удаление пропатченного CHAOS;CHILD. Пожалуйста, подтвердите удаление.</string>
   <string name="restore_old_saves">Восстановление старых сохранений...</string>
   <string name="compare_obb">Сравнение хэшей OBB...</string>
   <string name="compare_saves">Сравнение хэшей сохранений...</string>

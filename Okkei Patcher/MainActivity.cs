@@ -92,8 +92,8 @@ namespace OkkeiPatcher
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
 					{
-						var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-						Utils.OnInstallSuccess(checkBoxSavedata.Checked, _cts.Token);
+						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
+						Utils.OnInstallSuccess(savedataCheckbox.Checked, _cts.Token);
 					}
 					else
 					{
@@ -120,8 +120,8 @@ namespace OkkeiPatcher
 						StartActivity(confirmIntent);
 						break;
 					case (int) PackageInstallStatus.Success:
-						var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-						Utils.OnInstallSuccess(checkBoxSavedata.Checked, _cts.Token);
+						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
+						Utils.OnInstallSuccess(savedataCheckbox.Checked, _cts.Token);
 						break;
 				}
 			}
@@ -146,17 +146,17 @@ namespace OkkeiPatcher
 			var fab = FindCachedViewById<FloatingActionButton>(Resource.Id.fab);
 			fab.Click += FabOnClick;
 
-			var patch = FindCachedViewById<Button>(Resource.Id.Patch);
-			patch.Click += Patch_Click;
+			var patchButton = FindCachedViewById<Button>(Resource.Id.patchButton);
+			patchButton.Click += Patch_Click;
 
-			var unpatch = FindCachedViewById<Button>(Resource.Id.Unpatch);
-			unpatch.Click += Unpatch_Click;
+			var unpatchButton = FindCachedViewById<Button>(Resource.Id.unpatchButton);
+			unpatchButton.Click += Unpatch_Click;
 
-			var clear = FindCachedViewById<Button>(Resource.Id.Clear);
-			clear.Click += Clear_Click;
+			var clearDataButton = FindCachedViewById<Button>(Resource.Id.clearDataButton);
+			clearDataButton.Click += ClearData_Click;
 
-			var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-			checkBoxSavedata.CheckedChange += CheckBox_CheckedChange;
+			var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
+			savedataCheckbox.CheckedChange += CheckBox_CheckedChange;
 
 
 			// Set apk_is_patched = false pref on first start
@@ -164,34 +164,28 @@ namespace OkkeiPatcher
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
 
-			// Set buttons state depending on patch status
+			// Set buttons state depending on patch status and backup existence
 			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
 			{
-				patch.Enabled = false;
-				unpatch.Enabled = true;
+				patchButton.Enabled = false;
+				unpatchButton.Enabled = true;
+				if (Build.VERSION.SdkInt >= BuildVersionCodes.M &&
+				    CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted ||
+				    Build.VERSION.SdkInt < BuildVersionCodes.M)
+					unpatchButton.Enabled = Utils.IsBackupAvailable();
 			}
 			else
 			{
-				patch.Enabled = true;
-				unpatch.Enabled = false;
+				patchButton.Enabled = true;
+				unpatchButton.Enabled = false;
 			}
-
-
-			// Set "Clear backup" button state depending on backup existence
-			clear.Enabled = false;
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
-			{
-				if (CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted)
-					clear.Enabled = Utils.IsBackupAvailable();
-			}
-			else clear.Enabled = Utils.IsBackupAvailable();
 
 
 			// Restore previous state of checkbox or set pref on first start
 			if (!Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString()))
 				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 			else
-				checkBoxSavedata.Checked = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
+				savedataCheckbox.Checked = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
 
 
 			// Request read/write external storage permissions
@@ -265,7 +259,7 @@ namespace OkkeiPatcher
 					Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 					Directory.CreateDirectory(OkkeiFilesPath);
 
-					FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable();
+					FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 
 					RequestInstallPackagesPermission();
 				}
@@ -276,7 +270,7 @@ namespace OkkeiPatcher
 		{
 			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning))
 			{
-				var button = FindCachedViewById<Button>(Resource.Id.Patch);
+				var patchButton = FindCachedViewById<Button>(Resource.Id.patchButton);
 
 				if (!PatchTasks.Instance.IsRunning)
 				{
@@ -284,28 +278,32 @@ namespace OkkeiPatcher
 					PatchTasks.Instance.ProgressChanged -= OnProgressChanged;
 					PatchTasks.Instance.MessageGenerated -= OnMessageGenerated;
 					PatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Patch;
-					PatchTasks.Instance.ErrorOccurred -= Patch_Click;
+					PatchTasks.Instance.ErrorOccurred -= OnErrorOccurred_Patch;
 
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
 
-					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.patch); });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						patchButton.Text = Resources.GetText(Resource.String.patch);
+						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
+					});
 
 					if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							button.Enabled = false;
-							FindCachedViewById<Button>(Resource.Id.Unpatch).Enabled = true;
+							patchButton.Enabled = false;
+							FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 						});
-					}
-
-					MainThread.BeginInvokeOnMainThread(() =>
-						FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable());
 				}
 				else
 				{
-					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.abort); });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = false;
+						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = false;
+						patchButton.Text = Resources.GetText(Resource.String.abort);
+					});
 				}
 			}
 		}
@@ -314,7 +312,7 @@ namespace OkkeiPatcher
 		{
 			if (e.PropertyName == nameof(UnpatchTasks.Instance.IsRunning))
 			{
-				var button = FindCachedViewById<Button>(Resource.Id.Unpatch);
+				var unpatchButton = FindCachedViewById<Button>(Resource.Id.unpatchButton);
 
 				if (!UnpatchTasks.Instance.IsRunning)
 				{
@@ -322,35 +320,45 @@ namespace OkkeiPatcher
 					UnpatchTasks.Instance.ProgressChanged -= OnProgressChanged;
 					UnpatchTasks.Instance.MessageGenerated -= OnMessageGenerated;
 					UnpatchTasks.Instance.PropertyChanged -= OnPropertyChanged_Unpatch;
-					UnpatchTasks.Instance.ErrorOccurred -= Unpatch_Click;
+					UnpatchTasks.Instance.ErrorOccurred -= OnErrorOccurred_Unpatch;
 
 					_cts.Dispose();
 					_cts = new CancellationTokenSource();
 
-					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.unpatch); });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						unpatchButton.Text = Resources.GetText(Resource.String.unpatch);
+						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
+					});
 
 					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
-							button.Enabled = false;
-							FindCachedViewById<Button>(Resource.Id.Patch).Enabled = true;
+							unpatchButton.Enabled = false;
+							FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
 						});
-					}
-
-					MainThread.BeginInvokeOnMainThread(() =>
-						FindCachedViewById<Button>(Resource.Id.Clear).Enabled = Utils.IsBackupAvailable());
+					else
+						MainThread.BeginInvokeOnMainThread(() =>
+							FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable());
 				}
 				else
 				{
-					MainThread.BeginInvokeOnMainThread(() => { button.Text = Resources.GetText(Resource.String.abort); });
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = false;
+						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = false;
+						unpatchButton.Text = Resources.GetText(Resource.String.abort);
+					});
 				}
 			}
 		}
 
 		private void OnStatusChanged(object sender, string e)
 		{
-			MainThread.BeginInvokeOnMainThread(() => { FindCachedViewById<TextView>(Resource.Id.Status).Text = e; });
+			MainThread.BeginInvokeOnMainThread(() =>
+			{
+				FindCachedViewById<TextView>(Resource.Id.statusText).Text = e;
+			});
 		}
 
 		private void OnMessageGenerated(object sender, MessageBox.Data e)
@@ -371,7 +379,7 @@ namespace OkkeiPatcher
 		{
 			var isChecked = e.IsChecked;
 			var prefkey = Prefkey.backup_restore_savedata.ToString();
-			if (sender == FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata) &&
+			if (sender == FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox) &&
 			    Preferences.Get(prefkey, true) != isChecked)
 				Preferences.Set(prefkey, isChecked);
 		}
@@ -381,7 +389,6 @@ namespace OkkeiPatcher
 			if ((!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
 				if (!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning)
-				{
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 						Resources.GetText(Resource.String.long_process_warning),
 						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
@@ -391,17 +398,24 @@ namespace OkkeiPatcher
 							PatchTasks.Instance.ProgressChanged += OnProgressChanged;
 							PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
 							PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
-							PatchTasks.Instance.ErrorOccurred += Patch_Click;
+							PatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Patch;
 
-							var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
-							Task.Run(() => PatchTasks.Instance.PatchTask(this, checkBoxSavedata.Checked, _cts.Token));
+							var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
+							Task.Run(() => PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token));
 						}, null);
-				}
 				else
-				{
-					_cts.Cancel();
-				}
+					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
+						Resources.GetText(Resource.String.abort_warning),
+						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+						() => _cts.Cancel(), null);
 			}
+		}
+
+		private void OnErrorOccurred_Patch(object sender, EventArgs e)
+		{
+			if ((!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested &&
+			    PatchTasks.IsInstantiated && PatchTasks.Instance.IsRunning)
+				_cts.Cancel();
 		}
 
 		private void Unpatch_Click(object sender, EventArgs e)
@@ -409,7 +423,6 @@ namespace OkkeiPatcher
 			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
 				if (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning)
-				{
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 						Resources.GetText(Resource.String.long_process_warning),
 						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
@@ -419,41 +432,48 @@ namespace OkkeiPatcher
 							UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
 							UnpatchTasks.Instance.MessageGenerated += OnMessageGenerated;
 							UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
-							UnpatchTasks.Instance.ErrorOccurred += Unpatch_Click;
+							UnpatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Unpatch;
 
-							var checkBoxSavedata = FindCachedViewById<CheckBox>(Resource.Id.CheckBoxSavedata);
+							var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 							Task.Run(
-								() => UnpatchTasks.Instance.UnpatchTask(this, checkBoxSavedata.Checked, _cts.Token));
+								() => UnpatchTasks.Instance.UnpatchTask(this, savedataCheckbox.Checked, _cts.Token));
 						}, null);
-				}
 				else
-				{
-					_cts.Cancel();
-				}
+					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
+						Resources.GetText(Resource.String.abort_warning),
+						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+						() => _cts.Cancel(), null);
 			}
 		}
 
-		private void Clear_Click(object sender, EventArgs e)
+		private void OnErrorOccurred_Unpatch(object sender, EventArgs e)
+		{
+			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested &&
+			    UnpatchTasks.IsInstantiated && UnpatchTasks.Instance.IsRunning)
+				_cts.Cancel();
+		}
+
+		private void ClearData_Click(object sender, EventArgs e)
 		{
 			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
 			    (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning))
-			{
 				MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-					Resources.GetText(Resource.String.clear_backup_warning),
+					Resources.GetText(Resource.String.clear_data_warning),
 					Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
 					() =>
 					{
-						if (File.Exists(FilePaths[Files.BackupApk])) File.Delete(FilePaths[Files.BackupApk]);
-						if (File.Exists(FilePaths[Files.BackupObb])) File.Delete(FilePaths[Files.BackupObb]);
-						if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
-						if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
-							File.Delete(FilePaths[Files.SAVEDATA_BACKUP]);
+						Preferences.Clear();
+						Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
+						Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 
-						FindCachedViewById<TextView>(Resource.Id.Status).Text =
-							Resources.GetText(Resource.String.backup_cleared);
-						FindCachedViewById<Button>(Resource.Id.Patch).Enabled = false;
+						Utils.ClearOkkeiFolder();
+
+						FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox).Checked = true;
+						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
+						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = false;
+						FindCachedViewById<TextView>(Resource.Id.statusText).Text =
+							Resources.GetText(Resource.String.data_cleared);
 					}, null);
-			}
 		}
 
 		private void FabOnClick(object sender, EventArgs eventArgs)

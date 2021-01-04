@@ -245,12 +245,25 @@ namespace OkkeiPatcher
 					// Uninstall CHAOS;CHILD and install backup, then restore OBB and save data if checked
 					// Install backup immediately if CHAOS;CHILD is not installed
 					if (Utils.IsAppInstalled(ChaosChildPackageName))
-						Utils.UninstallPackage(activity, ChaosChildPackageName);
+					{
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+								Application.Context.Resources.GetText(Resource.String.uninstall_prompt_unpatch),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
+					}
 					else
 					{
 						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.installing));
-						MainThread.BeginInvokeOnMainThread(() => Utils.InstallPackage(activity,
-							Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
+
+						MessageGenerated?.Invoke(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+								Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null, () =>
+								{
+									MainThread.BeginInvokeOnMainThread(() => Utils.InstallPackage(activity,
+										Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
+								}, null));
 					}
 
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));

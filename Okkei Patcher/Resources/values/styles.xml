@@ -11,6 +11,7 @@
     <item name="colorOnSecondary">@color/colorOnPrimary</item>
     <item name="colorOnSurface">@color/colorPrimary</item>
     <item name="android:colorBackground">@color/background_material_dark</item>
+    <item name="materialButtonStyle">@style/Widget.App.Button</item>
     <item name="alertDialogTheme">@style/AlertDialogTheme</item>
     <item name="snackbarStyle">@style/Widget.App.Snackbar</item>
     <item name="snackbarTextViewStyle">@style/Widget.App.Snackbar.TextView</item>
@@ -21,6 +22,11 @@
   <style name="AppTheme.NoActionBar">
     <item name="windowActionBar">false</item>
     <item name="windowNoTitle">true</item>
+  </style>
+
+  <style name="Widget.App.Button" parent="Widget.MaterialComponents.Button">
+    <item name="backgroundTint">@color/btn_bg_color_selector</item>
+    <item name="android:textColor">@color/btn_text_color_selector</item>
   </style>
 
   <style name="AlertDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">

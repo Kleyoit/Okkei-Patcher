@@ -252,7 +252,7 @@ namespace OkkeiPatcher
 						}
 					}
 
-					if (!File.Exists(FilePaths[Files.SignedApk]))
+					if (!File.Exists(FilePaths[Files.SignedApk]) || !backupApk.Exists())
 					{
 						// Get installed CHAOS;CHILD APK
 						var originalApkPath = Application.Context.PackageManager
@@ -435,8 +435,11 @@ namespace OkkeiPatcher
 
 
 					// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
-					Utils.UninstallPackage(activity, ChaosChildPackageName);
-
+					MessageGenerated?.Invoke(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+							Application.Context.Resources.GetText(Resource.String.uninstall_prompt_patch),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
 					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100));
 				}
 				catch (OperationCanceledException)

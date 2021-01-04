@@ -238,18 +238,21 @@ namespace OkkeiPatcher
 				// Install APK
 				var apkMd5 = string.Empty;
 				var path = string.Empty;
+				var message = string.Empty;
 
 				if (PatchTasks.Instance.IsRunning)
 				{
 					if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
 						apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
 					path = FilePaths[Files.SignedApk];
+					message = Application.Context.Resources.GetText(Resource.String.install_prompt_patch);
 				}
 				else if (UnpatchTasks.Instance.IsRunning)
 				{
 					if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
 						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), string.Empty);
 					path = FilePaths[Files.BackupApk];
+					message = Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch);
 				}
 
 				try
@@ -264,7 +267,12 @@ namespace OkkeiPatcher
 						{
 							StatusChanged?.Invoke(null,
 								Application.Context.Resources.GetText(Resource.String.installing));
-							InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)));
+
+							MessageGenerated?.Invoke(null,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+									message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									() => InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path))),
+									null));
 						}
 						else
 						{
@@ -476,6 +484,28 @@ namespace OkkeiPatcher
 		{
 			return System.IO.File.Exists(FilePaths[Files.BackupApk]) &&
 			       System.IO.File.Exists(FilePaths[Files.BackupObb]);
+		}
+
+		public static void ClearOkkeiFolder()
+		{
+			if (Directory.Exists(OkkeiFilesPath))
+			{
+				var directories = Directory.GetDirectories(OkkeiFilesPath);
+				if (directories.Length > 0)
+					foreach (var dir in directories)
+					{
+						var files = Directory.GetFiles(dir);
+						if (files.Length > 0)
+							foreach (var file in files)
+								System.IO.File.Delete(file);
+						Directory.Delete(dir);
+					}
+
+				var okkeiFiles = Directory.GetFiles(OkkeiFilesPath);
+				if (okkeiFiles.Length > 0)
+					foreach (var file in okkeiFiles)
+						System.IO.File.Delete(file);
+			}
 		}
 	}
 }

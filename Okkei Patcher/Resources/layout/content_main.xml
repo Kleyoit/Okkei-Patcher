@@ -9,7 +9,7 @@
                                                    tools:showIn="@layout/activity_main">
 
   <ImageView
-    android:id="@+id/OkkeiImage"
+    android:id="@+id/okkeiImage"
     android:layout_width="0dp"
     android:layout_height="150dp"
     android:layout_marginTop="16dp"
@@ -21,58 +21,32 @@
     app:srcCompat="@drawable/okkei" />
 
   <Button
-    android:id="@+id/Unpatch"
-    android:layout_width="wrap_content"
+    android:id="@+id/unpatchButton"
+    android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:layout_marginStart="5dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="5dp"
+    android:layout_marginEnd="16dp"
     android:text="@string/unpatch"
-    android:textSize="12sp"
-    app:layout_constraintEnd_toStartOf="@+id/Clear"
-    app:layout_constraintHorizontal_bias="0.5"
-    app:layout_constraintStart_toEndOf="@+id/Patch"
-    app:layout_constraintTop_toBottomOf="@+id/OkkeiImage" />
-
-  <Button
-    android:id="@+id/Clear"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginStart="5dp"
-    android:layout_marginTop="8dp"
-    android:layout_marginEnd="5dp"
-    android:text="@string/clear"
     android:textSize="12sp"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintHorizontal_bias="0.5"
-    app:layout_constraintStart_toEndOf="@+id/Unpatch"
-    app:layout_constraintTop_toBottomOf="@+id/OkkeiImage" />
+    app:layout_constraintStart_toEndOf="@+id/patchButton"
+    app:layout_constraintTop_toTopOf="@+id/patchButton" />
 
   <Button
-    android:id="@+id/Patch"
-    android:layout_width="wrap_content"
+    android:id="@+id/patchButton"
+    android:layout_width="0dp"
     android:layout_height="wrap_content"
-    android:layout_marginStart="5dp"
+    android:layout_marginStart="16dp"
     android:layout_marginTop="8dp"
     android:layout_marginEnd="5dp"
     android:text="@string/patch"
     android:textSize="12sp"
-    app:layout_constraintEnd_toStartOf="@+id/Unpatch"
+    app:layout_constraintEnd_toStartOf="@+id/unpatchButton"
     app:layout_constraintHorizontal_bias="0.5"
-    app:layout_constraintHorizontal_chainStyle="packed"
+    app:layout_constraintHorizontal_chainStyle="spread"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@+id/OkkeiImage" />
-
-  <CheckBox
-    android:id="@+id/CheckBoxSavedata"
-    android:layout_width="wrap_content"
-    android:layout_height="0dp"
-    android:checked="true"
-    android:text="@string/savedata_checkbox"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintHorizontal_bias="0.0"
-    app:layout_constraintStart_toStartOf="@+id/Patch"
-    app:layout_constraintTop_toBottomOf="@+id/Patch" />
+    app:layout_constraintTop_toBottomOf="@+id/okkeiImage" />
 
   <ProgressBar
     android:id="@+id/progressBar"
@@ -86,16 +60,38 @@
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintHorizontal_bias="0.0"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@+id/Status"
+    app:layout_constraintTop_toBottomOf="@+id/statusText"
     app:layout_constraintVertical_bias="0.0" />
 
   <TextView
-    android:id="@+id/Status"
+    android:id="@+id/statusText"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginTop="24dp"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@+id/CheckBoxSavedata" />
+    app:layout_constraintTop_toBottomOf="@+id/savedataCheckbox" />
+
+  <Button
+    android:id="@+id/clearDataButton"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:text="@string/clear_data"
+    android:textSize="12sp"
+    app:layout_constraintEnd_toEndOf="@+id/unpatchButton"
+    app:layout_constraintHorizontal_bias="0.0"
+    app:layout_constraintStart_toStartOf="@+id/patchButton"
+    app:layout_constraintTop_toBottomOf="@+id/patchButton" />
+
+  <CheckBox
+    android:id="@+id/savedataCheckbox"
+    android:layout_width="wrap_content"
+    android:layout_height="0dp"
+    android:checked="true"
+    android:text="@string/savedata_checkbox"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.0"
+    app:layout_constraintStart_toStartOf="@+id/progressBar"
+    app:layout_constraintTop_toBottomOf="@+id/clearDataButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
