@@ -97,7 +97,7 @@ namespace OkkeiPatcher
 			{Files.TempApk, Prefkey.backup_apk_md5.ToString()},
 			{Files.BackupApk, Prefkey.backup_apk_md5.ToString()},
 			{Files.SignedApk, Prefkey.signed_apk_md5.ToString()},
-			{Files.Scripts, Prefkey.signed_apk_md5.ToString()},
+			{Files.Scripts, Prefkey.scripts_md5.ToString()},
 			{Files.ObbToBackup, Prefkey.backup_obb_md5.ToString()},
 			{Files.ObbToReplace, Prefkey.downloaded_obb_md5.ToString()},
 			{Files.BackupObb, Prefkey.backup_obb_md5.ToString()}

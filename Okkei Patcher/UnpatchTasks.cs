@@ -140,7 +140,7 @@ namespace OkkeiPatcher
 							backupSavedataCopy = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
 							Preferences.Set(Prefkey.savedata_md5.ToString(),
-								Utils.CalculateMD5(backupSavedataCopy.Path, token).Result);
+								await Utils.CalculateMD5(backupSavedataCopy.Path, token));
 						}
 					}
 

@@ -59,7 +59,7 @@ namespace OkkeiPatcher
 		///     Compares given file with a predefined corresponding file or corresponding checksum written in preferences and
 		///     returns true if checksums are equal, false otherwise. See predefined values in <see cref="FileToCompareWith" />.
 		/// </summary>
-		public static Task<bool> CompareMD5(Files file, CancellationToken token)
+		public static async Task<bool> CompareMD5(Files file, CancellationToken token)
 		{
 			var result = false;
 
@@ -75,7 +75,7 @@ namespace OkkeiPatcher
 				{
 					case Files.OriginalSavedata:
 						secondFile = new Java.IO.File(FileToCompareWith[file]);
-						if (secondFile.Exists()) secondMd5 = CalculateMD5(secondFile.Path, token).Result;
+						if (secondFile.Exists()) secondMd5 = await CalculateMD5(secondFile.Path, token);
 						break;
 					default:
 						secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
@@ -83,7 +83,7 @@ namespace OkkeiPatcher
 				}
 
 				if (firstFile.Exists() && secondMd5 != string.Empty)
-					firstMd5 = CalculateMD5(firstFile.Path, token).Result;
+					firstMd5 = await CalculateMD5(firstFile.Path, token);
 
 				if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
 			}
@@ -93,7 +93,7 @@ namespace OkkeiPatcher
 				secondFile?.Dispose();
 			}
 
-			return Task.FromResult(result);
+			return result;
 		}
 
 		public static byte[] ReadCert(Stream certStream, int size)
@@ -221,7 +221,7 @@ namespace OkkeiPatcher
 			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
-		public static void OnUninstallResult(Activity activity, CancellationToken token)
+		public static async void OnUninstallResult(Activity activity, CancellationToken token)
 		{
 			if (IsAppInstalled(ChaosChildPackageName))
 			{
@@ -261,7 +261,7 @@ namespace OkkeiPatcher
 					{
 						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-						var apkFileMd5 = CalculateMD5(path, token).Result;
+						var apkFileMd5 = await CalculateMD5(path, token);
 
 						if (apkMd5 == apkFileMd5)
 						{
