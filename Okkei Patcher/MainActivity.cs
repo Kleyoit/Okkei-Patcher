@@ -443,23 +443,14 @@ namespace OkkeiPatcher
 					Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
 					() =>
 					{
-						var info = FindCachedViewById<TextView>(Resource.Id.Status);
+						if (File.Exists(FilePaths[Files.BackupApk])) File.Delete(FilePaths[Files.BackupApk]);
+						if (File.Exists(FilePaths[Files.BackupObb])) File.Delete(FilePaths[Files.BackupObb]);
+						if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
+						if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
+							File.Delete(FilePaths[Files.SAVEDATA_BACKUP]);
 
-						var apk = new Java.IO.File(FilePaths[Files.BackupApk]);
-						if (apk.Exists()) apk.Delete();
-
-						var obb = new Java.IO.File(FilePaths[Files.BackupObb]);
-						if (obb.Exists()) obb.Delete();
-
-						var savedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
-						if (savedata.Exists()) savedata.Delete();
-
-						info.Text = Resources.GetText(Resource.String.backup_cleared);
-
-						apk.Dispose();
-						obb.Dispose();
-						savedata.Dispose();
-
+						FindCachedViewById<TextView>(Resource.Id.Status).Text =
+							Resources.GetText(Resource.String.backup_cleared);
 						FindCachedViewById<Button>(Resource.Id.Patch).Enabled = false;
 					}, null);
 			}
