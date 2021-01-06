@@ -50,7 +50,7 @@ namespace OkkeiPatcher
 				manifest.Scripts.Size != 0;
 		}
 
-		public async Task GetManifest(CancellationToken token)
+		public async Task<bool> GetManifest(CancellationToken token)
 		{
 			try
 			{
@@ -78,6 +78,7 @@ namespace OkkeiPatcher
 						OnStatusChanged(this,
 							Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
 						GlobalManifest = manifest;
+						return true;
 					}
 				}
 				catch (Exception)
@@ -89,6 +90,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					OnErrorOccurred(this, EventArgs.Empty);
+					return false;
 				}
 				finally
 				{
@@ -99,7 +101,9 @@ namespace OkkeiPatcher
 			catch (Exception ex)
 			{
 				Utils.WriteBugReport(ex);
+				return false;
 			}
+			return false;
 		}
 
 		public async Task InstallAppUpdate(Activity activity, CancellationToken token)

@@ -73,7 +73,7 @@ namespace OkkeiPatcher
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
 				async () => await Task.Run(async () =>
 				{
-					await ManifestTasks.Instance.GetManifest(_cts.Token);
+					if (!await ManifestTasks.Instance.GetManifest(_cts.Token)) return;
 
 					var appUpdateInstallFlag = false;
 					if (ManifestTasks.Instance.CheckAppUpdate())
@@ -422,7 +422,7 @@ namespace OkkeiPatcher
 
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
-						patchButton.Enabled = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+						patchButton.Enabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 						patchButton.Text = Resources.GetText(Resource.String.patch);
 						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
