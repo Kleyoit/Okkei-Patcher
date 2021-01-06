@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,9 +21,19 @@ namespace OkkeiPatcher
 
 		private ManifestTasks()
 		{
+			PatchTasks.Instance.PropertyChanged += PatchTasksOnPropertyChanged;
 		}
 
 		private bool? _scriptsUpdateAvailable, _obbUpdateAvailable;
+
+		private void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning) && !PatchTasks.Instance.IsRunning)
+			{
+				_scriptsUpdateAvailable = false;
+				_obbUpdateAvailable = false;
+			}
+		}
 
 		public bool VerifyManifest(OkkeiManifest manifest)
 		{

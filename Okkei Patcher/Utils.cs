@@ -223,7 +223,7 @@ namespace OkkeiPatcher
 
 		public static async void OnUninstallResult(Activity activity, CancellationToken token)
 		{
-			if (IsAppInstalled(ChaosChildPackageName))
+			if (IsAppInstalled(ChaosChildPackageName) && !ManifestTasks.Instance.CheckScriptsUpdate())
 			{
 				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
 				MessageGenerated?.Invoke(null, new MessageBox.Data(
@@ -271,7 +271,8 @@ namespace OkkeiPatcher
 							MessageGenerated?.Invoke(null,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 									message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									() => InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path))),
+									() => MainThread.BeginInvokeOnMainThread(() =>
+										InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))),
 									null));
 						}
 						else
