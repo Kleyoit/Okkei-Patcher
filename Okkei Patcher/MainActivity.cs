@@ -71,26 +71,11 @@ namespace OkkeiPatcher
 		{
 			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
-				async () => await Task.Run(async () =>
+				async () => await Task.Run(async () => MainThread.BeginInvokeOnMainThread(async () =>
 				{
 					if (!await ManifestTasks.Instance.GetManifest(_cts.Token)) return;
 
-					var appUpdateInstallFlag = false;
-					if (ManifestTasks.Instance.CheckAppUpdate())
-						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
-							Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
-								ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
-								GlobalManifest.OkkeiPatcher.Changelog),
-							Resources.GetText(Resource.String.dialog_update),
-							Resources.GetText(Resource.String.dialog_cancel),
-							async () =>
-							{
-								await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token);
-								appUpdateInstallFlag = true;
-							}, null);
-
-					if (!appUpdateInstallFlag && (ManifestTasks.Instance.CheckScriptsUpdate() ||
-					                              ManifestTasks.Instance.CheckObbUpdate()))
+					if (ManifestTasks.Instance.CheckPatchUpdate())
 					{
 						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
 						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
@@ -98,7 +83,19 @@ namespace OkkeiPatcher
 								ManifestTasks.Instance.GetPatchUpdateSizeInMB().ToString()),
 							Resources.GetText(Resource.String.dialog_ok), null);
 					}
-				}));
+
+					if (ManifestTasks.Instance.CheckAppUpdate())
+					{
+						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
+							Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
+								ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
+								GlobalManifest.OkkeiPatcher.Changelog),
+							Resources.GetText(Resource.String.dialog_update),
+							Resources.GetText(Resource.String.dialog_cancel),
+							() => Task.Run(async () =>
+								await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token)), null);
+					}
+				})));
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -485,7 +482,9 @@ namespace OkkeiPatcher
 						{
 							MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 								Java.Lang.String.Format(Resources.GetText(Resource.String.download_size_warning),
-									ManifestTasks.Instance.GetPatchSizeInMB()),
+									ManifestTasks.Instance.CheckPatchUpdate()
+										? ManifestTasks.Instance.GetPatchUpdateSizeInMB()
+										: ManifestTasks.Instance.GetPatchSizeInMB()),
 								Resources.GetText(Resource.String.dialog_ok),
 								Resources.GetText(Resource.String.dialog_cancel),
 								() =>

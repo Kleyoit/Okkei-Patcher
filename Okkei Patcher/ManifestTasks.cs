@@ -38,16 +38,24 @@ namespace OkkeiPatcher
 		public bool VerifyManifest(OkkeiManifest manifest)
 		{
 			return
+				manifest != null &&
 				manifest.Version != 0 &&
+				manifest.OkkeiPatcher != null &&
 				manifest.OkkeiPatcher.Version != 0 &&
 				manifest.OkkeiPatcher.Changelog != null &&
 				manifest.OkkeiPatcher.URL != null &&
 				manifest.OkkeiPatcher.MD5 != null &&
 				manifest.OkkeiPatcher.Size != 0 &&
+				manifest.Scripts != null &&
 				manifest.Scripts.Version != 0 &&
 				manifest.Scripts.URL != null &&
 				manifest.Scripts.MD5 != null &&
-				manifest.Scripts.Size != 0;
+				manifest.Scripts.Size != 0 &&
+				manifest.Obb != null &&
+				manifest.Obb.Version != 0 &&
+				manifest.Obb.URL != null &&
+				manifest.Obb.MD5 != null &&
+				manifest.Obb.Size != 0;
 		}
 
 		public async Task<bool> GetManifest(CancellationToken token)
@@ -59,6 +67,11 @@ namespace OkkeiPatcher
 
 				try
 				{
+					if (File.Exists(ManifestPath))
+					{
+						await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token);
+						File.Delete(ManifestPath);
+					}
 					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token);
 
 					var json = File.ReadAllText(ManifestPath);
@@ -72,6 +85,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.manifest_corrupted),
 								Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 								() => System.Environment.Exit(0), null));
+						OnErrorOccurred(this, EventArgs.Empty);
 					}
 					else
 					{
@@ -83,14 +97,30 @@ namespace OkkeiPatcher
 				}
 				catch (Exception)
 				{
-					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
-							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-							() => System.Environment.Exit(0), null));
-					OnErrorOccurred(this, EventArgs.Empty);
-					return false;
+					OkkeiManifest manifest = null;
+					File.Delete(ManifestPath);
+					if (File.Exists(ManifestBackupPath))
+					{
+						var json = File.ReadAllText(ManifestBackupPath);
+						manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+						if (!VerifyManifest(manifest)) File.Delete(ManifestBackupPath);
+					}
+					if (!File.Exists(ManifestBackupPath))
+					{
+						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+						OnMessageGenerated(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
+								Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+								() => System.Environment.Exit(0), null));
+						OnErrorOccurred(this, EventArgs.Empty);
+						return false;
+					}
+					File.Copy(ManifestBackupPath, ManifestPath);
+					File.Delete(ManifestBackupPath);
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
+					GlobalManifest = manifest;
+					return true;
 				}
 				finally
 				{
@@ -167,7 +197,6 @@ namespace OkkeiPatcher
 				finally
 				{
 					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
-					IsRunning = false;
 				}
 			}
 			catch (Exception ex)
@@ -184,7 +213,7 @@ namespace OkkeiPatcher
 					.LongVersionCode;
 			else
 				appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
-			if (GlobalManifest.Obb.Version > appVersion) return true;
+			if (GlobalManifest.OkkeiPatcher.Version > appVersion) return true;
 			return false;
 		}
 
@@ -226,6 +255,8 @@ namespace OkkeiPatcher
 			return _obbUpdateAvailable.Value;
 		}
 
+		public bool CheckPatchUpdate() => CheckScriptsUpdate() || CheckObbUpdate();
+
 		public int GetPatchUpdateSizeInMB()
 		{
 			var scriptsSize = CheckScriptsUpdate() ? GlobalManifest.Scripts.Size / 0x100000 : 0;
@@ -240,9 +271,6 @@ namespace OkkeiPatcher
 			return (int)(scriptsSize + obbSize);
 		}
 
-		public double GetAppUpdateSizeInMB()
-		{
-			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
-		}
+		public double GetAppUpdateSizeInMB() => Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
 	}
 }

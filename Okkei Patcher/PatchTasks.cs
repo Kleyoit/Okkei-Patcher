@@ -35,8 +35,7 @@ namespace OkkeiPatcher
 
 				try
 				{
-					if (_saveDataBackupFromOldPatch && processSavedata &&
-					    !ManifestTasks.Instance.CheckScriptsUpdate() && !ManifestTasks.Instance.CheckObbUpdate())
+					if (_saveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.CheckPatchUpdate())
 					{
 						backupSavedata = new Java.IO.File(Path.Combine(OkkeiFilesPathBackup, SavedataBackupFileName));
 
@@ -55,12 +54,13 @@ namespace OkkeiPatcher
 
 					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 
-					if (!ManifestTasks.Instance.CheckScriptsUpdate() && !ManifestTasks.Instance.CheckObbUpdate())
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
-
 					if (ManifestTasks.Instance.CheckObbUpdate() && installedObb.Exists()) installedObb.Delete();
 
-					if (!installedObb.Exists() || !await Utils.CompareMD5(Files.ObbToReplace, token))
+					if (!ManifestTasks.Instance.CheckPatchUpdate())
+						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
+
+					if ((ManifestTasks.Instance.CheckObbUpdate() || !ManifestTasks.Instance.CheckScriptsUpdate()) &&
+					    (!installedObb.Exists() || !await Utils.CompareMD5(Files.ObbToReplace, token)))
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_obb));
 
@@ -93,10 +93,10 @@ namespace OkkeiPatcher
 									}, null));
 
 						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), obbHash);
-						Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
-						Preferences.Set(Prefkey.scripts_version.ToString(), GlobalManifest.Scripts.Version);
 						Preferences.Set(Prefkey.obb_version.ToString(), GlobalManifest.Obb.Version);
 					}
+
+					Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
 
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.patch_success));
 				}
@@ -144,8 +144,7 @@ namespace OkkeiPatcher
 					var isPatched =
 						Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
-					if (isPatched && !ManifestTasks.Instance.CheckScriptsUpdate() &&
-					    !ManifestTasks.Instance.CheckObbUpdate())
+					if (isPatched && !ManifestTasks.Instance.CheckPatchUpdate())
 					{
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
@@ -179,8 +178,7 @@ namespace OkkeiPatcher
 
 
 					// Backup save data
-					if (processSavedata && !ManifestTasks.Instance.CheckScriptsUpdate() &&
-					    !ManifestTasks.Instance.CheckObbUpdate())
+					if (processSavedata && !ManifestTasks.Instance.CheckPatchUpdate())
 					{
 						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 
@@ -221,7 +219,8 @@ namespace OkkeiPatcher
 						}
 					}
 
-					if (!File.Exists(FilePaths[Files.SignedApk]) || !backupApk.Exists())
+					if ((!ManifestTasks.Instance.CheckObbUpdate() || ManifestTasks.Instance.CheckScriptsUpdate()) &&
+						(!File.Exists(FilePaths[Files.SignedApk]) || !backupApk.Exists()))
 					{
 						// Get installed CHAOS;CHILD APK
 						var originalApkPath = Application.Context.PackageManager
@@ -236,8 +235,7 @@ namespace OkkeiPatcher
 
 
 						// Backup APK
-						if (unpatchedApk.Exists() && !ManifestTasks.Instance.CheckScriptsUpdate() &&
-						    !ManifestTasks.Instance.CheckObbUpdate())
+						if (unpatchedApk.Exists() && !ManifestTasks.Instance.CheckPatchUpdate())
 						{
 							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
@@ -305,6 +303,7 @@ namespace OkkeiPatcher
 											}, null));
 
 								Preferences.Set(Prefkey.scripts_md5.ToString(), scriptsHash);
+								Preferences.Set(Prefkey.scripts_version.ToString(), GlobalManifest.Scripts.Version);
 							}
 
 
@@ -394,7 +393,7 @@ namespace OkkeiPatcher
 						}
 					}
 
-					if (!ManifestTasks.Instance.CheckScriptsUpdate() && !ManifestTasks.Instance.CheckObbUpdate())
+					if (!ManifestTasks.Instance.CheckPatchUpdate())
 					{
 						// Backup OBB
 						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
@@ -432,7 +431,7 @@ namespace OkkeiPatcher
 
 					OnStatusChanged(null, string.Empty);
 
-					if (!ManifestTasks.Instance.CheckScriptsUpdate() && !ManifestTasks.Instance.CheckObbUpdate())
+					if (!ManifestTasks.Instance.CheckPatchUpdate())
 						// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
@@ -441,6 +440,8 @@ namespace OkkeiPatcher
 								() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
 					else if (ManifestTasks.Instance.CheckScriptsUpdate())
 						Utils.OnUninstallResult(activity, token);
+					else if (ManifestTasks.Instance.CheckObbUpdate())
+						Utils.OnInstallSuccess(false, token);
 
 					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 				}
@@ -457,6 +458,7 @@ namespace OkkeiPatcher
 					backupSavedata.Dispose();
 					unpatchedApk.Dispose();
 					backupApk.Dispose();
+					if (scriptsZip.Exists()) scriptsZip.Delete();
 					scriptsZip.Dispose();
 					originalObb.Dispose();
 					backupObb.Dispose();

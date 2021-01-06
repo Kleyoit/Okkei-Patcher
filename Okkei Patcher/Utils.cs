@@ -212,6 +212,10 @@ namespace OkkeiPatcher
 			{
 				Task.Run(() => UnpatchTasks.Instance.RestoreFiles(processSavedata, token));
 			}
+			else if (ManifestTasks.Instance.IsRunning)
+			{
+				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
+			}
 		}
 
 		public static void UninstallPackage(Activity activity, string packageName)

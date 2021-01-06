@@ -70,8 +70,10 @@ namespace OkkeiPatcher
 		public static readonly string ChaosChildPackageName = "com.mages.chaoschild_jp";
 		public static readonly string ObbFileName = "main.87.com.mages.chaoschild_jp.obb";
 		public static readonly string ManifestFileName = "Manifest.json";
+		public static readonly string ManifestBackupFileName = "ManifestBackup.json";
 		public static readonly string AppUpdateFileName = "OkkeiPatcher.apk";
 		public static readonly string ManifestPath = Path.Combine(PrivateStorage, ManifestFileName);
+		public static readonly string ManifestBackupPath = Path.Combine(PrivateStorage, ManifestBackupFileName);
 		public static readonly string AppUpdatePath = Path.Combine(OkkeiFilesPath, AppUpdateFileName);
 
 		public static readonly string ManifestUrl =
