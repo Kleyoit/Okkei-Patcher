@@ -60,8 +60,10 @@ namespace OkkeiPatcher
 						});
 					return false;
 				}
+
 				return true;
 			}
+
 			return true;
 		}
 
@@ -75,7 +77,6 @@ namespace OkkeiPatcher
 
 					var appUpdateInstallFlag = false;
 					if (ManifestTasks.Instance.CheckAppUpdate())
-					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 							Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
 								ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
@@ -87,7 +88,6 @@ namespace OkkeiPatcher
 								await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token);
 								appUpdateInstallFlag = true;
 							}, null);
-					}
 
 					if (!appUpdateInstallFlag && (ManifestTasks.Instance.CheckScriptsUpdate() ||
 					                              ManifestTasks.Instance.CheckObbUpdate()))
@@ -109,14 +109,13 @@ namespace OkkeiPatcher
 					if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
 					{
 						if (!PackageManager.CanRequestPackageInstalls())
-						{
 							MessageBox.Show(this, Resources.GetText(Resource.String.error),
 								Resources.GetText(Resource.String.no_install_permission),
 								Resources.GetText(Resource.String.dialog_exit),
 								() => { System.Environment.Exit(0); });
-						}
 						else ExecuteManifestTasks();
 					}
+
 					break;
 				case (int) RequestCodes.StoragePermissionSettingsCode:
 					if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
@@ -486,7 +485,8 @@ namespace OkkeiPatcher
 						{
 							MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 								Resources.GetText(Resource.String.download_size_warning),
-								Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+								Resources.GetText(Resource.String.dialog_ok),
+								Resources.GetText(Resource.String.dialog_cancel),
 								() =>
 								{
 									PatchTasks.Instance.StatusChanged += OnStatusChanged;
@@ -496,7 +496,8 @@ namespace OkkeiPatcher
 									PatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Patch;
 
 									var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-									Task.Run(() => PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token));
+									Task.Run(() =>
+										PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token));
 								}, null);
 						}, null);
 				else
@@ -575,8 +576,8 @@ namespace OkkeiPatcher
 		private void OnErrorOccurred_ManifestTasks(object sender, EventArgs e)
 		{
 			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
-				(!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested &&
-				ManifestTasks.IsInstantiated && ManifestTasks.Instance.IsRunning)
+			    (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested &&
+			    ManifestTasks.IsInstantiated && ManifestTasks.Instance.IsRunning)
 				_cts.Cancel();
 		}
 

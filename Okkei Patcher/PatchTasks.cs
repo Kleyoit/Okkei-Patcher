@@ -82,7 +82,6 @@ namespace OkkeiPatcher
 
 						var obbHash = await Utils.CalculateMD5(installedObb.Path, token);
 						if (obbHash != GlobalManifest.Obb.MD5)
-						{
 							OnMessageGenerated(this,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.hash_obb_mismatch),
@@ -92,7 +91,6 @@ namespace OkkeiPatcher
 										OnErrorOccurred(this, EventArgs.Empty);
 										throw new OperationCanceledException("The operation was canceled.", token);
 									}, null));
-						}
 
 						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), obbHash);
 						Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
@@ -276,11 +274,13 @@ namespace OkkeiPatcher
 									await Utils.DownloadFile(GlobalManifest.Scripts.URL, scriptsZip.Parent,
 										scriptsZip.Name, token);
 								}
-								catch (Exception ex) when (!(ex is System.OperationCanceledException))
+								catch (Exception ex) when (!(ex is OperationCanceledException))
 								{
 									OnMessageGenerated(this,
-										new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-											Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+										new MessageBox.Data(
+											Application.Context.Resources.GetText(Resource.String.error),
+											Application.Context.Resources.GetText(Resource.String
+												.http_file_download_error),
 											Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 											null, null));
 									OnErrorOccurred(this, EventArgs.Empty);
@@ -291,7 +291,6 @@ namespace OkkeiPatcher
 
 								var scriptsHash = await Utils.CalculateMD5(scriptsZip.Path, token);
 								if (scriptsHash != GlobalManifest.Scripts.MD5)
-								{
 									OnMessageGenerated(this,
 										new MessageBox.Data(
 											Application.Context.Resources.GetText(Resource.String.error),
@@ -304,7 +303,6 @@ namespace OkkeiPatcher
 												throw new OperationCanceledException("The operation was canceled.",
 													token);
 											}, null));
-								}
 
 								Preferences.Set(Prefkey.scripts_md5.ToString(), scriptsHash);
 							}
@@ -435,14 +433,12 @@ namespace OkkeiPatcher
 					OnStatusChanged(null, string.Empty);
 
 					if (!ManifestTasks.Instance.CheckScriptsUpdate() && !ManifestTasks.Instance.CheckObbUpdate())
-					{
 						// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
 								Application.Context.Resources.GetText(Resource.String.uninstall_prompt_patch),
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
-					}
 					else if (ManifestTasks.Instance.CheckScriptsUpdate())
 						Utils.OnUninstallResult(activity, token);
 

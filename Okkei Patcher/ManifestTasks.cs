@@ -15,16 +15,16 @@ namespace OkkeiPatcher
 	{
 		private static readonly Lazy<ManifestTasks> instance = new Lazy<ManifestTasks>(() => new ManifestTasks());
 
-		public static bool IsInstantiated => instance.IsValueCreated;
-
-		public static ManifestTasks Instance => instance.Value;
+		private bool? _scriptsUpdateAvailable, _obbUpdateAvailable;
 
 		private ManifestTasks()
 		{
 			PatchTasks.Instance.PropertyChanged += PatchTasksOnPropertyChanged;
 		}
 
-		private bool? _scriptsUpdateAvailable, _obbUpdateAvailable;
+		public static bool IsInstantiated => instance.IsValueCreated;
+
+		public static ManifestTasks Instance => instance.Value;
 
 		private void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
@@ -61,7 +61,7 @@ namespace OkkeiPatcher
 				{
 					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token);
 
-					string json = File.ReadAllText(ManifestPath);
+					var json = File.ReadAllText(ManifestPath);
 					var manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
 
 					if (!VerifyManifest(manifest))
@@ -197,6 +197,7 @@ namespace OkkeiPatcher
 				_scriptsUpdateAvailable = false;
 				return _scriptsUpdateAvailable.Value;
 			}
+
 			var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
 			_scriptsUpdateAvailable = GlobalManifest.Scripts.Version > scriptsVersion;
 			return _scriptsUpdateAvailable.Value;
@@ -215,6 +216,7 @@ namespace OkkeiPatcher
 				_obbUpdateAvailable = false;
 				return _obbUpdateAvailable.Value;
 			}
+
 			var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
 			_obbUpdateAvailable = GlobalManifest.Obb.Version > obbVersion;
 			return _obbUpdateAvailable.Value;
