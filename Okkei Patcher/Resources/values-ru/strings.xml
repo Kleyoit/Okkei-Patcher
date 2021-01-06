@@ -84,7 +84,7 @@
   <string name="hash_obb_mismatch">Загруженный OBB повреждён. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="hash_scripts_mismatch">Загруженные скрипты повреждены. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="update_header">Обновление</string>
-  <string name="update_app_available">Доступна новая версия Okkei Patcher!\nРазмер файла для загрузки: %1$s МБ\nСписок изменений:\n%2$s</string>
+  <string name="update_app_available">Доступна новая версия Okkei Patcher!\nРазмер обновления: %1$s МБ\nСписок изменений:\n%2$s</string>
   <string name="update_app_download">Загрузка обновления...</string>
   <string name="update_app_aborted">Обновление Okkei Patcher было отменено.</string>
   <string name="update_app_corrupted">Обновление Okkei Patcher повреждено. Попробуйте заново позже.</string>

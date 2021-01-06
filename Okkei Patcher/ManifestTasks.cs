@@ -72,6 +72,7 @@ namespace OkkeiPatcher
 						await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token);
 						File.Delete(ManifestPath);
 					}
+
 					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token);
 
 					var json = File.ReadAllText(ManifestPath);
@@ -105,6 +106,7 @@ namespace OkkeiPatcher
 						manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
 						if (!VerifyManifest(manifest)) File.Delete(ManifestBackupPath);
 					}
+
 					if (!File.Exists(ManifestBackupPath))
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
@@ -116,6 +118,7 @@ namespace OkkeiPatcher
 						OnErrorOccurred(this, EventArgs.Empty);
 						return false;
 					}
+
 					File.Copy(ManifestBackupPath, ManifestPath);
 					File.Delete(ManifestBackupPath);
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
@@ -133,6 +136,7 @@ namespace OkkeiPatcher
 				Utils.WriteBugReport(ex);
 				return false;
 			}
+
 			return false;
 		}
 
@@ -255,7 +259,10 @@ namespace OkkeiPatcher
 			return _obbUpdateAvailable.Value;
 		}
 
-		public bool CheckPatchUpdate() => CheckScriptsUpdate() || CheckObbUpdate();
+		public bool CheckPatchUpdate()
+		{
+			return CheckScriptsUpdate() || CheckObbUpdate();
+		}
 
 		public int GetPatchUpdateSizeInMB()
 		{
@@ -268,9 +275,12 @@ namespace OkkeiPatcher
 		{
 			var scriptsSize = GlobalManifest.Scripts.Size / 0x100000;
 			var obbSize = GlobalManifest.Obb.Size / 0x100000;
-			return (int)(scriptsSize + obbSize);
+			return (int) (scriptsSize + obbSize);
 		}
 
-		public double GetAppUpdateSizeInMB() => Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
+		public double GetAppUpdateSizeInMB()
+		{
+			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
+		}
 	}
 }

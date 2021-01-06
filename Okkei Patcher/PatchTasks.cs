@@ -220,7 +220,7 @@ namespace OkkeiPatcher
 					}
 
 					if ((!ManifestTasks.Instance.CheckObbUpdate() || ManifestTasks.Instance.CheckScriptsUpdate()) &&
-						(!File.Exists(FilePaths[Files.SignedApk]) || !backupApk.Exists()))
+					    (!File.Exists(FilePaths[Files.SignedApk]) || !backupApk.Exists()))
 					{
 						// Get installed CHAOS;CHILD APK
 						var originalApkPath = Application.Context.PackageManager

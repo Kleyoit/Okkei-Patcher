@@ -85,7 +85,6 @@ namespace OkkeiPatcher
 					}
 
 					if (ManifestTasks.Instance.CheckAppUpdate())
-					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 							Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
 								ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
@@ -94,7 +93,6 @@ namespace OkkeiPatcher
 							Resources.GetText(Resource.String.dialog_cancel),
 							() => Task.Run(async () =>
 								await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token)), null);
-					}
 				})));
 		}
 
@@ -563,7 +561,7 @@ namespace OkkeiPatcher
 						Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 						Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 
-						Utils.ClearOkkeiFolder();
+						Utils.ClearOkkeiFiles();
 
 						FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox).Checked = true;
 						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;

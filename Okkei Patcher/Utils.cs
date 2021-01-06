@@ -202,10 +202,8 @@ namespace OkkeiPatcher
 		{
 			if (PatchTasks.Instance.IsRunning)
 			{
-				var signedApk = new Java.IO.File(FilePaths[Files.SignedApk]);
-				if (signedApk.Exists()) signedApk.Delete();
-				signedApk.Dispose();
-
+				if (System.IO.File.Exists(FilePaths[Files.SignedApk]))
+					System.IO.File.Delete(FilePaths[Files.SignedApk]);
 				Task.Run(() => PatchTasks.Instance.FinishPatch(processSavedata, token));
 			}
 			else if (UnpatchTasks.Instance.IsRunning)
@@ -214,6 +212,7 @@ namespace OkkeiPatcher
 			}
 			else if (ManifestTasks.Instance.IsRunning)
 			{
+				//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
 				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
 			}
 		}
@@ -478,7 +477,7 @@ namespace OkkeiPatcher
 			       System.IO.File.Exists(FilePaths[Files.BackupObb]);
 		}
 
-		public static void ClearOkkeiFolder()
+		public static void ClearOkkeiFiles()
 		{
 			if (Directory.Exists(OkkeiFilesPath))
 			{
@@ -498,6 +497,9 @@ namespace OkkeiPatcher
 					foreach (var file in okkeiFiles)
 						System.IO.File.Delete(file);
 			}
+
+			if (System.IO.File.Exists(ManifestPath)) System.IO.File.Delete(ManifestPath);
+			if (System.IO.File.Exists(ManifestBackupPath)) System.IO.File.Delete(ManifestBackupPath);
 		}
 	}
 }
