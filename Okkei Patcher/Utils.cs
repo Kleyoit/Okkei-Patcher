@@ -427,15 +427,6 @@ namespace OkkeiPatcher
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
 				}
 			}
-			catch (Exception ex) when (!(ex is System.OperationCanceledException))
-			{
-				MessageGenerated?.Invoke(null,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-						null, null));
-				TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
-			}
 			finally
 			{
 				//await Task.Delay(1);    // Xamarin debugger bug workaround

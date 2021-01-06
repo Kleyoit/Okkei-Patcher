@@ -8,6 +8,7 @@
   <string name="savedata_checkbox">Делать копию/восст. сохранения</string>
   <string name="dialog_exit">Выход</string>
   <string name="dialog_cancel">Отмена</string>
+  <string name="dialog_update">Обновить</string>
   <string name="abort">Стоп</string>
   <string name="error">Ошибка</string>
   <string name="attention">Внимание</string>
@@ -25,6 +26,7 @@
   <string name="long_process_warning">Данный процесс может занять длительное время. Если Вы отмените его или закроете Okkei Patcher, данные установки CHAOS;CHILD и/или данные Okkei Patcher могут быть повреждены. Вы уверены, что хотите начать процесс?</string>
   <string name="clear_data_warning">Вы собираетесь очистить ВСЕ данные Okkei Patcher, включая резервную копию предыдущей установки CHAOS;CHILD. Используйте эту опцию ТОЛЬКО при переустановке CHAOS;CHILD из-за повреждения данных. Данная операция не может быть отменена. Вы уверены, что хотите очистить все данные?</string>
   <string name="abort_warning">Вы уверены, что хотите остановить процесс? Данные установки CHAOS;CHILD и/или данные Okkei Patcher могут быть повреждены.</string>
+  <string name="download_size_warning">Будет загружено %1$s МБ данных. Убедитесь, что у Вас есть стабильное подключение к сети. Мы рекомендуем пользоваться Wi-Fi, а не мобильным интернетом.</string>
   <string name="install_prompt_patch">Сейчас последует запрос на установку пропатченного CHAOS;CHILD. Пожалуйста, подтвердите установку.</string>
   <string name="install_prompt_unpatch">Сейчас последует запрос на установку оригинального немодифицированного CHAOS;CHILD. Пожалуйста, подтвердите установку.</string>
   <string name="uninstall_prompt_patch">Сейчас последует запрос на удаление немодифицированного CHAOS;CHILD. Пожалуйста, подтвердите удаление.</string>
@@ -81,10 +83,10 @@
   <string name="hash_obb_mismatch">Загруженный OBB повреждён. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="hash_scripts_mismatch">Загруженные скрипты повреждены. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="update_header">Обновление</string>
-  <string name="update_app_available">Доступна новая версия (%1$s) Okkei Patcher!\nСписок изменений:\n%2$s</string>
+  <string name="update_app_available">Доступна новая версия Okkei Patcher!\nРазмер файла для загрузки: %1$s МБ\nСписок изменений:\n%2$s</string>
   <string name="update_app_download">Загрузка обновления...</string>
   <string name="update_app_aborted">Обновление Okkei Patcher было отменено.</string>
   <string name="update_app_corrupted">Обновление Okkei Patcher повреждено. Попробуйте заново позже.</string>
   <string name="update_app_attention">Сейчас последует запрос на установку обновления Okkei Patcher. Пожалуйста, подтвердите установку. Обратите внимание, что после установки Okkei Patcher будет закрыт, и Вам придётся перезапустить его вручную.</string>
-  <string name="update_patch_available">Доступно обновление патча! Нажмите кнопку ПАТЧ, чтобы загрузить и применить обновление.\nРазмер файлов для загрузки: %1$s</string>
+  <string name="update_patch_available">Доступно обновление патча! Нажмите кнопку ПАТЧ, чтобы загрузить и применить обновление.\nРазмер файлов для загрузки: %1$s МБ</string>
 </resources>

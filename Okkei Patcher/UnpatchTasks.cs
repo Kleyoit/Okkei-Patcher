@@ -111,9 +111,7 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex)
 			{
-				IsRunning = true;
 				Utils.WriteBugReport(ex);
-				IsRunning = false;
 			}
 		}
 
@@ -219,9 +217,7 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex)
 			{
-				IsRunning = true;
 				Utils.WriteBugReport(ex);
-				IsRunning = false;
 			}
 		}
 	}

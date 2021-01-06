@@ -64,7 +64,19 @@ namespace OkkeiPatcher
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_obb));
 
-						await Utils.DownloadFile(GlobalManifest.Obb.URL, ObbPath, ObbFileName, token);
+						try
+						{
+							await Utils.DownloadFile(GlobalManifest.Obb.URL, ObbPath, ObbFileName, token);
+						}
+						catch (Exception ex) when (!(ex is OperationCanceledException))
+						{
+							OnMessageGenerated(this,
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+									Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+									null, null));
+							OnErrorOccurred(this, EventArgs.Empty);
+						}
 
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
@@ -106,9 +118,7 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex)
 			{
-				IsRunning = true;
 				Utils.WriteBugReport(ex);
-				IsRunning = false;
 			}
 		}
 
@@ -136,7 +146,8 @@ namespace OkkeiPatcher
 					var isPatched =
 						Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
-					if (isPatched)
+					if (isPatched && !ManifestTasks.Instance.CheckScriptsUpdate() &&
+					    !ManifestTasks.Instance.CheckObbUpdate())
 					{
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
@@ -260,8 +271,20 @@ namespace OkkeiPatcher
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.download_scripts));
 
-								await Utils.DownloadFile(GlobalManifest.Scripts.URL, scriptsZip.Parent,
-									scriptsZip.Name, token);
+								try
+								{
+									await Utils.DownloadFile(GlobalManifest.Scripts.URL, scriptsZip.Parent,
+										scriptsZip.Name, token);
+								}
+								catch (Exception ex) when (!(ex is System.OperationCanceledException))
+								{
+									OnMessageGenerated(this,
+										new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+											Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+											Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+											null, null));
+									OnErrorOccurred(this, EventArgs.Empty);
+								}
 
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.write_scripts_md5));
@@ -445,9 +468,7 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex)
 			{
-				IsRunning = true;
 				Utils.WriteBugReport(ex);
-				IsRunning = false;
 			}
 		}
 	}

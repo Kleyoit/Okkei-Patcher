@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,18 +43,62 @@ namespace OkkeiPatcher
 		}
 #nullable disable
 
-		private void RequestInstallPackagesPermission()
+		private bool RequestInstallPackagesPermission()
 		{
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
-				MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-					Resources.GetText(Resource.String.unknown_sources_notice),
-					Resources.GetText(Resource.String.dialog_ok),
-					() =>
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+			{
+				if (!PackageManager.CanRequestPackageInstalls())
+				{
+					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+						Resources.GetText(Resource.String.unknown_sources_notice),
+						Resources.GetText(Resource.String.dialog_ok),
+						() =>
+						{
+							var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
+								Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
+							StartActivityForResult(intent, (int) RequestCodes.UnknownAppSourceSettingsCode);
+						});
+					return false;
+				}
+				return true;
+			}
+			return true;
+		}
+
+		private void ExecuteManifestTasks()
+		{
+			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
+				async () => await Task.Run(async () =>
+				{
+					await ManifestTasks.Instance.GetManifest(_cts.Token);
+
+					var appUpdateInstallFlag = false;
+					if (ManifestTasks.Instance.CheckAppUpdate())
 					{
-						var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
-							Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-						StartActivityForResult(intent, (int) RequestCodes.UnknownAppSourceSettingsCode);
-					});
+						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
+							Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
+								ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
+								GlobalManifest.OkkeiPatcher.Changelog),
+							Resources.GetText(Resource.String.dialog_update),
+							Resources.GetText(Resource.String.dialog_cancel),
+							async () =>
+							{
+								await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token);
+								appUpdateInstallFlag = true;
+							}, null);
+					}
+
+					if (!appUpdateInstallFlag && (ManifestTasks.Instance.CheckScriptsUpdate() ||
+					                              ManifestTasks.Instance.CheckObbUpdate()))
+					{
+						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
+						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
+							Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
+								ManifestTasks.Instance.GetPatchSizeInMB().ToString()),
+							Resources.GetText(Resource.String.dialog_ok), null);
+					}
+				}));
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -61,11 +106,17 @@ namespace OkkeiPatcher
 			switch (requestCode)
 			{
 				case (int) RequestCodes.UnknownAppSourceSettingsCode:
-					if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
-						MessageBox.Show(this, Resources.GetText(Resource.String.error),
-							Resources.GetText(Resource.String.no_install_permission),
-							Resources.GetText(Resource.String.dialog_exit),
-							() => { System.Environment.Exit(0); });
+					if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+					{
+						if (!PackageManager.CanRequestPackageInstalls())
+						{
+							MessageBox.Show(this, Resources.GetText(Resource.String.error),
+								Resources.GetText(Resource.String.no_install_permission),
+								Resources.GetText(Resource.String.dialog_exit),
+								() => { System.Environment.Exit(0); });
+						}
+						else ExecuteManifestTasks();
+					}
 					break;
 				case (int) RequestCodes.StoragePermissionSettingsCode:
 					if (Build.VERSION.SdkInt >= BuildVersionCodes.M)
@@ -81,7 +132,7 @@ namespace OkkeiPatcher
 						{
 							Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 							Directory.CreateDirectory(OkkeiFilesPath);
-							RequestInstallPackagesPermission();
+							if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 						}
 					}
 
@@ -158,6 +209,12 @@ namespace OkkeiPatcher
 			var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 			savedataCheckbox.CheckedChange += CheckBox_CheckedChange;
 
+			ManifestTasks.Instance.StatusChanged += OnStatusChanged;
+			ManifestTasks.Instance.ProgressChanged += OnProgressChanged;
+			ManifestTasks.Instance.MessageGenerated += OnMessageGenerated;
+			ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
+			ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
+
 
 			// Set apk_is_patched = false pref on first start
 			if (!Preferences.ContainsKey(Prefkey.apk_is_patched.ToString()))
@@ -217,7 +274,7 @@ namespace OkkeiPatcher
 			{
 				Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 				Directory.CreateDirectory(OkkeiFilesPath);
-				RequestInstallPackagesPermission();
+				if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 			}
 		}
 
@@ -261,7 +318,7 @@ namespace OkkeiPatcher
 
 					FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 
-					RequestInstallPackagesPermission();
+					if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 				}
 			}
 		}
@@ -353,6 +410,38 @@ namespace OkkeiPatcher
 			}
 		}
 
+		private void OnPropertyChanged_ManifestTasks(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == nameof(ManifestTasks.Instance.IsRunning))
+			{
+				var patchButton = FindCachedViewById<Button>(Resource.Id.patchButton);
+
+				if (!ManifestTasks.Instance.IsRunning)
+				{
+					_cts.Dispose();
+					_cts = new CancellationTokenSource();
+
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						patchButton.Enabled = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+						patchButton.Text = Resources.GetText(Resource.String.patch);
+						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
+						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
+					});
+				}
+				else
+				{
+					MainThread.BeginInvokeOnMainThread(() =>
+					{
+						patchButton.Enabled = true;
+						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = false;
+						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = false;
+						patchButton.Text = Resources.GetText(Resource.String.abort);
+					});
+				}
+			}
+		}
+
 		private void OnStatusChanged(object sender, string e)
 		{
 			MainThread.BeginInvokeOnMainThread(() =>
@@ -388,20 +477,27 @@ namespace OkkeiPatcher
 		{
 			if ((!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested)
 			{
-				if (!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning)
+				if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
+				    (!ManifestTasks.IsInstantiated || !ManifestTasks.Instance.IsRunning))
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 						Resources.GetText(Resource.String.long_process_warning),
 						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
 						() =>
 						{
-							PatchTasks.Instance.StatusChanged += OnStatusChanged;
-							PatchTasks.Instance.ProgressChanged += OnProgressChanged;
-							PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
-							PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
-							PatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Patch;
+							MessageBox.Show(this, Resources.GetText(Resource.String.warning),
+								Resources.GetText(Resource.String.download_size_warning),
+								Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
+								() =>
+								{
+									PatchTasks.Instance.StatusChanged += OnStatusChanged;
+									PatchTasks.Instance.ProgressChanged += OnProgressChanged;
+									PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
+									PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
+									PatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Patch;
 
-							var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-							Task.Run(() => PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token));
+									var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
+									Task.Run(() => PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token));
+								}, null);
 						}, null);
 				else
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
@@ -474,6 +570,14 @@ namespace OkkeiPatcher
 						FindCachedViewById<TextView>(Resource.Id.statusText).Text =
 							Resources.GetText(Resource.String.data_cleared);
 					}, null);
+		}
+
+		private void OnErrorOccurred_ManifestTasks(object sender, EventArgs e)
+		{
+			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
+				(!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cts.IsCancellationRequested &&
+				ManifestTasks.IsInstantiated && ManifestTasks.Instance.IsRunning)
+				_cts.Cancel();
 		}
 
 		private void FabOnClick(object sender, EventArgs eventArgs)

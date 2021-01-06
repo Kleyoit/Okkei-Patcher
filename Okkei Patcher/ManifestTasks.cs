@@ -80,7 +80,7 @@ namespace OkkeiPatcher
 						GlobalManifest = manifest;
 					}
 				}
-				catch (System.OperationCanceledException)
+				catch (Exception)
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 					OnMessageGenerated(this,
@@ -88,6 +88,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
 							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
+					OnErrorOccurred(this, EventArgs.Empty);
 				}
 				finally
 				{
@@ -97,9 +98,7 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex)
 			{
-				IsRunning = true;
 				Utils.WriteBugReport(ex);
-				IsRunning = false;
 			}
 		}
 
@@ -112,9 +111,22 @@ namespace OkkeiPatcher
 
 				try
 				{
-					await Utils.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName,
-						token);
+					try
+					{
+						await Utils.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName,
+							token);
+					}
+					catch (Exception ex) when (!(ex is System.OperationCanceledException))
+					{
+						OnMessageGenerated(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
+						OnErrorOccurred(this, EventArgs.Empty);
+					}
 
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 					var updateHash = await Utils.CalculateMD5(AppUpdatePath, token);
 
 					if (updateHash != GlobalManifest.OkkeiPatcher.MD5)
@@ -156,9 +168,7 @@ namespace OkkeiPatcher
 			}
 			catch (Exception ex)
 			{
-				IsRunning = true;
 				Utils.WriteBugReport(ex);
-				IsRunning = false;
 			}
 		}
 
@@ -215,6 +225,11 @@ namespace OkkeiPatcher
 			var scriptsSize = CheckScriptsUpdate() ? GlobalManifest.Scripts.Size / 1024 : 0;
 			var obbSize = CheckObbUpdate() ? GlobalManifest.Obb.Size / 1024 : 0;
 			return (int) (scriptsSize + obbSize);
+		}
+
+		public double GetAppUpdateSizeInMB()
+		{
+			return Math.Round(GlobalManifest.OkkeiPatcher.Size / 1024d, 2);
 		}
 	}
 }
