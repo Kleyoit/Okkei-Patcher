@@ -77,10 +77,7 @@ namespace OkkeiPatcher
 		public static readonly string AppUpdatePath = Path.Combine(OkkeiFilesPath, AppUpdateFileName);
 
 		public static readonly string ManifestUrl =
-			"https://raw.githubusercontent.com/ForrrmerBlack/test/main/Manifest.json";
-
-		public static readonly string ObbUrl =
-			"https://github.com/ForrrmerBlack/okkei-patcher/releases/download/1.1.0/main.87.com.mages.chaoschild_jp.obb";
+			"https://raw.githubusercontent.com/ForrrmerBlack/okkei-patcher/master/Manifest.json";
 
 		public static readonly string BugReportLogPath = Path.Combine(OkkeiFilesPath, "bugreport.log");
 		public static readonly string CertFileName = "testkey.p12";
