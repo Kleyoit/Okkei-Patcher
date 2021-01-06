@@ -95,7 +95,7 @@ namespace OkkeiPatcher
 						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
 						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 							Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
-								ManifestTasks.Instance.GetPatchSizeInMB().ToString()),
+								ManifestTasks.Instance.GetPatchUpdateSizeInMB().ToString()),
 							Resources.GetText(Resource.String.dialog_ok), null);
 					}
 				}));

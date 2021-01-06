@@ -226,11 +226,18 @@ namespace OkkeiPatcher
 			return _obbUpdateAvailable.Value;
 		}
 
-		public int GetPatchSizeInMB()
+		public int GetPatchUpdateSizeInMB()
 		{
 			var scriptsSize = CheckScriptsUpdate() ? GlobalManifest.Scripts.Size / 1024 : 0;
 			var obbSize = CheckObbUpdate() ? GlobalManifest.Obb.Size / 1024 : 0;
 			return (int) (scriptsSize + obbSize);
+		}
+
+		public int GetPatchSizeInMB()
+		{
+			var scriptsSize = GlobalManifest.Scripts.Size / 1024;
+			var obbSize = GlobalManifest.Obb.Size / 1024;
+			return (int)(scriptsSize + obbSize);
 		}
 
 		public double GetAppUpdateSizeInMB()
