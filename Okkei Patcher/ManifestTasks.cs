@@ -228,21 +228,21 @@ namespace OkkeiPatcher
 
 		public int GetPatchUpdateSizeInMB()
 		{
-			var scriptsSize = CheckScriptsUpdate() ? GlobalManifest.Scripts.Size / 1024 : 0;
-			var obbSize = CheckObbUpdate() ? GlobalManifest.Obb.Size / 1024 : 0;
+			var scriptsSize = CheckScriptsUpdate() ? GlobalManifest.Scripts.Size / 0x100000 : 0;
+			var obbSize = CheckObbUpdate() ? GlobalManifest.Obb.Size / 0x100000 : 0;
 			return (int) (scriptsSize + obbSize);
 		}
 
 		public int GetPatchSizeInMB()
 		{
-			var scriptsSize = GlobalManifest.Scripts.Size / 1024;
-			var obbSize = GlobalManifest.Obb.Size / 1024;
+			var scriptsSize = GlobalManifest.Scripts.Size / 0x100000;
+			var obbSize = GlobalManifest.Obb.Size / 0x100000;
 			return (int)(scriptsSize + obbSize);
 		}
 
 		public double GetAppUpdateSizeInMB()
 		{
-			return Math.Round(GlobalManifest.OkkeiPatcher.Size / 1024d, 2);
+			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
 		}
 	}
 }
