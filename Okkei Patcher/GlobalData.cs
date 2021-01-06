@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
@@ -30,7 +31,9 @@ namespace OkkeiPatcher
 			backup_apk_md5,
 			backup_restore_savedata,
 			apk_is_patched,
-			extstorage_permission_denied
+			extstorage_permission_denied,
+			scripts_version,
+			obb_version
 		}
 
 		public enum RequestCodes
@@ -60,13 +63,20 @@ namespace OkkeiPatcher
 		public static readonly string SavedataPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path,
 			"Android/data/com.mages.chaoschild_jp/files");
 
+		public static readonly string ManifestPath = Path.Combine(PrivateStorage, ManifestFileName);
+		public static readonly string AppUpdatePath = Path.Combine(OkkeiFilesPath, AppUpdateFileName);
+
+		public static readonly string PrivateStorage = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+
 		public static readonly string SavedataFileName = "SAVEDATA.DAT";
 		public static readonly string SavedataBackupFileName = "SAVEDATA_BACKUP.DAT";
 		public static readonly string ChaosChildPackageName = "com.mages.chaoschild_jp";
 		public static readonly string ObbFileName = "main.87.com.mages.chaoschild_jp.obb";
+		public static readonly string ManifestFileName = "Manifest.json";
+		public static readonly string AppUpdateFileName = "OkkeiPatcher.apk";
 
-		public static readonly string ScriptsUrl =
-			"https://github.com/ForrrmerBlack/okkei-patcher/releases/download/1.1.0/scripts.zip";
+		public static readonly string ManifestUrl =
+			"https://raw.githubusercontent.com/ForrrmerBlack/test/main/Manifest.json";
 
 		public static readonly string ObbUrl =
 			"https://github.com/ForrrmerBlack/okkei-patcher/releases/download/1.1.0/main.87.com.mages.chaoschild_jp.obb";
@@ -74,6 +84,7 @@ namespace OkkeiPatcher
 		public static readonly string BugReportLogPath = Path.Combine(OkkeiFilesPath, "bugreport.log");
 		public static readonly string CertFileName = "testkey.p12";
 		public static readonly string CertPassword = "password";
+		public static OkkeiManifest GlobalManifest;
 
 		public static readonly Dictionary<Files, string> FilePaths = new Dictionary<Files, string>
 		{

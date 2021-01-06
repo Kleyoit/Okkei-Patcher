@@ -6994,269 +6994,272 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0F004B
 			public const int fallback_menu_item_share_link = 2131689547;
 			
-			// aapt resource value: 0x7F0F004C
-			public const int hide_bottom_view_on_scroll_behavior = 2131689548;
-			
-			// aapt resource value: 0x7F0F004D
-			public const int http_file_access_error = 2131689549;
-			
 			// aapt resource value: 0x7F0F004E
-			public const int http_file_download_error = 2131689550;
+			public const int hide_bottom_view_on_scroll_behavior = 2131689550;
 			
 			// aapt resource value: 0x7F0F004F
-			public const int icon_content_description = 2131689551;
-			
-			// aapt resource value: 0x7F0F0053
-			public const int installing = 2131689555;
+			public const int http_file_access_error = 2131689551;
 			
 			// aapt resource value: 0x7F0F0050
-			public const int install_error = 2131689552;
+			public const int http_file_download_error = 2131689552;
 			
 			// aapt resource value: 0x7F0F0051
-			public const int install_prompt_patch = 2131689553;
-			
-			// aapt resource value: 0x7F0F0052
-			public const int install_prompt_unpatch = 2131689554;
-			
-			// aapt resource value: 0x7F0F0054
-			public const int item_view_role_description = 2131689556;
+			public const int icon_content_description = 2131689553;
 			
 			// aapt resource value: 0x7F0F0055
-			public const int long_process_warning = 2131689557;
+			public const int installing = 2131689557;
+			
+			// aapt resource value: 0x7F0F0052
+			public const int install_error = 2131689554;
+			
+			// aapt resource value: 0x7F0F0053
+			public const int install_prompt_patch = 2131689555;
+			
+			// aapt resource value: 0x7F0F0054
+			public const int install_prompt_unpatch = 2131689556;
 			
 			// aapt resource value: 0x7F0F0056
-			public const int material_slider_range_end = 2131689558;
+			public const int item_view_role_description = 2131689558;
 			
 			// aapt resource value: 0x7F0F0057
-			public const int material_slider_range_start = 2131689559;
-			
-			// aapt resource value: 0x7F0F0058
-			public const int mtrl_badge_numberless_content_description = 2131689560;
+			public const int long_process_warning = 2131689559;
 			
 			// aapt resource value: 0x7F0F0059
-			public const int mtrl_chip_close_icon_content_description = 2131689561;
-			
-			// aapt resource value: 0x7F0F005A
-			public const int mtrl_exceed_max_badge_number_content_description = 2131689562;
-			
-			// aapt resource value: 0x7F0F005B
-			public const int mtrl_exceed_max_badge_number_suffix = 2131689563;
-			
-			// aapt resource value: 0x7F0F005C
-			public const int mtrl_picker_a11y_next_month = 2131689564;
+			public const int manifest_download = 2131689561;
 			
 			// aapt resource value: 0x7F0F005D
-			public const int mtrl_picker_a11y_prev_month = 2131689565;
+			public const int material_slider_range_end = 2131689565;
 			
 			// aapt resource value: 0x7F0F005E
-			public const int mtrl_picker_announce_current_selection = 2131689566;
+			public const int material_slider_range_start = 2131689566;
 			
 			// aapt resource value: 0x7F0F005F
-			public const int mtrl_picker_cancel = 2131689567;
+			public const int mtrl_badge_numberless_content_description = 2131689567;
 			
 			// aapt resource value: 0x7F0F0060
-			public const int mtrl_picker_confirm = 2131689568;
+			public const int mtrl_chip_close_icon_content_description = 2131689568;
 			
 			// aapt resource value: 0x7F0F0061
-			public const int mtrl_picker_date_header_selected = 2131689569;
+			public const int mtrl_exceed_max_badge_number_content_description = 2131689569;
 			
 			// aapt resource value: 0x7F0F0062
-			public const int mtrl_picker_date_header_title = 2131689570;
+			public const int mtrl_exceed_max_badge_number_suffix = 2131689570;
 			
 			// aapt resource value: 0x7F0F0063
-			public const int mtrl_picker_date_header_unselected = 2131689571;
+			public const int mtrl_picker_a11y_next_month = 2131689571;
 			
 			// aapt resource value: 0x7F0F0064
-			public const int mtrl_picker_day_of_week_column_header = 2131689572;
+			public const int mtrl_picker_a11y_prev_month = 2131689572;
 			
 			// aapt resource value: 0x7F0F0065
-			public const int mtrl_picker_invalid_format = 2131689573;
+			public const int mtrl_picker_announce_current_selection = 2131689573;
 			
 			// aapt resource value: 0x7F0F0066
-			public const int mtrl_picker_invalid_format_example = 2131689574;
+			public const int mtrl_picker_cancel = 2131689574;
 			
 			// aapt resource value: 0x7F0F0067
-			public const int mtrl_picker_invalid_format_use = 2131689575;
+			public const int mtrl_picker_confirm = 2131689575;
 			
 			// aapt resource value: 0x7F0F0068
-			public const int mtrl_picker_invalid_range = 2131689576;
+			public const int mtrl_picker_date_header_selected = 2131689576;
 			
 			// aapt resource value: 0x7F0F0069
-			public const int mtrl_picker_navigate_to_year_description = 2131689577;
+			public const int mtrl_picker_date_header_title = 2131689577;
 			
 			// aapt resource value: 0x7F0F006A
-			public const int mtrl_picker_out_of_range = 2131689578;
+			public const int mtrl_picker_date_header_unselected = 2131689578;
 			
 			// aapt resource value: 0x7F0F006B
-			public const int mtrl_picker_range_header_only_end_selected = 2131689579;
+			public const int mtrl_picker_day_of_week_column_header = 2131689579;
 			
 			// aapt resource value: 0x7F0F006C
-			public const int mtrl_picker_range_header_only_start_selected = 2131689580;
+			public const int mtrl_picker_invalid_format = 2131689580;
 			
 			// aapt resource value: 0x7F0F006D
-			public const int mtrl_picker_range_header_selected = 2131689581;
+			public const int mtrl_picker_invalid_format_example = 2131689581;
 			
 			// aapt resource value: 0x7F0F006E
-			public const int mtrl_picker_range_header_title = 2131689582;
+			public const int mtrl_picker_invalid_format_use = 2131689582;
 			
 			// aapt resource value: 0x7F0F006F
-			public const int mtrl_picker_range_header_unselected = 2131689583;
+			public const int mtrl_picker_invalid_range = 2131689583;
 			
 			// aapt resource value: 0x7F0F0070
-			public const int mtrl_picker_save = 2131689584;
+			public const int mtrl_picker_navigate_to_year_description = 2131689584;
 			
 			// aapt resource value: 0x7F0F0071
-			public const int mtrl_picker_text_input_date_hint = 2131689585;
+			public const int mtrl_picker_out_of_range = 2131689585;
 			
 			// aapt resource value: 0x7F0F0072
-			public const int mtrl_picker_text_input_date_range_end_hint = 2131689586;
+			public const int mtrl_picker_range_header_only_end_selected = 2131689586;
 			
 			// aapt resource value: 0x7F0F0073
-			public const int mtrl_picker_text_input_date_range_start_hint = 2131689587;
+			public const int mtrl_picker_range_header_only_start_selected = 2131689587;
 			
 			// aapt resource value: 0x7F0F0074
-			public const int mtrl_picker_text_input_day_abbr = 2131689588;
+			public const int mtrl_picker_range_header_selected = 2131689588;
 			
 			// aapt resource value: 0x7F0F0075
-			public const int mtrl_picker_text_input_month_abbr = 2131689589;
+			public const int mtrl_picker_range_header_title = 2131689589;
 			
 			// aapt resource value: 0x7F0F0076
-			public const int mtrl_picker_text_input_year_abbr = 2131689590;
+			public const int mtrl_picker_range_header_unselected = 2131689590;
 			
 			// aapt resource value: 0x7F0F0077
-			public const int mtrl_picker_toggle_to_calendar_input_mode = 2131689591;
+			public const int mtrl_picker_save = 2131689591;
 			
 			// aapt resource value: 0x7F0F0078
-			public const int mtrl_picker_toggle_to_day_selection = 2131689592;
+			public const int mtrl_picker_text_input_date_hint = 2131689592;
 			
 			// aapt resource value: 0x7F0F0079
-			public const int mtrl_picker_toggle_to_text_input_mode = 2131689593;
+			public const int mtrl_picker_text_input_date_range_end_hint = 2131689593;
 			
 			// aapt resource value: 0x7F0F007A
-			public const int mtrl_picker_toggle_to_year_selection = 2131689594;
-			
-			// aapt resource value: 0x7F0F0081
-			public const int not_trustworthy_apk_patch = 2131689601;
-			
-			// aapt resource value: 0x7F0F0082
-			public const int not_trustworthy_apk_unpatch = 2131689602;
+			public const int mtrl_picker_text_input_date_range_start_hint = 2131689594;
 			
 			// aapt resource value: 0x7F0F007B
-			public const int no_free_space_patch = 2131689595;
+			public const int mtrl_picker_text_input_day_abbr = 2131689595;
 			
 			// aapt resource value: 0x7F0F007C
-			public const int no_free_space_unpatch = 2131689596;
+			public const int mtrl_picker_text_input_month_abbr = 2131689596;
 			
 			// aapt resource value: 0x7F0F007D
-			public const int no_install_permission = 2131689597;
+			public const int mtrl_picker_text_input_year_abbr = 2131689597;
 			
 			// aapt resource value: 0x7F0F007E
-			public const int no_storage_permission = 2131689598;
+			public const int mtrl_picker_toggle_to_calendar_input_mode = 2131689598;
 			
 			// aapt resource value: 0x7F0F007F
-			public const int no_storage_permission_rationale = 2131689599;
+			public const int mtrl_picker_toggle_to_day_selection = 2131689599;
 			
 			// aapt resource value: 0x7F0F0080
-			public const int no_storage_permission_settings = 2131689600;
+			public const int mtrl_picker_toggle_to_text_input_mode = 2131689600;
 			
-			// aapt resource value: 0x7F0F0083
-			public const int obb_not_found_patch = 2131689603;
-			
-			// aapt resource value: 0x7F0F0084
-			public const int obb_not_found_unpatch = 2131689604;
-			
-			// aapt resource value: 0x7F0F0085
-			public const int okkei = 2131689605;
-			
-			// aapt resource value: 0x7F0F0086
-			public const int password_toggle_content_description = 2131689606;
-			
-			// aapt resource value: 0x7F0F0087
-			public const int patch = 2131689607;
+			// aapt resource value: 0x7F0F0081
+			public const int mtrl_picker_toggle_to_year_selection = 2131689601;
 			
 			// aapt resource value: 0x7F0F0088
-			public const int patch_success = 2131689608;
+			public const int not_trustworthy_apk_patch = 2131689608;
 			
 			// aapt resource value: 0x7F0F0089
-			public const int path_password_eye = 2131689609;
+			public const int not_trustworthy_apk_unpatch = 2131689609;
+			
+			// aapt resource value: 0x7F0F0082
+			public const int no_free_space_patch = 2131689602;
+			
+			// aapt resource value: 0x7F0F0083
+			public const int no_free_space_unpatch = 2131689603;
+			
+			// aapt resource value: 0x7F0F0084
+			public const int no_install_permission = 2131689604;
+			
+			// aapt resource value: 0x7F0F0085
+			public const int no_storage_permission = 2131689605;
+			
+			// aapt resource value: 0x7F0F0086
+			public const int no_storage_permission_rationale = 2131689606;
+			
+			// aapt resource value: 0x7F0F0087
+			public const int no_storage_permission_settings = 2131689607;
 			
 			// aapt resource value: 0x7F0F008A
-			public const int path_password_eye_mask_strike_through = 2131689610;
+			public const int obb_not_found_patch = 2131689610;
 			
 			// aapt resource value: 0x7F0F008B
-			public const int path_password_eye_mask_visible = 2131689611;
+			public const int obb_not_found_unpatch = 2131689611;
 			
 			// aapt resource value: 0x7F0F008C
-			public const int path_password_strike_through = 2131689612;
+			public const int okkei = 2131689612;
 			
 			// aapt resource value: 0x7F0F008D
-			public const int replace_scripts = 2131689613;
+			public const int password_toggle_content_description = 2131689613;
 			
 			// aapt resource value: 0x7F0F008E
-			public const int restore_obb = 2131689614;
+			public const int patch = 2131689614;
 			
 			// aapt resource value: 0x7F0F008F
-			public const int restore_old_saves = 2131689615;
+			public const int patch_success = 2131689615;
 			
 			// aapt resource value: 0x7F0F0090
-			public const int restore_saves = 2131689616;
+			public const int path_password_eye = 2131689616;
 			
 			// aapt resource value: 0x7F0F0091
-			public const int savedata_checkbox = 2131689617;
+			public const int path_password_eye_mask_strike_through = 2131689617;
 			
 			// aapt resource value: 0x7F0F0092
-			public const int saves_backup_not_found = 2131689618;
+			public const int path_password_eye_mask_visible = 2131689618;
 			
 			// aapt resource value: 0x7F0F0093
-			public const int saves_not_found_patch = 2131689619;
+			public const int path_password_strike_through = 2131689619;
 			
 			// aapt resource value: 0x7F0F0094
-			public const int saves_not_found_unpatch = 2131689620;
+			public const int replace_scripts = 2131689620;
 			
 			// aapt resource value: 0x7F0F0095
-			public const int search_menu_title = 2131689621;
+			public const int restore_obb = 2131689621;
 			
 			// aapt resource value: 0x7F0F0096
-			public const int sign_apk = 2131689622;
+			public const int restore_old_saves = 2131689622;
 			
 			// aapt resource value: 0x7F0F0097
-			public const int status_bar_notification_info_overflow = 2131689623;
+			public const int restore_saves = 2131689623;
 			
 			// aapt resource value: 0x7F0F0098
-			public const int uninstall_error = 2131689624;
+			public const int savedata_checkbox = 2131689624;
 			
 			// aapt resource value: 0x7F0F0099
-			public const int uninstall_prompt_patch = 2131689625;
+			public const int saves_backup_not_found = 2131689625;
 			
 			// aapt resource value: 0x7F0F009A
-			public const int uninstall_prompt_unpatch = 2131689626;
+			public const int saves_not_found_patch = 2131689626;
 			
 			// aapt resource value: 0x7F0F009B
-			public const int unknown_sources_notice = 2131689627;
+			public const int saves_not_found_unpatch = 2131689627;
 			
 			// aapt resource value: 0x7F0F009C
-			public const int unpatch = 2131689628;
+			public const int search_menu_title = 2131689628;
 			
 			// aapt resource value: 0x7F0F009D
-			public const int unpatch_success = 2131689629;
+			public const int sign_apk = 2131689629;
 			
 			// aapt resource value: 0x7F0F009E
-			public const int warning = 2131689630;
+			public const int status_bar_notification_info_overflow = 2131689630;
 			
 			// aapt resource value: 0x7F0F009F
-			public const int write_apk_md5 = 2131689631;
+			public const int uninstall_error = 2131689631;
 			
 			// aapt resource value: 0x7F0F00A0
-			public const int write_obb_md5 = 2131689632;
+			public const int uninstall_prompt_patch = 2131689632;
 			
 			// aapt resource value: 0x7F0F00A1
-			public const int write_patched_apk_md5 = 2131689633;
+			public const int uninstall_prompt_unpatch = 2131689633;
 			
 			// aapt resource value: 0x7F0F00A2
-			public const int write_saves_md5 = 2131689634;
+			public const int unknown_sources_notice = 2131689634;
 			
 			// aapt resource value: 0x7F0F00A3
-			public const int write_scripts_md5 = 2131689635;
+			public const int unpatch = 2131689635;
+			
+			// aapt resource value: 0x7F0F00A4
+			public const int unpatch_success = 2131689636;
+			
+			// aapt resource value: 0x7F0F00AC
+			public const int warning = 2131689644;
+			
+			// aapt resource value: 0x7F0F00AD
+			public const int write_apk_md5 = 2131689645;
+			
+			// aapt resource value: 0x7F0F00AE
+			public const int write_obb_md5 = 2131689646;
+			
+			// aapt resource value: 0x7F0F00AF
+			public const int write_patched_apk_md5 = 2131689647;
+			
+			// aapt resource value: 0x7F0F00B0
+			public const int write_saves_md5 = 2131689648;
+			
+			// aapt resource value: 0x7F0F00B1
+			public const int write_scripts_md5 = 2131689649;
 			
 			static String()
 			{

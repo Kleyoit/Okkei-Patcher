@@ -349,9 +349,8 @@ namespace OkkeiPatcher
 				var inputStream = new FileStream(inFilePath, FileMode.Open);
 				progressMax = (int) inputStream.Length / bufferLength;
 
-				while ((length = inputStream.Read(buffer)) > 0)
+				while ((length = inputStream.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
-					if (token.IsCancellationRequested) break;
 					output.Write(buffer, 0, length);
 					++progress;
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
@@ -365,9 +364,8 @@ namespace OkkeiPatcher
 				InputStream javaInputStream = new FileInputStream(inputFile);
 				progressMax = (int) inputFile.Length() / bufferLength;
 
-				while ((length = javaInputStream.Read(buffer)) > 0)
+				while ((length = javaInputStream.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
-					if (token.IsCancellationRequested) break;
 					output.Write(buffer, 0, length);
 					++progress;
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
@@ -422,13 +420,11 @@ namespace OkkeiPatcher
 					TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 
-				if (!token.IsCancellationRequested)
-					while ((length = download.Read(buffer)) > 0)
-					{
-						if (token.IsCancellationRequested) break;
-						output.Write(buffer, 0, length);
-						ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
-					}
+				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
+				{
+					output.Write(buffer, 0, length);
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
+				}
 			}
 			catch (Exception ex) when (!(ex is System.OperationCanceledException))
 			{

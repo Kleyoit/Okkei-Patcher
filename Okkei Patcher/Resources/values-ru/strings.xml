@@ -73,4 +73,18 @@
   <string name="http_file_download_error">Во время загрузки файла произошла ошибка. Проверьте Ваше интернет-соединение и попробуйте заново.</string>
   <string name="exception_notice">Отправьте файл \"bugreport.log\" из директории OkkeiPatcher разработчику приложения.</string>
   <string name="fab_version">Версия %1$s by solru</string>
+  <string name="manifest_prompt">Для работы Okkei Patcher необходимо подключение к сети, чтобы загрузить данные о патче и обновлениях. Прежде чем продолжить, нажав на кнопку OK, убедитесь, что у Вас есть стабильное интернет-соединение.</string>
+  <string name="manifest_download">Загрузка манифеста...</string>
+  <string name="manifest_download_completed">Манифест загружен.</string>
+  <string name="manifest_download_aborted">Загрузка манифеста прервана. Okkei Patcher не может продолжить работу. Пожалуйста, перезапустите Okkei Patcher.</string>
+  <string name="manifest_corrupted">Манифест повреждён. Okkei Patcher не может продолжить работу. Пожалуйста, попробуйте перезапустите Okkei Patcher.</string>
+  <string name="hash_obb_mismatch">Загруженный OBB повреждён. Пожалуйста, попробуйте перезапустить процесс патча.</string>
+  <string name="hash_scripts_mismatch">Загруженные скрипты повреждены. Пожалуйста, попробуйте перезапустить процесс патча.</string>
+  <string name="update_header">Обновление</string>
+  <string name="update_app_available">Доступна новая версия (%1$s) Okkei Patcher!\nСписок изменений:\n%2$s</string>
+  <string name="update_app_download">Загрузка обновления...</string>
+  <string name="update_app_aborted">Обновление Okkei Patcher было отменено.</string>
+  <string name="update_app_corrupted">Обновление Okkei Patcher повреждено. Попробуйте заново позже.</string>
+  <string name="update_app_attention">Сейчас последует запрос на установку обновления Okkei Patcher. Пожалуйста, подтвердите установку. Обратите внимание, что после установки Okkei Patcher будет закрыт, и Вам придётся перезапустить его вручную.</string>
+  <string name="update_patch_available">Доступно обновление патча! Нажмите кнопку ПАТЧ, чтобы загрузить и применить обновление.\nРазмер файлов для загрузки: %1$s</string>
 </resources>

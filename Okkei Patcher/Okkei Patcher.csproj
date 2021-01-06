@@ -76,14 +76,20 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseTasks.cs" />
     <Compile Include="MainActivity.cs" />
+    <Compile Include="ManifestTasks.cs" />
     <Compile Include="MessageBox.cs" />
+    <Compile Include="ObbInfo.cs" />
+    <Compile Include="OkkeiManifest.cs" />
+    <Compile Include="OkkeiPatcherInfo.cs" />
     <Compile Include="PackageInstallObserver.cs" />
     <Compile Include="PatchTasks.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GlobalData.cs" />
+    <Compile Include="ScriptsInfo.cs" />
     <Compile Include="UnpatchTasks.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
@@ -128,6 +134,9 @@
     <AndroidResource Include="Resources\drawable\okkei.png" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.3</Version>
+    </PackageReference>
     <PackageReference Include="SharpZipLib">
       <Version>1.3.1</Version>
     </PackageReference>
