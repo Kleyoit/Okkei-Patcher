@@ -71,7 +71,7 @@ namespace OkkeiPatcher
 		{
 			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
-				async () => await Task.Run(async () => MainThread.BeginInvokeOnMainThread(async () =>
+				async () => await Task.Run(() => MainThread.BeginInvokeOnMainThread(async () =>
 				{
 					if (!await ManifestTasks.Instance.GetManifest(_cts.Token)) return;
 
