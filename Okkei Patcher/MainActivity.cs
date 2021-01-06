@@ -484,7 +484,8 @@ namespace OkkeiPatcher
 						() =>
 						{
 							MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-								Resources.GetText(Resource.String.download_size_warning),
+								Java.Lang.String.Format(Resources.GetText(Resource.String.download_size_warning),
+									ManifestTasks.Instance.GetPatchSizeInMB()),
 								Resources.GetText(Resource.String.dialog_ok),
 								Resources.GetText(Resource.String.dialog_cancel),
 								() =>
