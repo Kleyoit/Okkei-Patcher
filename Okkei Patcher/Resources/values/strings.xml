@@ -79,8 +79,8 @@
   <string name="manifest_prompt">For proper work Okkei Patcher needs an internet connection to download data about patch and updates. Before you proceed by clicking OK ensure that you have stable internet connection.</string>
   <string name="manifest_download">Downloading manifest...</string>
   <string name="manifest_download_completed">Manifest downloaded.</string>
-  <string name="manifest_download_aborted">Manifest download aborted. Okkei Patcher can't proceed. Please restart Okkei Patcher.</string>
-  <string name="manifest_corrupted">Manifest is corrupted. Okkei Patcher can't proceed. Please try to restart Okkei Patcher.</string>
+  <string name="manifest_download_aborted">Manifest download aborted. Okkei Patcher can\'t proceed. Please restart Okkei Patcher.</string>
+  <string name="manifest_corrupted">Manifest is corrupted. Okkei Patcher can\'t proceed. Please try to restart Okkei Patcher.</string>
   <string name="hash_obb_mismatch">Downloaded OBB is corrupted. Please try restarting patch process again.</string>
   <string name="hash_scripts_mismatch">Downloaded scripts are corrupted. Please try restarting patch process again.</string>
   <string name="update_header">Update</string>
@@ -88,6 +88,6 @@
   <string name="update_app_download">Downloading update...</string>
   <string name="update_app_aborted">Okkei Patcher update was canceled.</string>
   <string name="update_app_corrupted">Okkei Patcher update is corrupted. Try again later.</string>
-  <string name="update_app_attention">You will now be prompted to install updated Okkei Patcher. Please confirm the installation. Note that after that Okkei Patcher will be closed and you'll have to relaunch it manually.</string>
+  <string name="update_app_attention">You will now be prompted to install updated Okkei Patcher. Please confirm the installation. Note that after that Okkei Patcher will be closed and you\'ll have to relaunch it manually.</string>
   <string name="update_patch_available">Patch update is available! Click PATCH button to download and apply the update.\nDownload size: %1$s MB</string>
 </resources>

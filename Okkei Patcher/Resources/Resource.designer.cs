@@ -6946,11 +6946,17 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0F003B
 			public const int dialog_ok = 2131689531;
 			
+			// aapt resource value: 0x7F0F003C
+			public const int dialog_update = 2131689532;
+			
 			// aapt resource value: 0x7F0F003D
 			public const int download_obb = 2131689533;
 			
 			// aapt resource value: 0x7F0F003E
 			public const int download_scripts = 2131689534;
+			
+			// aapt resource value: 0x7F0F003F
+			public const int download_size_warning = 2131689535;
 			
 			// aapt resource value: 0x7F0F0040
 			public const int error = 2131689536;
@@ -6994,6 +7000,12 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0F004D
 			public const int fallback_menu_item_share_link = 2131689549;
 			
+			// aapt resource value: 0x7F0F004E
+			public const int hash_obb_mismatch = 2131689550;
+			
+			// aapt resource value: 0x7F0F004F
+			public const int hash_scripts_mismatch = 2131689551;
+			
 			// aapt resource value: 0x7F0F0050
 			public const int hide_bottom_view_on_scroll_behavior = 2131689552;
 			
@@ -7024,8 +7036,20 @@ namespace OkkeiPatcher
 			// aapt resource value: 0x7F0F0059
 			public const int long_process_warning = 2131689561;
 			
+			// aapt resource value: 0x7F0F005A
+			public const int manifest_corrupted = 2131689562;
+			
 			// aapt resource value: 0x7F0F005B
 			public const int manifest_download = 2131689563;
+			
+			// aapt resource value: 0x7F0F005C
+			public const int manifest_download_aborted = 2131689564;
+			
+			// aapt resource value: 0x7F0F005D
+			public const int manifest_download_completed = 2131689565;
+			
+			// aapt resource value: 0x7F0F005E
+			public const int manifest_prompt = 2131689566;
 			
 			// aapt resource value: 0x7F0F005F
 			public const int material_slider_range_end = 2131689567;
@@ -7242,6 +7266,27 @@ namespace OkkeiPatcher
 			
 			// aapt resource value: 0x7F0F00A6
 			public const int unpatch_success = 2131689638;
+			
+			// aapt resource value: 0x7F0F00A7
+			public const int update_app_aborted = 2131689639;
+			
+			// aapt resource value: 0x7F0F00A8
+			public const int update_app_attention = 2131689640;
+			
+			// aapt resource value: 0x7F0F00A9
+			public const int update_app_available = 2131689641;
+			
+			// aapt resource value: 0x7F0F00AA
+			public const int update_app_corrupted = 2131689642;
+			
+			// aapt resource value: 0x7F0F00AB
+			public const int update_app_download = 2131689643;
+			
+			// aapt resource value: 0x7F0F00AC
+			public const int update_header = 2131689644;
+			
+			// aapt resource value: 0x7F0F00AD
+			public const int update_patch_available = 2131689645;
 			
 			// aapt resource value: 0x7F0F00AE
 			public const int warning = 2131689646;
