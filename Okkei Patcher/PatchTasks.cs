@@ -82,15 +82,16 @@ namespace OkkeiPatcher
 
 						var obbHash = await Utils.CalculateMD5(installedObb.Path, token);
 						if (obbHash != GlobalManifest.Obb.MD5)
+						{
+							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 							OnMessageGenerated(this,
 								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 									Application.Context.Resources.GetText(Resource.String.hash_obb_mismatch),
 									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									() =>
-									{
-										OnErrorOccurred(this, EventArgs.Empty);
-										throw new OperationCanceledException("The operation was canceled.", token);
-									}, null));
+									null, null));
+							OnErrorOccurred(this, EventArgs.Empty);
+							throw new OperationCanceledException("The operation was canceled.", token);
+						}
 
 						Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), obbHash);
 						Preferences.Set(Prefkey.obb_version.ToString(), GlobalManifest.Obb.Version);
@@ -289,18 +290,18 @@ namespace OkkeiPatcher
 
 								var scriptsHash = await Utils.CalculateMD5(scriptsZip.Path, token);
 								if (scriptsHash != GlobalManifest.Scripts.MD5)
+								{
+									OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 									OnMessageGenerated(this,
 										new MessageBox.Data(
 											Application.Context.Resources.GetText(Resource.String.error),
 											Application.Context.Resources.GetText(Resource.String
 												.hash_scripts_mismatch),
 											Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-											() =>
-											{
-												OnErrorOccurred(this, EventArgs.Empty);
-												throw new OperationCanceledException("The operation was canceled.",
-													token);
-											}, null));
+											null, null));
+									OnErrorOccurred(this, EventArgs.Empty);
+									throw new OperationCanceledException("The operation was canceled.", token);
+								}
 
 								Preferences.Set(Prefkey.scripts_md5.ToString(), scriptsHash);
 								Preferences.Set(Prefkey.scripts_version.ToString(), GlobalManifest.Scripts.Version);

@@ -175,6 +175,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.update_app_corrupted),
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
+						OnErrorOccurred(this, EventArgs.Empty);
 					}
 					else
 					{
