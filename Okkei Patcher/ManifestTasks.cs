@@ -192,9 +192,9 @@ namespace OkkeiPatcher
 					{
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
-								Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-								() => System.Environment.Exit(0), null));
+								Application.Context.Resources.GetText(Resource.String.update_app_aborted),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
 					}
 					if (ex is HttpRequestException && ex.Message == "Download failed.")
 					{

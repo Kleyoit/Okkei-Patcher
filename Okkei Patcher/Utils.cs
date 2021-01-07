@@ -341,8 +341,10 @@ namespace OkkeiPatcher
 			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 
 			Directory.CreateDirectory(outFilePath);
+			var outPath = Path.Combine(outFilePath, outFileName);
+			if (System.IO.File.Exists(outPath)) System.IO.File.Delete(outPath);
 
-			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
+			var output = new FileStream(outPath, FileMode.OpenOrCreate);
 
 			int progressMax;
 			var progress = 0;
@@ -393,7 +395,9 @@ namespace OkkeiPatcher
 			CancellationToken token)
 		{
 			Directory.CreateDirectory(outFilePath);
-			var output = new FileStream(Path.Combine(outFilePath, outFileName), FileMode.OpenOrCreate);
+			var outPath = Path.Combine(outFilePath, outFileName);
+			if (System.IO.File.Exists(outPath)) System.IO.File.Delete(outPath);
+			var output = new FileStream(outPath, FileMode.OpenOrCreate);
 
 			const int bufferLength = 0x14000;
 			var buffer = new byte[bufferLength];
