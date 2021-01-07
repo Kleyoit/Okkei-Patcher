@@ -228,8 +228,7 @@ namespace OkkeiPatcher
 					.LongVersionCode;
 			else
 				appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
-			if (GlobalManifest.OkkeiPatcher.Version > appVersion) return true;
-			return false;
+			return GlobalManifest.OkkeiPatcher.Version > appVersion;
 		}
 
 		public bool CheckScriptsUpdate()
