@@ -25,6 +25,7 @@ namespace OkkeiPatcher
 		
 		public static void UpdateIdValues()
 		{
+			global::SignApk.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
 			global::Xamarin.Essentials.Resource.Attribute.alpha = global::OkkeiPatcher.Resource.Attribute.alpha;
 			global::Xamarin.Essentials.Resource.Attribute.font = global::OkkeiPatcher.Resource.Attribute.font;
 			global::Xamarin.Essentials.Resource.Attribute.fontProviderAuthority = global::OkkeiPatcher.Resource.Attribute.fontProviderAuthority;
