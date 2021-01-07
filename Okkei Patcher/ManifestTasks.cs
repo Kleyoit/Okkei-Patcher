@@ -172,18 +172,20 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						OnErrorOccurred(this, EventArgs.Empty);
-						throw new System.OperationCanceledException("The operation was canceled.", token);
+						IsRunning = false;
 					}
-					
-					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-							Application.Context.Resources.GetText(Resource.String.update_app_attention),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							() => MainThread.BeginInvokeOnMainThread(() =>
-								Utils.InstallPackage(activity,
-									Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
-							null));
+					else
+					{
+						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+						OnMessageGenerated(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+								Application.Context.Resources.GetText(Resource.String.update_app_attention),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								() => MainThread.BeginInvokeOnMainThread(() =>
+									Utils.InstallPackage(activity,
+										Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
+								null));
+					}
 				}
 				catch (Exception ex)
 				{
