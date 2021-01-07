@@ -39,9 +39,8 @@ namespace OkkeiPatcher
 			var progressMax = (int) Math.Ceiling((double) stream.Length / bufferLength);
 			var progress = 0;
 
-			while ((length = stream.Read(buffer)) > 0)
+			while ((length = stream.Read(buffer)) > 0 && !token.IsCancellationRequested)
 			{
-				if (token.IsCancellationRequested) break;
 				++progress;
 				if (progress != progressMax)
 					md5.TransformBlock(buffer, 0, bufferLength, buffer, 0);

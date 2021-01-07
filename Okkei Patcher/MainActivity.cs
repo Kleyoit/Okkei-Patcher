@@ -502,7 +502,12 @@ namespace OkkeiPatcher
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 						Resources.GetText(Resource.String.abort_warning),
 						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
-						() => _cts.Cancel(), null);
+						() =>
+						{
+							if (PatchTasks.IsInstantiated && PatchTasks.Instance.IsRunning ||
+							    ManifestTasks.IsInstantiated && ManifestTasks.Instance.IsRunning)
+								_cts.Cancel();
+						}, null);
 			}
 		}
 
@@ -537,7 +542,11 @@ namespace OkkeiPatcher
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 						Resources.GetText(Resource.String.abort_warning),
 						Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
-						() => _cts.Cancel(), null);
+						() =>
+						{
+							if (UnpatchTasks.IsInstantiated && UnpatchTasks.Instance.IsRunning)
+								_cts.Cancel();
+						}, null);
 			}
 		}
 
