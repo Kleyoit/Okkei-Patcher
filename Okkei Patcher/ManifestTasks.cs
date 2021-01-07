@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
@@ -156,12 +157,7 @@ namespace OkkeiPatcher
 					}
 					catch (Exception ex) when (!(ex is System.OperationCanceledException))
 					{
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null));
-						OnErrorOccurred(this, EventArgs.Empty);
+						throw new HttpRequestException("Download failed.");
 					}
 
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
@@ -176,28 +172,40 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
 						OnErrorOccurred(this, EventArgs.Empty);
+						throw new System.OperationCanceledException("The operation was canceled.", token);
 					}
-					else
-					{
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-								Application.Context.Resources.GetText(Resource.String.update_app_attention),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								() => MainThread.BeginInvokeOnMainThread(() =>
-									Utils.InstallPackage(activity,
-										Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
-								null));
-					}
+					
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+							Application.Context.Resources.GetText(Resource.String.update_app_attention),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							() => MainThread.BeginInvokeOnMainThread(() =>
+								Utils.InstallPackage(activity,
+									Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
+							null));
 				}
-				catch (System.OperationCanceledException)
+				catch (Exception ex)
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
-							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-							() => System.Environment.Exit(0), null));
+					if (ex is System.OperationCanceledException)
+					{
+						OnMessageGenerated(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
+								Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+								() => System.Environment.Exit(0), null));
+					}
+					if (ex is HttpRequestException && ex.Message == "Download failed.")
+					{
+						OnMessageGenerated(this,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+								Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								null, null));
+					}
+					OnErrorOccurred(this, EventArgs.Empty);
+					IsRunning = false;
 				}
 				finally
 				{

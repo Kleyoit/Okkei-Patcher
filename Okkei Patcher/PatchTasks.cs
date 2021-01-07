@@ -76,6 +76,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 									null, null));
 							OnErrorOccurred(this, EventArgs.Empty);
+							throw new OperationCanceledException("The operation was canceled.", token);
 						}
 
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_obb_md5));
@@ -283,6 +284,7 @@ namespace OkkeiPatcher
 											Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 											null, null));
 									OnErrorOccurred(this, EventArgs.Empty);
+									throw new OperationCanceledException("The operation was canceled.", token);
 								}
 
 								OnStatusChanged(this,
