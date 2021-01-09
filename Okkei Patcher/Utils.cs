@@ -482,27 +482,24 @@ namespace OkkeiPatcher
 
 		public static void ClearOkkeiFiles()
 		{
-			if (Directory.Exists(OkkeiFilesPath))
-			{
-				var directories = Directory.GetDirectories(OkkeiFilesPath);
-				if (directories.Length > 0)
-					foreach (var dir in directories)
-					{
-						var files = Directory.GetFiles(dir);
-						if (files.Length > 0)
-							foreach (var file in files)
-								System.IO.File.Delete(file);
-						Directory.Delete(dir);
-					}
-
-				var okkeiFiles = Directory.GetFiles(OkkeiFilesPath);
-				if (okkeiFiles.Length > 0)
-					foreach (var file in okkeiFiles)
-						System.IO.File.Delete(file);
-			}
-
+			if (Directory.Exists(OkkeiFilesPath)) RecursiveClearFiles(OkkeiFilesPath);
 			if (System.IO.File.Exists(ManifestPath)) System.IO.File.Delete(ManifestPath);
 			if (System.IO.File.Exists(ManifestBackupPath)) System.IO.File.Delete(ManifestBackupPath);
+		}
+
+		public static void RecursiveClearFiles(string path)
+		{
+			var files = Directory.GetFiles(path);
+			if (files.Length > 0)
+				foreach (var file in files)
+					System.IO.File.Delete(file);
+			var directories = Directory.GetDirectories(path);
+			if (directories.Length > 0)
+				foreach (var dir in directories)
+				{
+					RecursiveClearFiles(dir);
+					Directory.Delete(dir);
+				}
 		}
 	}
 }
