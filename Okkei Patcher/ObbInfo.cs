@@ -1,15 +1,15 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace OkkeiPatcher
 {
 	public class ObbInfo
 	{
-		[JsonProperty] public int Version { get; private set; }
+		[JsonInclude] public int Version { get; private set; }
 
-		[JsonProperty] public string URL { get; private set; }
+		[JsonInclude] public string URL { get; private set; }
 
-		[JsonProperty] public string MD5 { get; private set; }
+		[JsonInclude] public string MD5 { get; private set; }
 
-		[JsonProperty] public long Size { get; private set; }
+		[JsonInclude] public long Size { get; private set; }
 	}
 }

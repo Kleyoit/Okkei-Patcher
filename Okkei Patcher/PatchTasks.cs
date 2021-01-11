@@ -293,7 +293,8 @@ namespace OkkeiPatcher
 								var scriptsHash = await Utils.CalculateMD5(scriptsZip.Path, token);
 								if (scriptsHash != GlobalManifest.Scripts.MD5)
 								{
-									OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+									OnStatusChanged(this,
+										Application.Context.Resources.GetText(Resource.String.aborted));
 									OnMessageGenerated(this,
 										new MessageBox.Data(
 											Application.Context.Resources.GetText(Resource.String.error),

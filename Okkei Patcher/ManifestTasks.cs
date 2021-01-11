@@ -2,11 +2,11 @@
 using System.ComponentModel;
 using System.IO;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
-using Newtonsoft.Json;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
 
@@ -76,11 +76,11 @@ namespace OkkeiPatcher
 
 					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token);
 
-					var json = File.ReadAllText(ManifestPath);
 					OkkeiManifest manifest;
 					try
 					{
-						manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+						var json = File.ReadAllText(ManifestPath);
+						manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
 					}
 					catch
 					{
@@ -111,15 +111,16 @@ namespace OkkeiPatcher
 					File.Delete(ManifestPath);
 					if (File.Exists(ManifestBackupPath))
 					{
-						var json = File.ReadAllText(ManifestBackupPath);
 						try
 						{
-							manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+							var json = File.ReadAllText(ManifestBackupPath);
+							manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
 						}
 						catch
 						{
 							manifest = null;
 						}
+
 						if (!VerifyManifest(manifest)) File.Delete(ManifestBackupPath);
 					}
 
@@ -206,21 +207,17 @@ namespace OkkeiPatcher
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 					if (ex is System.OperationCanceledException)
-					{
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 								Application.Context.Resources.GetText(Resource.String.update_app_aborted),
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
-					}
 					if (ex is HttpRequestException && ex.Message == "Download failed.")
-					{
 						OnMessageGenerated(this,
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 								Application.Context.Resources.GetText(Resource.String.http_file_download_error),
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								null, null));
-					}
 					OnErrorOccurred(this, EventArgs.Empty);
 					IsRunning = false;
 				}
@@ -292,10 +289,10 @@ namespace OkkeiPatcher
 		public int GetPatchUpdateSizeInMB()
 		{
 			var scriptsSize = CheckScriptsUpdate()
-				? (int) Math.Ceiling(GlobalManifest.Scripts.Size / (double) 0x100000)
+				? (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000)
 				: 0;
 			var obbSize = CheckObbUpdate()
-				? (int) Math.Ceiling(GlobalManifest.Obb.Size / (double) 0x100000)
+				? (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000)
 				: 0;
 			return scriptsSize + obbSize;
 		}

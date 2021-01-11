@@ -53,14 +53,16 @@ namespace OkkeiPatcher
 			"solru.okkeipatcher.PACKAGE_INSTALLED_ACTION";
 
 		public static readonly string OkkeiFilesPath =
-			Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "OkkeiPatcher");
+			Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath, "OkkeiPatcher");
 
 		public static readonly string OkkeiFilesPathBackup = Path.Combine(OkkeiFilesPath, "backup");
 
-		public static readonly string ObbPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path,
+		public static readonly string ObbPath = Path.Combine(
+			Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,
 			"Android/obb/com.mages.chaoschild_jp");
 
-		public static readonly string SavedataPath = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path,
+		public static readonly string SavedataPath = Path.Combine(
+			Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,
 			"Android/data/com.mages.chaoschild_jp/files");
 
 		public static readonly string PrivateStorage = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
