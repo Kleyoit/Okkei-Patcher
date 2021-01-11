@@ -45,23 +45,18 @@ namespace OkkeiPatcher
 
 		private bool RequestInstallPackagesPermission()
 		{
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.O)
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.O && !PackageManager.CanRequestPackageInstalls())
 			{
-				if (!PackageManager.CanRequestPackageInstalls())
-				{
-					MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-						Resources.GetText(Resource.String.unknown_sources_notice),
-						Resources.GetText(Resource.String.dialog_ok),
-						() =>
-						{
-							var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
-								Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-							StartActivityForResult(intent, (int) RequestCodes.UnknownAppSourceSettingsCode);
-						});
-					return false;
-				}
-
-				return true;
+				MessageBox.Show(this, Resources.GetText(Resource.String.attention),
+					Resources.GetText(Resource.String.unknown_sources_notice),
+					Resources.GetText(Resource.String.dialog_ok),
+					() =>
+					{
+						var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
+							Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
+						StartActivityForResult(intent, (int) RequestCodes.UnknownAppSourceSettingsCode);
+					});
+				return false;
 			}
 
 			return true;
@@ -81,19 +76,25 @@ namespace OkkeiPatcher
 						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 							Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
 								ManifestTasks.Instance.GetPatchUpdateSizeInMB().ToString()),
-							Resources.GetText(Resource.String.dialog_ok), null);
+							Resources.GetText(Resource.String.dialog_ok), UpdateApp);
+						return;
 					}
 
-					if (ManifestTasks.Instance.CheckAppUpdate())
-						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
-							Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
-								ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
-								GlobalManifest.OkkeiPatcher.Changelog),
-							Resources.GetText(Resource.String.dialog_update),
-							Resources.GetText(Resource.String.dialog_cancel),
-							() => Task.Run(async () =>
-								await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token)), null);
+					UpdateApp();
 				})));
+		}
+
+		private void UpdateApp()
+		{
+			if (ManifestTasks.Instance.CheckAppUpdate())
+				MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
+					Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
+						ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
+						GlobalManifest.OkkeiPatcher.Changelog),
+					Resources.GetText(Resource.String.dialog_update),
+					Resources.GetText(Resource.String.dialog_cancel),
+					() => Task.Run(async () =>
+						await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token)), null);
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)

@@ -77,7 +77,15 @@ namespace OkkeiPatcher
 					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token);
 
 					var json = File.ReadAllText(ManifestPath);
-					var manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+					OkkeiManifest manifest;
+					try
+					{
+						manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+					}
+					catch
+					{
+						manifest = null;
+					}
 
 					if (!VerifyManifest(manifest))
 					{
@@ -104,7 +112,14 @@ namespace OkkeiPatcher
 					if (File.Exists(ManifestBackupPath))
 					{
 						var json = File.ReadAllText(ManifestBackupPath);
-						manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+						try
+						{
+							manifest = JsonConvert.DeserializeObject<OkkeiManifest>(json);
+						}
+						catch
+						{
+							manifest = null;
+						}
 						if (!VerifyManifest(manifest)) File.Delete(ManifestBackupPath);
 					}
 
@@ -276,9 +291,13 @@ namespace OkkeiPatcher
 
 		public int GetPatchUpdateSizeInMB()
 		{
-			var scriptsSize = CheckScriptsUpdate() ? GlobalManifest.Scripts.Size / 0x100000 : 0;
-			var obbSize = CheckObbUpdate() ? GlobalManifest.Obb.Size / 0x100000 : 0;
-			return (int) (scriptsSize + obbSize);
+			var scriptsSize = CheckScriptsUpdate()
+				? (int) Math.Ceiling(GlobalManifest.Scripts.Size / (double) 0x100000)
+				: 0;
+			var obbSize = CheckObbUpdate()
+				? (int) Math.Ceiling(GlobalManifest.Obb.Size / (double) 0x100000)
+				: 0;
+			return scriptsSize + obbSize;
 		}
 
 		public int GetPatchSizeInMB()
