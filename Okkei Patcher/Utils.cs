@@ -124,12 +124,12 @@ namespace OkkeiPatcher
 
 			try
 			{
-				if (input != null && packageInSession != null) input.CopyTo(packageInSession);
-				else throw new Exception("InputStream and/or session is null");
+				if (input != null) input.CopyTo(packageInSession);
+				else throw new Exception("InputStream is null");
 			}
 			finally
 			{
-				packageInSession?.Close();
+				packageInSession.Close();
 				input?.Close();
 			}
 
@@ -165,7 +165,7 @@ namespace OkkeiPatcher
 				var statusReceiver = pendingIntent?.IntentSender;
 
 				// Commit the session (this will start the installation workflow)
-				session?.Commit(statusReceiver);
+				session.Commit(statusReceiver);
 			}
 			else
 			{
