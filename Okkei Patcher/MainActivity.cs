@@ -425,7 +425,8 @@ namespace OkkeiPatcher
 
 					MainThread.BeginInvokeOnMainThread(() =>
 					{
-						patchButton.Enabled = ManifestTasks.Instance.CheckPatchUpdate();
+						patchButton.Enabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false) ||
+						                      ManifestTasks.Instance.CheckPatchUpdate();
 						patchButton.Text = Resources.GetText(Resource.String.patch);
 						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
