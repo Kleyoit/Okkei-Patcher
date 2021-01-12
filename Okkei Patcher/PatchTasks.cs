@@ -48,7 +48,7 @@ namespace OkkeiPatcher
 							backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
 							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
-								SavedataFileName, token);
+								SavedataFileName, token).ConfigureAwait(false);
 						}
 					}
 
@@ -60,13 +60,15 @@ namespace OkkeiPatcher
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
 					if ((ManifestTasks.Instance.CheckObbUpdate() || !ManifestTasks.Instance.CheckScriptsUpdate()) &&
-					    (!installedObb.Exists() || !await Utils.CompareMD5(Files.ObbToReplace, token)))
+					    (!installedObb.Exists() ||
+					     !await Utils.CompareMD5(Files.ObbToReplace, token).ConfigureAwait(false)))
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_obb));
 
 						try
 						{
-							await Utils.DownloadFile(GlobalManifest.Obb.URL, ObbPath, ObbFileName, token);
+							await Utils.DownloadFile(GlobalManifest.Obb.URL, ObbPath, ObbFileName, token)
+								.ConfigureAwait(false);
 						}
 						catch (Exception ex) when (!(ex is OperationCanceledException))
 						{
@@ -81,7 +83,7 @@ namespace OkkeiPatcher
 
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
-						var obbHash = await Utils.CalculateMD5(installedObb.Path, token);
+						var obbHash = await Utils.CalculateMD5(installedObb.Path, token).ConfigureAwait(false);
 						if (obbHash != GlobalManifest.Obb.MD5)
 						{
 							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
@@ -185,7 +187,7 @@ namespace OkkeiPatcher
 						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 
 						if (backupSavedata.Exists())
-							if (await Utils.CompareMD5(Files.BackupSavedata, token))
+							if (await Utils.CompareMD5(Files.BackupSavedata, token).ConfigureAwait(false))
 							{
 								_saveDataBackupFromOldPatch = true;
 								backupSavedata.RenameTo(new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]));
@@ -196,19 +198,19 @@ namespace OkkeiPatcher
 						{
 							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_saves));
 
-							if (!await Utils.CompareMD5(Files.OriginalSavedata, token))
+							if (!await Utils.CompareMD5(Files.OriginalSavedata, token).ConfigureAwait(false))
 							{
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.backup_saves));
 
-								await Utils.CopyFile(originalSavedata.Path,
-									backupSavedata.Parent, backupSavedata.Name, token);
+								await Utils.CopyFile(originalSavedata.Path, backupSavedata.Parent, backupSavedata.Name,
+									token).ConfigureAwait(false);
 
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.write_saves_md5));
 
 								Preferences.Set(Prefkey.savedata_md5.ToString(),
-									await Utils.CalculateMD5(originalSavedata.Path, token));
+									await Utils.CalculateMD5(originalSavedata.Path, token).ConfigureAwait(false));
 							}
 						}
 						else
@@ -232,8 +234,8 @@ namespace OkkeiPatcher
 
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.copy_apk));
 
-						await Utils.CopyFile(originalApkPath, unpatchedApk.Parent,
-							unpatchedApk.Name, token);
+						await Utils.CopyFile(originalApkPath, unpatchedApk.Parent, unpatchedApk.Name, token)
+							.ConfigureAwait(false);
 
 
 						// Backup APK
@@ -241,19 +243,20 @@ namespace OkkeiPatcher
 						{
 							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-							if (!backupApk.Exists() || !await Utils.CompareMD5(Files.TempApk, token))
+							if (!backupApk.Exists() ||
+							    !await Utils.CompareMD5(Files.TempApk, token).ConfigureAwait(false))
 							{
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.backup_apk));
 
-								await Utils.CopyFile(originalApkPath, backupApk.Parent,
-									backupApk.Name, token);
+								await Utils.CopyFile(originalApkPath, backupApk.Parent, backupApk.Name, token)
+									.ConfigureAwait(false);
 
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.write_apk_md5));
 
 								Preferences.Set(Prefkey.backup_apk_md5.ToString(),
-									await Utils.CalculateMD5(backupApk.Path, token));
+									await Utils.CalculateMD5(backupApk.Path, token).ConfigureAwait(false));
 							}
 						}
 
@@ -264,7 +267,8 @@ namespace OkkeiPatcher
 							OnStatusChanged(this,
 								Application.Context.Resources.GetText(Resource.String.compare_scripts));
 
-							if (!scriptsZip.Exists() || !await Utils.CompareMD5(Files.Scripts, token))
+							if (!scriptsZip.Exists() ||
+							    !await Utils.CompareMD5(Files.Scripts, token).ConfigureAwait(false))
 							{
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.download_scripts));
@@ -272,7 +276,7 @@ namespace OkkeiPatcher
 								try
 								{
 									await Utils.DownloadFile(GlobalManifest.Scripts.URL, scriptsZip.Parent,
-										scriptsZip.Name, token);
+										scriptsZip.Name, token).ConfigureAwait(false);
 								}
 								catch (Exception ex) when (!(ex is OperationCanceledException))
 								{
@@ -290,7 +294,8 @@ namespace OkkeiPatcher
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.write_scripts_md5));
 
-								var scriptsHash = await Utils.CalculateMD5(scriptsZip.Path, token);
+								var scriptsHash =
+									await Utils.CalculateMD5(scriptsZip.Path, token).ConfigureAwait(false);
 								if (scriptsHash != GlobalManifest.Scripts.MD5)
 								{
 									OnStatusChanged(this,
@@ -385,7 +390,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.write_patched_apk_md5));
 
 							Preferences.Set(Prefkey.signed_apk_md5.ToString(),
-								await Utils.CalculateMD5(FilePaths[Files.SignedApk], token));
+								await Utils.CalculateMD5(FilePaths[Files.SignedApk], token).ConfigureAwait(false));
 
 							if (unpatchedApk.Exists()) unpatchedApk.Delete();
 
@@ -406,19 +411,20 @@ namespace OkkeiPatcher
 						{
 							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-							if (!backupObb.Exists() || !await Utils.CompareMD5(Files.ObbToBackup, token))
+							if (!backupObb.Exists() ||
+							    !await Utils.CompareMD5(Files.ObbToBackup, token).ConfigureAwait(false))
 							{
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.backup_obb));
 
-								await Utils.CopyFile(originalObb.Path, backupObb.Parent,
-									backupObb.Name, token);
+								await Utils.CopyFile(originalObb.Path, backupObb.Parent, backupObb.Name, token)
+									.ConfigureAwait(false);
 
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.write_obb_md5));
 
 								Preferences.Set(Prefkey.backup_obb_md5.ToString(),
-									await Utils.CalculateMD5(backupObb.Path, token));
+									await Utils.CalculateMD5(backupObb.Path, token).ConfigureAwait(false));
 							}
 						}
 						else

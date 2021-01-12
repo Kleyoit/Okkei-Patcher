@@ -66,35 +66,42 @@ namespace OkkeiPatcher
 		{
 			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
-				async () => await Task.Run(() => MainThread.BeginInvokeOnMainThread(async () =>
+				() => Task.Run(async () =>
 				{
 					if (!await ManifestTasks.Instance.GetManifest(_cts.Token)) return;
 
 					if (ManifestTasks.Instance.CheckPatchUpdate())
 					{
-						FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
-						MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
-							Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
-								ManifestTasks.Instance.GetPatchUpdateSizeInMB().ToString()),
-							Resources.GetText(Resource.String.dialog_ok), UpdateApp);
+						MainThread.BeginInvokeOnMainThread(() =>
+						{
+							FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
+							MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
+								Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
+									ManifestTasks.Instance.GetPatchUpdateSizeInMB().ToString()),
+								Resources.GetText(Resource.String.dialog_ok), UpdateApp);
+						});
 						return;
 					}
 
 					UpdateApp();
-				})));
+				}));
 		}
 
 		private void UpdateApp()
 		{
 			if (ManifestTasks.Instance.CheckAppUpdate())
-				MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
-					Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
-						ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
-						GlobalManifest.OkkeiPatcher.Changelog),
-					Resources.GetText(Resource.String.dialog_update),
-					Resources.GetText(Resource.String.dialog_cancel),
-					() => Task.Run(async () =>
-						await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token)), null);
+			{
+				MainThread.BeginInvokeOnMainThread(() =>
+				{
+					MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
+						Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
+							ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
+							GlobalManifest.OkkeiPatcher.Changelog),
+						Resources.GetText(Resource.String.dialog_update),
+						Resources.GetText(Resource.String.dialog_cancel),
+						async () => await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token), null);
+				});
+			}
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)

@@ -74,7 +74,8 @@ namespace OkkeiPatcher
 				{
 					case Files.OriginalSavedata:
 						secondFile = new Java.IO.File(FileToCompareWith[file]);
-						if (secondFile.Exists()) secondMd5 = await CalculateMD5(secondFile.Path, token);
+						if (secondFile.Exists())
+							secondMd5 = await CalculateMD5(secondFile.Path, token).ConfigureAwait(false);
 						break;
 					default:
 						secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
@@ -82,7 +83,7 @@ namespace OkkeiPatcher
 				}
 
 				if (firstFile.Exists() && secondMd5 != string.Empty)
-					firstMd5 = await CalculateMD5(firstFile.Path, token);
+					firstMd5 = await CalculateMD5(firstFile.Path, token).ConfigureAwait(false);
 
 				if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
 			}
@@ -407,13 +408,14 @@ namespace OkkeiPatcher
 
 			try
 			{
-				var response = await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead);
+				var response = await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead)
+					.ConfigureAwait(false);
 				var contentLength = -1;
 
 				if (response.StatusCode == HttpStatusCode.OK)
 				{
 					contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
-					download = await response.Content.ReadAsStreamAsync();
+					download = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 				}
 				else
 				{

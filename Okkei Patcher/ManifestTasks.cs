@@ -70,11 +70,13 @@ namespace OkkeiPatcher
 				{
 					if (File.Exists(ManifestPath))
 					{
-						await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token);
+						await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token)
+							.ConfigureAwait(false);
 						File.Delete(ManifestPath);
 					}
 
-					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token);
+					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
+						.ConfigureAwait(false);
 
 					OkkeiManifest manifest;
 					try
@@ -169,7 +171,7 @@ namespace OkkeiPatcher
 					try
 					{
 						await Utils.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName,
-							token);
+							token).ConfigureAwait(false);
 					}
 					catch (Exception ex) when (!(ex is System.OperationCanceledException))
 					{
@@ -177,7 +179,7 @@ namespace OkkeiPatcher
 					}
 
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
-					var updateHash = await Utils.CalculateMD5(AppUpdatePath, token);
+					var updateHash = await Utils.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
 
 					if (updateHash != GlobalManifest.OkkeiPatcher.MD5)
 					{

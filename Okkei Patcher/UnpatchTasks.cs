@@ -46,7 +46,7 @@ namespace OkkeiPatcher
 						throw new OperationCanceledException("The operation was canceled.", token);
 					}
 
-					await Utils.CopyFile(backupObb.Path, ObbPath, ObbFileName, token);
+					await Utils.CopyFile(backupObb.Path, ObbPath, ObbFileName, token).ConfigureAwait(false);
 
 					if (processSavedata)
 					{
@@ -55,8 +55,8 @@ namespace OkkeiPatcher
 							OnStatusChanged(this,
 								Application.Context.Resources.GetText(Resource.String.restore_saves));
 
-							await Utils.CopyFile(backupSavedata.Path, SavedataPath,
-								SavedataFileName, token);
+							await Utils.CopyFile(backupSavedata.Path, SavedataPath, SavedataFileName, token)
+								.ConfigureAwait(false);
 						}
 						else
 						{
@@ -81,7 +81,7 @@ namespace OkkeiPatcher
 							backupSavedataCopy = new Java.IO.File(FilePaths[Files.BackupSavedata]);
 
 							Preferences.Set(Prefkey.savedata_md5.ToString(),
-								await Utils.CalculateMD5(backupSavedataCopy.Path, token));
+								await Utils.CalculateMD5(backupSavedataCopy.Path, token).ConfigureAwait(false));
 						}
 					}
 
@@ -165,8 +165,8 @@ namespace OkkeiPatcher
 							// Backup save data
 							OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
 
-							await Utils.CopyFile(FilePaths[Files.OriginalSavedata],
-								OkkeiFilesPathBackup, SavedataBackupFileName, token);
+							await Utils.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup,
+								SavedataBackupFileName, token).ConfigureAwait(false);
 						}
 						else
 						{
