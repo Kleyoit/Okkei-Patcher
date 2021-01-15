@@ -68,6 +68,12 @@ namespace OkkeiPatcher
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
 				() => Task.Run(async () =>
 				{
+					ManifestTasks.Instance.StatusChanged += OnStatusChanged;
+					ManifestTasks.Instance.ProgressChanged += OnProgressChanged;
+					ManifestTasks.Instance.MessageGenerated += OnMessageGenerated;
+					ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
+					ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
+
 					if (!await ManifestTasks.Instance.GetManifest(_cts.Token)) return;
 
 					if (ManifestTasks.Instance.CheckPatchUpdate())
@@ -115,7 +121,7 @@ namespace OkkeiPatcher
 							MessageBox.Show(this, Resources.GetText(Resource.String.error),
 								Resources.GetText(Resource.String.no_install_permission),
 								Resources.GetText(Resource.String.dialog_exit),
-								() => { System.Environment.Exit(0); });
+								() => System.Environment.Exit(0));
 						else ExecuteManifestTasks();
 					}
 
@@ -128,7 +134,7 @@ namespace OkkeiPatcher
 							MessageBox.Show(this, Resources.GetText(Resource.String.error),
 								Resources.GetText(Resource.String.no_storage_permission),
 								Resources.GetText(Resource.String.dialog_exit),
-								() => { System.Environment.Exit(0); });
+								() => System.Environment.Exit(0));
 						}
 						else
 						{
@@ -140,7 +146,7 @@ namespace OkkeiPatcher
 
 					break;
 				case (int) RequestCodes.UninstallCode:
-					Utils.OnUninstallResult(this, _cts.Token);
+					Task.Run(() => Utils.OnUninstallResult(this, _cts.Token));
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
@@ -211,12 +217,6 @@ namespace OkkeiPatcher
 			var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 			savedataCheckbox.CheckedChange += CheckBox_CheckedChange;
 
-			ManifestTasks.Instance.StatusChanged += OnStatusChanged;
-			ManifestTasks.Instance.ProgressChanged += OnProgressChanged;
-			ManifestTasks.Instance.MessageGenerated += OnMessageGenerated;
-			ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
-			ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
-
 
 			// Set apk_is_patched = false pref on first start
 			if (!Preferences.ContainsKey(Prefkey.apk_is_patched.ToString()))
@@ -269,7 +269,7 @@ namespace OkkeiPatcher
 								Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
 							StartActivityForResult(intent, (int) RequestCodes.StoragePermissionSettingsCode);
 						},
-						() => { System.Environment.Exit(0); });
+						() => System.Environment.Exit(0));
 				}
 			}
 			else
@@ -300,8 +300,8 @@ namespace OkkeiPatcher
 							Resources.GetText(Resource.String.no_storage_permission_rationale),
 							Resources.GetText(Resource.String.dialog_ok),
 							Resources.GetText(Resource.String.dialog_exit),
-							() => { RequestPermissions(permissions, (int) RequestCodes.StoragePermissionRequestCode); },
-							() => { System.Environment.Exit(0); });
+							() => RequestPermissions(permissions, (int) RequestCodes.StoragePermissionRequestCode),
+							() => System.Environment.Exit(0));
 					}
 					else
 					{
@@ -310,7 +310,7 @@ namespace OkkeiPatcher
 						MessageBox.Show(this, Resources.GetText(Resource.String.error),
 							Resources.GetText(Resource.String.no_storage_permission),
 							Resources.GetText(Resource.String.dialog_exit),
-							() => { System.Environment.Exit(0); });
+							() => System.Environment.Exit(0));
 					}
 				}
 				else
@@ -455,7 +455,7 @@ namespace OkkeiPatcher
 
 		private void OnMessageGenerated(object sender, MessageBox.Data e)
 		{
-			MainThread.BeginInvokeOnMainThread(() => { MessageBox.Show(this, e); });
+			MainThread.BeginInvokeOnMainThread(() => MessageBox.Show(this, e));
 		}
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -463,8 +463,8 @@ namespace OkkeiPatcher
 			var progress = e.Progress;
 			var max = e.Max;
 			var progressBar = FindCachedViewById<ProgressBar>(Resource.Id.progressBar);
-			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => { progressBar.Max = max; });
-			MainThread.BeginInvokeOnMainThread(() => { progressBar.Progress = progress; });
+			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => progressBar.Max = max);
+			MainThread.BeginInvokeOnMainThread(() => progressBar.Progress = progress);
 		}
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)

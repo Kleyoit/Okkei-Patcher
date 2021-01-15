@@ -22,8 +22,8 @@ namespace OkkeiPatcher
 		public static event EventHandler<string> StatusChanged;
 		public static event EventHandler<ProgressChangedEventArgs> ProgressChanged;
 		public static event EventHandler<MessageBox.Data> MessageGenerated;
-		public static event EventHandler TokenErrorOccurred;
-		public static event EventHandler TaskErrorOccurred;
+		public static event EventHandler ErrorOccurred;
+		public static event EventHandler TaskFinished;
 
 		public static Task<string> CalculateMD5(string filename, CancellationToken token)
 		{
@@ -195,7 +195,7 @@ namespace OkkeiPatcher
 				Application.Context.Resources.GetText(Resource.String.install_error),
 				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 				null, null));
-			TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
+			TaskFinished?.Invoke(null, EventArgs.Empty);
 		}
 
 		public static void OnInstallSuccess(bool processSavedata, CancellationToken token)
@@ -213,7 +213,7 @@ namespace OkkeiPatcher
 			else if (ManifestTasks.Instance.IsRunning)
 			{
 				//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
-				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
+				TaskFinished?.Invoke(null, EventArgs.Empty);
 			}
 		}
 
@@ -224,7 +224,7 @@ namespace OkkeiPatcher
 			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
-		public static async void OnUninstallResult(Activity activity, CancellationToken token)
+		public static async Task OnUninstallResult(Activity activity, CancellationToken token)
 		{
 			if (IsAppInstalled(ChaosChildPackageName) && !ManifestTasks.Instance.CheckScriptsUpdate())
 			{
@@ -234,7 +234,7 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.uninstall_error),
 					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 					null, null));
-				TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
+				TaskFinished?.Invoke(null, EventArgs.Empty);
 			}
 			else
 			{
@@ -264,7 +264,7 @@ namespace OkkeiPatcher
 					{
 						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-						var apkFileMd5 = await CalculateMD5(path, token);
+						var apkFileMd5 = await CalculateMD5(path, token).ConfigureAwait(false);
 
 						if (apkMd5 == apkFileMd5)
 						{
@@ -300,7 +300,7 @@ namespace OkkeiPatcher
 									null,
 									null, null));
 
-							TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
+							ErrorOccurred?.Invoke(null, EventArgs.Empty);
 							throw new System.OperationCanceledException("The operation was canceled.", token);
 						}
 					}
@@ -320,7 +320,7 @@ namespace OkkeiPatcher
 									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 									null, null));
 
-						TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
+						ErrorOccurred?.Invoke(null, EventArgs.Empty);
 						throw new System.OperationCanceledException("The operation was canceled.", token);
 					}
 				}
@@ -328,7 +328,7 @@ namespace OkkeiPatcher
 				{
 					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
 					StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-					TaskErrorOccurred?.Invoke(null, EventArgs.Empty);
+					TaskFinished?.Invoke(null, EventArgs.Empty);
 				}
 			}
 		}
@@ -426,7 +426,7 @@ namespace OkkeiPatcher
 								response.StatusCode.ToString()),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							null, null));
-					TokenErrorOccurred?.Invoke(null, EventArgs.Empty);
+					ErrorOccurred?.Invoke(null, EventArgs.Empty);
 				}
 
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
@@ -473,7 +473,7 @@ namespace OkkeiPatcher
 				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
 					Application.Context.Resources.GetText(Resource.String.exception_notice),
 					Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-					() => { System.Environment.Exit(0); }, null));
+					() => System.Environment.Exit(0), null));
 		}
 
 		public static bool IsBackupAvailable()

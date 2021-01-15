@@ -13,8 +13,8 @@ namespace OkkeiPatcher
 			Utils.StatusChanged += UtilsOnStatusChanged;
 			Utils.ProgressChanged += UtilsOnProgressChanged;
 			Utils.MessageGenerated += UtilsOnMessageGenerated;
-			Utils.TokenErrorOccurred += UtilsOnTokenErrorOccurred;
-			Utils.TaskErrorOccurred += UtilsOnTaskErrorOccurred;
+			Utils.ErrorOccurred += UtilsOnErrorOccurred;
+			Utils.TaskFinished += UtilsOnTaskFinished;
 		}
 
 		public bool IsRunning
@@ -76,12 +76,12 @@ namespace OkkeiPatcher
 			if (IsRunning) MessageGenerated?.Invoke(this, e);
 		}
 
-		private void UtilsOnTokenErrorOccurred(object sender, EventArgs e)
+		private void UtilsOnErrorOccurred(object sender, EventArgs e)
 		{
 			if (IsRunning) ErrorOccurred?.Invoke(this, e);
 		}
 
-		private void UtilsOnTaskErrorOccurred(object sender, EventArgs e)
+		private void UtilsOnTaskFinished(object sender, EventArgs e)
 		{
 			if (IsRunning) IsRunning = false;
 		}

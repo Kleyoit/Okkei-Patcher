@@ -449,7 +449,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
 					else if (ManifestTasks.Instance.CheckScriptsUpdate())
-						Utils.OnUninstallResult(activity, token);
+						await Utils.OnUninstallResult(activity, token).ConfigureAwait(false);
 					else if (ManifestTasks.Instance.CheckObbUpdate())
 						Utils.OnInstallSuccess(false, token);
 
