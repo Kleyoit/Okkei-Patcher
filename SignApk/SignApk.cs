@@ -25,7 +25,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using ICSharpCode.SharpZipLib.Zip;
-using Java.IO;
 
 namespace SignApk
 {
@@ -395,8 +394,6 @@ namespace SignApk
 
 		public static void SignPackage(Stream input, X509Certificate2 certificate, Stream output, bool signWholeFile)
 		{
-			string OkkeiFilesPath = System.IO.Path.Combine(Android.OS.Environment.ExternalStorageDirectory.Path, "OkkeiPatcher");
-
 			JarFile inputJar = null;
 			ZipOutputStream outputJar = null;
 
@@ -470,6 +467,45 @@ namespace SignApk
 									output, certificate);
 			}
 
+		}
+
+		public static void Main(String[] args) {
+			if (args.Length != 4 && args.Length != 5) {
+				Console.Error.WriteLine("Usage: signapk [-w] " +
+						"certificate.p12 password " +
+						"input.jar output.jar");
+				Environment.Exit(2);
+			}
+
+			bool signWholeFile = false;
+			int argstart = 0;
+			if (args[0].Equals("-w")) {
+				signWholeFile = true;
+				argstart = 1;
+			}
+
+			FileStream inputStream = null;
+			FileStream outputStream = null;
+
+			try {
+				var certificate = new X509Certificate2(args[argstart+0], args[argstart+1]);
+				inputStream = new FileStream(args[argstart + 2], FileMode.Open);
+				outputStream = new FileStream(args[argstart + 3], FileMode.OpenOrCreate);
+				SignPackage(inputStream, certificate, outputStream, signWholeFile);
+			} catch (Exception e) {
+				Console.WriteLine(e.StackTrace);
+				Environment.Exit(1);
+			}
+			finally
+			{
+				try {
+					if (inputStream != null) inputStream.Close();
+					if (outputStream != null) outputStream.Close();
+				} catch (IOException e) {
+					Console.WriteLine(e.StackTrace);
+					Environment.Exit(1);
+				}
+			}
 		}
 	}
 }

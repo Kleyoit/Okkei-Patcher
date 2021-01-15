@@ -51,7 +51,7 @@ namespace SignApk
 		 * Constructs a new Manifest from the specified input stream.
 		 *
 		 * @param is the input stream containing manifest data
-		 * @throws IOException if an I/O error has occurred
+		 * @throws IOException if an I/O error has occured
 		 */
 		public Manifest(Stream is_)
 		{
