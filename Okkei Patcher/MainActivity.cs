@@ -342,7 +342,7 @@ namespace OkkeiPatcher
 			}
 
 			_backPressed = true;
-			Toast.MakeText(this, Resources.GetText(Resource.String.back_button_pressed), ToastLength.Short);
+			Toast.MakeText(this, Resources.GetText(Resource.String.back_button_pressed), ToastLength.Short).Show();
 		}
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
