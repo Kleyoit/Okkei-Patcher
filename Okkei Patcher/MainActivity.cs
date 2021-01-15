@@ -29,6 +29,8 @@ namespace OkkeiPatcher
 			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
 
 		private CancellationTokenSource _cts = new CancellationTokenSource();
+		private bool backPressed;
+		private int lastBackPressedTimestamp;
 
 #nullable enable
 		private T? FindCachedViewById<T>(int id) where T : View
@@ -324,6 +326,23 @@ namespace OkkeiPatcher
 					if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 				}
 			}
+		}
+
+		public override void OnBackPressed()
+		{
+			var lastBackPressedTimestampTemp = lastBackPressedTimestamp;
+			lastBackPressedTimestamp = System.Environment.TickCount;
+			var sinceLastBackPressed = lastBackPressedTimestamp - lastBackPressedTimestampTemp;
+
+			if (backPressed && sinceLastBackPressed <= 2000)
+			{
+				backPressed = false;
+				base.OnBackPressed();
+				return;
+			}
+
+			backPressed = true;
+			Toast.MakeText(this, Resources.GetText(Resource.String.back_button_pressed), ToastLength.Short);
 		}
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)

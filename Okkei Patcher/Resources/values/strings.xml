@@ -91,4 +91,5 @@
   <string name="update_app_corrupted">Okkei Patcher update is corrupted. Try again later.</string>
   <string name="update_app_attention">You will now be prompted to install updated Okkei Patcher. Please confirm the installation. Note that after that Okkei Patcher will be closed and you\'ll have to relaunch it manually.</string>
   <string name="update_patch_available">Patch update is available! Click PATCH button to download and apply the update.\nDownload size: %1$s MB</string>
+  <string name="back_button_pressed">Press back button/use the gesture again to exit</string>
 </resources>
