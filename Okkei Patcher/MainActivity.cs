@@ -74,7 +74,7 @@ namespace OkkeiPatcher
 					ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
 					ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
 
-					if (!await ManifestTasks.Instance.GetManifest(_cts.Token)) return;
+					if (!await ManifestTasks.Instance.GetManifest(_cts.Token).WriteReportOnException()) return;
 
 					if (ManifestTasks.Instance.CheckPatchUpdate())
 					{
@@ -105,7 +105,8 @@ namespace OkkeiPatcher
 							GlobalManifest.OkkeiPatcher.Changelog),
 						Resources.GetText(Resource.String.dialog_update),
 						Resources.GetText(Resource.String.dialog_cancel),
-						async () => await ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token), null);
+						() => Task.Run(() =>
+							ManifestTasks.Instance.InstallAppUpdate(this, _cts.Token).WriteReportOnException()), null);
 				});
 			}
 		}
@@ -146,7 +147,7 @@ namespace OkkeiPatcher
 
 					break;
 				case (int) RequestCodes.UninstallCode:
-					Task.Run(() => Utils.OnUninstallResult(this, _cts.Token));
+					Task.Run(() => Utils.OnUninstallResult(this, _cts.Token).WriteReportOnException());
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
@@ -504,7 +505,8 @@ namespace OkkeiPatcher
 
 									var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 									Task.Run(() =>
-										PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token));
+										PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cts.Token)
+											.WriteReportOnException());
 								}, null);
 						}, null);
 				else
@@ -545,7 +547,8 @@ namespace OkkeiPatcher
 
 							var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 							Task.Run(
-								() => UnpatchTasks.Instance.UnpatchTask(this, savedataCheckbox.Checked, _cts.Token));
+								() => UnpatchTasks.Instance.UnpatchTask(this, savedataCheckbox.Checked, _cts.Token)
+									.WriteReportOnException());
 						}, null);
 				else
 					MessageBox.Show(this, Resources.GetText(Resource.String.warning),

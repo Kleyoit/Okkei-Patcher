@@ -204,11 +204,11 @@ namespace OkkeiPatcher
 			{
 				if (System.IO.File.Exists(FilePaths[Files.SignedApk]))
 					System.IO.File.Delete(FilePaths[Files.SignedApk]);
-				Task.Run(() => PatchTasks.Instance.FinishPatch(processSavedata, token));
+				Task.Run(() => PatchTasks.Instance.FinishPatch(processSavedata, token).WriteReportOnException());
 			}
 			else if (UnpatchTasks.Instance.IsRunning)
 			{
-				Task.Run(() => UnpatchTasks.Instance.RestoreFiles(processSavedata, token));
+				Task.Run(() => UnpatchTasks.Instance.RestoreFiles(processSavedata, token).WriteReportOnException());
 			}
 			else if (ManifestTasks.Instance.IsRunning)
 			{
@@ -502,6 +502,31 @@ namespace OkkeiPatcher
 					RecursiveClearFiles(dir);
 					Directory.Delete(dir);
 				}
+		}
+
+		public static async Task WriteReportOnException(this Task task)
+		{
+			try
+			{
+				await task;
+			}
+			catch (Exception ex)
+			{
+				WriteBugReport(ex);
+			}
+		}
+
+		public static async Task<T> WriteReportOnException<T>(this Task<T> task)
+		{
+			try
+			{
+				return await task;
+			}
+			catch (Exception ex)
+			{
+				WriteBugReport(ex);
+				return default;
+			}
 		}
 	}
 }

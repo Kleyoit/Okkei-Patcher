@@ -61,27 +61,59 @@ namespace OkkeiPatcher
 
 		public async Task<bool> GetManifest(CancellationToken token)
 		{
+			IsRunning = true;
+			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_download));
+
 			try
 			{
-				IsRunning = true;
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_download));
+				if (File.Exists(ManifestPath))
+				{
+					await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token)
+						.ConfigureAwait(false);
+					File.Delete(ManifestPath);
+				}
 
+				await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
+					.ConfigureAwait(false);
+
+				OkkeiManifest manifest;
 				try
 				{
-					if (File.Exists(ManifestPath))
-					{
-						await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token)
-							.ConfigureAwait(false);
-						File.Delete(ManifestPath);
-					}
+					var json = File.ReadAllText(ManifestPath);
+					manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
+				}
+				catch
+				{
+					manifest = null;
+				}
 
-					await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
-						.ConfigureAwait(false);
-
-					OkkeiManifest manifest;
+				if (!VerifyManifest(manifest))
+				{
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.manifest_corrupted),
+							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+							() => System.Environment.Exit(0), null));
+					OnErrorOccurred(this, EventArgs.Empty);
+				}
+				else
+				{
+					OnStatusChanged(this,
+						Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
+					GlobalManifest = manifest;
+					return true;
+				}
+			}
+			catch (Exception)
+			{
+				OkkeiManifest manifest = null;
+				File.Delete(ManifestPath);
+				if (File.Exists(ManifestBackupPath))
+				{
 					try
 					{
-						var json = File.ReadAllText(ManifestPath);
+						var json = File.ReadAllText(ManifestBackupPath);
 						manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
 					}
 					catch
@@ -89,71 +121,31 @@ namespace OkkeiPatcher
 						manifest = null;
 					}
 
-					if (!VerifyManifest(manifest))
-					{
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.manifest_corrupted),
-								Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-								() => System.Environment.Exit(0), null));
-						OnErrorOccurred(this, EventArgs.Empty);
-					}
-					else
-					{
-						OnStatusChanged(this,
-							Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
-						GlobalManifest = manifest;
-						return true;
-					}
+					if (!VerifyManifest(manifest)) File.Delete(ManifestBackupPath);
 				}
-				catch (Exception)
+
+				if (!File.Exists(ManifestBackupPath))
 				{
-					OkkeiManifest manifest = null;
-					File.Delete(ManifestPath);
-					if (File.Exists(ManifestBackupPath))
-					{
-						try
-						{
-							var json = File.ReadAllText(ManifestBackupPath);
-							manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
-						}
-						catch
-						{
-							manifest = null;
-						}
-
-						if (!VerifyManifest(manifest)) File.Delete(ManifestBackupPath);
-					}
-
-					if (!File.Exists(ManifestBackupPath))
-					{
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
-								Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-								() => System.Environment.Exit(0), null));
-						OnErrorOccurred(this, EventArgs.Empty);
-						return false;
-					}
-
-					File.Copy(ManifestBackupPath, ManifestPath);
-					File.Delete(ManifestBackupPath);
-					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
-					GlobalManifest = manifest;
-					return true;
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
+							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+							() => System.Environment.Exit(0), null));
+					OnErrorOccurred(this, EventArgs.Empty);
+					return false;
 				}
-				finally
-				{
-					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
-					IsRunning = false;
-				}
+
+				File.Copy(ManifestBackupPath, ManifestPath);
+				File.Delete(ManifestBackupPath);
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
+				GlobalManifest = manifest;
+				return true;
 			}
-			catch (Exception ex)
+			finally
 			{
-				Utils.WriteBugReport(ex);
-				return false;
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				IsRunning = false;
 			}
 
 			return false;
@@ -161,76 +153,69 @@ namespace OkkeiPatcher
 
 		public async Task InstallAppUpdate(Activity activity, CancellationToken token)
 		{
+			IsRunning = true;
+			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.update_app_download));
+
 			try
 			{
-				IsRunning = true;
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.update_app_download));
-
 				try
 				{
-					try
-					{
-						await Utils.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName,
-							token).ConfigureAwait(false);
-					}
-					catch (Exception ex) when (!(ex is System.OperationCanceledException))
-					{
-						throw new HttpRequestException("Download failed.");
-					}
-
-					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
-					var updateHash = await Utils.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
-
-					if (updateHash != GlobalManifest.OkkeiPatcher.MD5)
-					{
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.update_app_corrupted),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null));
-						OnErrorOccurred(this, EventArgs.Empty);
-						IsRunning = false;
-					}
-					else
-					{
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-								Application.Context.Resources.GetText(Resource.String.update_app_attention),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								() => MainThread.BeginInvokeOnMainThread(() =>
-									Utils.InstallPackage(activity,
-										Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
-								null));
-					}
+					await Utils.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName,
+						token).ConfigureAwait(false);
 				}
-				catch (Exception ex)
+				catch (Exception ex) when (!(ex is System.OperationCanceledException))
+				{
+					throw new HttpRequestException("Download failed.");
+				}
+
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
+				var updateHash = await Utils.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
+
+				if (updateHash != GlobalManifest.OkkeiPatcher.MD5)
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-					if (ex is System.OperationCanceledException)
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.update_app_aborted),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null));
-					if (ex is HttpRequestException && ex.Message == "Download failed.")
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-								Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null));
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.update_app_corrupted),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null));
 					OnErrorOccurred(this, EventArgs.Empty);
 					IsRunning = false;
 				}
-				finally
+				else
 				{
-					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+							Application.Context.Resources.GetText(Resource.String.update_app_attention),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							() => MainThread.BeginInvokeOnMainThread(() =>
+								Utils.InstallPackage(activity,
+									Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
+							null));
 				}
 			}
 			catch (Exception ex)
 			{
-				Utils.WriteBugReport(ex);
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+				if (ex is System.OperationCanceledException)
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.update_app_aborted),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null));
+				if (ex is HttpRequestException && ex.Message == "Download failed.")
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null));
+				OnErrorOccurred(this, EventArgs.Empty);
+				IsRunning = false;
+			}
+			finally
+			{
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 			}
 		}
 
