@@ -133,6 +133,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					OnErrorOccurred(this, EventArgs.Empty);
+					IsRunning = false;
 					return false;
 				}
 
@@ -145,9 +146,9 @@ namespace OkkeiPatcher
 			finally
 			{
 				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
-				IsRunning = false;
 			}
 
+			IsRunning = false;
 			return false;
 		}
 
@@ -227,7 +228,9 @@ namespace OkkeiPatcher
 					.LongVersionCode;
 			else
 				appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
-			return GlobalManifest.OkkeiPatcher.Version > appVersion;
+			var result = GlobalManifest.OkkeiPatcher.Version > appVersion;
+			if (!result) IsRunning = false;
+			return result;
 		}
 
 		public bool CheckScriptsUpdate()

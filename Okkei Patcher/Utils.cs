@@ -24,6 +24,7 @@ namespace OkkeiPatcher
 		public static event EventHandler<MessageBox.Data> MessageGenerated;
 		public static event EventHandler ErrorOccurred;
 		public static event EventHandler TaskFinished;
+		public static event EventHandler FatalExceptionOccurred;
 
 		public static Task<string> CalculateMD5(string filename, CancellationToken token)
 		{
@@ -467,6 +468,7 @@ namespace OkkeiPatcher
 
 		public static void WriteBugReport(Exception ex)
 		{
+			FatalExceptionOccurred?.Invoke(null, EventArgs.Empty);
 			var bugReport = GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
 			MessageGenerated?.Invoke(null,

@@ -15,6 +15,7 @@ namespace OkkeiPatcher
 			Utils.MessageGenerated += UtilsOnMessageGenerated;
 			Utils.ErrorOccurred += UtilsOnErrorOccurred;
 			Utils.TaskFinished += UtilsOnTaskFinished;
+			Utils.FatalExceptionOccurred += UtilsOnFatalExceptionOccurred;
 		}
 
 		public bool IsRunning
@@ -84,6 +85,11 @@ namespace OkkeiPatcher
 		private void UtilsOnTaskFinished(object sender, EventArgs e)
 		{
 			if (IsRunning) IsRunning = false;
+		}
+
+		private void UtilsOnFatalExceptionOccurred(object sender, EventArgs e)
+		{
+			IsRunning = true;
 		}
 	}
 }
