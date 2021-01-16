@@ -73,6 +73,10 @@ namespace OkkeiPatcher
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
 				() => Task.Run(async () =>
 				{
+					ManifestTasks.Instance.StatusChanged += OnStatusChanged;
+					ManifestTasks.Instance.ProgressChanged += OnProgressChanged;
+					ManifestTasks.Instance.MessageGenerated += OnMessageGenerated;
+					ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
 					ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
 
 					if (!await ManifestTasks.Instance.GetManifest(_cts.Token).WriteReportOnException()) return;
@@ -429,11 +433,6 @@ namespace OkkeiPatcher
 					}
 					else
 					{
-						ManifestTasks.Instance.StatusChanged += OnStatusChanged;
-						ManifestTasks.Instance.ProgressChanged += OnProgressChanged;
-						ManifestTasks.Instance.MessageGenerated += OnMessageGenerated;
-						ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
-
 						patchButton.Enabled = true;
 						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = false;
 						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = false;
