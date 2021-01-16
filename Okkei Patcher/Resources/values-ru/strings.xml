@@ -90,5 +90,5 @@
   <string name="update_app_corrupted">Обновление Okkei Patcher повреждено. Попробуйте заново позже.</string>
   <string name="update_app_attention">Сейчас последует запрос на установку обновления Okkei Patcher. Пожалуйста, подтвердите установку. Обратите внимание, что после установки Okkei Patcher будет закрыт, и Вам придётся перезапустить его вручную.</string>
   <string name="update_patch_available">Доступно обновление патча! Нажмите кнопку ПАТЧ, чтобы загрузить и применить обновление.\nРазмер файлов для загрузки: %1$s МБ</string>
-  <string name="back_button_pressed">Нажмите кнопку назад/используйте жест снова, чтобы выйти</string>
+  <string name="back_button_pressed">Нажмите кнопку/используйте жест Назад снова, чтобы выйти</string>
 </resources>
