@@ -105,6 +105,7 @@ namespace OkkeiPatcher
 				{
 					MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 						Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
+							AppInfo.VersionString,
 							ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
 							GlobalManifest.OkkeiPatcher.Changelog),
 						Resources.GetText(Resource.String.dialog_update),

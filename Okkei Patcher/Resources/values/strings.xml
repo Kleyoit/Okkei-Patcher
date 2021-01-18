@@ -85,7 +85,7 @@
   <string name="hash_obb_mismatch">Downloaded OBB is corrupted. Please try restarting patch process again.</string>
   <string name="hash_scripts_mismatch">Downloaded scripts are corrupted. Please try restarting patch process again.</string>
   <string name="update_header">Update</string>
-  <string name="update_app_available">A new version of Okkei Patcher is available!\nDownload size: %1$s MB\nChangelog:\n%2$s</string>
+  <string name="update_app_available">A new version of Okkei Patcher is available!\nCurrent version: %1$s\nDownload size: %2$s MB\nChangelog:\n%3$s</string>
   <string name="update_app_download">Downloading update...</string>
   <string name="update_app_aborted">Okkei Patcher update was canceled.</string>
   <string name="update_app_corrupted">Okkei Patcher update is corrupted. Try again later.</string>
