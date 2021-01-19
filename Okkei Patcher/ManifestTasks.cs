@@ -228,9 +228,8 @@ namespace OkkeiPatcher
 					.LongVersionCode;
 			else
 				appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
-			var result = GlobalManifest.OkkeiPatcher.Version > appVersion;
-			if (!result) IsRunning = false;
-			return result;
+			IsRunning = false;
+			return GlobalManifest.OkkeiPatcher.Version > appVersion;
 		}
 
 		public bool CheckScriptsUpdate()
