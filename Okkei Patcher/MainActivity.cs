@@ -417,12 +417,6 @@ namespace OkkeiPatcher
 
 					if (!ManifestTasks.Instance.IsRunning)
 					{
-						ManifestTasks.Instance.StatusChanged -= OnStatusChanged;
-						ManifestTasks.Instance.ProgressChanged -= OnProgressChanged;
-						ManifestTasks.Instance.MessageGenerated -= OnMessageGenerated;
-						ManifestTasks.Instance.ErrorOccurred -= OnErrorOccurred_ManifestTasks;
-						ManifestTasks.Instance.PropertyChanged -= OnPropertyChanged_ManifestTasks;
-
 						_cts.Dispose();
 						_cts = new CancellationTokenSource();
 
