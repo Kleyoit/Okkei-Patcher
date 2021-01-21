@@ -288,9 +288,9 @@ namespace OkkeiPatcher
 
 		public int GetPatchSizeInMB()
 		{
-			var scriptsSize = GlobalManifest.Scripts.Size / 0x100000;
-			var obbSize = GlobalManifest.Obb.Size / 0x100000;
-			return (int) (scriptsSize + obbSize);
+			var scriptsSize = (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000);
+			var obbSize = (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000);
+			return scriptsSize + obbSize;
 		}
 
 		public double GetAppUpdateSizeInMB()
