@@ -79,7 +79,8 @@ namespace OkkeiPatcher
 					ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
 					ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
 
-					if (!await ManifestTasks.Instance.GetManifest(_cts.Token).WriteReportOnException()) return;
+					if (!await ManifestTasks.Instance.GetManifest<OkkeiManifest>(_cts.Token)
+						.WriteReportOnException()) return;
 
 					if (ManifestTasks.Instance.CheckPatchUpdate())
 					{
@@ -221,6 +222,11 @@ namespace OkkeiPatcher
 
 			var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 			savedataCheckbox.CheckedChange += CheckBox_CheckedChange;
+
+
+			// Set default English tasks factories
+			PatchTasks.SetInstanceFactory(() => new BasePatchTasks());
+			ManifestTasks.SetInstanceFactory(() => new BaseManifestTasks());
 
 
 			// Set apk_is_patched = false pref on first start

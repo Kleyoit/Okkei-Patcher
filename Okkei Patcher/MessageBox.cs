@@ -34,7 +34,7 @@ namespace OkkeiPatcher
 			builder.Create()?.Show();
 		}
 
-		public struct Data
+		public readonly struct Data
 		{
 			public string Title { get; }
 			public string Message { get; }

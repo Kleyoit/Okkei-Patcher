@@ -6,7 +6,7 @@ namespace OkkeiPatcher
 {
 	internal class BaseTasks : INotifyPropertyChanged
 	{
-		protected bool _isRunning;
+		private bool _isRunning;
 
 		protected BaseTasks()
 		{
