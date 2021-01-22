@@ -39,7 +39,7 @@ namespace OkkeiPatcher
 					if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
 					File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
 
-					await Utils.CopyFile(FilePaths[Files.SAVEDATA_BACKUP], SavedataPath,
+					await Utils.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath,
 						SavedataFileName, token).ConfigureAwait(false);
 				}
 
