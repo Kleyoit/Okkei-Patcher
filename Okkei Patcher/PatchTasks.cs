@@ -435,7 +435,7 @@ namespace OkkeiPatcher
 				if (!ManifestTasks.Instance.CheckPatchUpdate())
 					// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 							Application.Context.Resources.GetText(Resource.String.uninstall_prompt_patch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));

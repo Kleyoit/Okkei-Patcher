@@ -273,7 +273,7 @@ namespace OkkeiPatcher
 								Application.Context.Resources.GetText(Resource.String.installing));
 
 							MessageGenerated?.Invoke(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 									message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 									() => MainThread.BeginInvokeOnMainThread(() =>
 										InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))),

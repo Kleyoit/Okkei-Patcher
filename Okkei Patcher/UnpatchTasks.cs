@@ -186,7 +186,7 @@ namespace OkkeiPatcher
 					OnStatusChanged(null, Application.Context.Resources.GetText(Resource.String.installing));
 
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 							Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							() =>
