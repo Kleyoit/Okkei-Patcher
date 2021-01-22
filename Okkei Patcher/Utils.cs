@@ -63,36 +63,24 @@ namespace OkkeiPatcher
 		{
 			var result = false;
 
-			var firstFile = new Java.IO.File(FilePaths[file]);
-			Java.IO.File secondFile = null;
+			var firstMd5 = string.Empty;
+			var secondMd5 = string.Empty;
 
-			try
+			switch (file)
 			{
-				var firstMd5 = string.Empty;
-				var secondMd5 = string.Empty;
-
-				switch (file)
-				{
-					case Files.OriginalSavedata:
-						secondFile = new Java.IO.File(FileToCompareWith[file]);
-						if (secondFile.Exists())
-							secondMd5 = await CalculateMD5(secondFile.Path, token).ConfigureAwait(false);
-						break;
-					default:
-						secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
-						break;
-				}
-
-				if (firstFile.Exists() && secondMd5 != string.Empty)
-					firstMd5 = await CalculateMD5(firstFile.Path, token).ConfigureAwait(false);
-
-				if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
+				case Files.OriginalSavedata:
+					if (System.IO.File.Exists(FileToCompareWith[file]))
+						secondMd5 = await CalculateMD5(FileToCompareWith[file], token).ConfigureAwait(false);
+					break;
+				default:
+					secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
+					break;
 			}
-			finally
-			{
-				firstFile.Dispose();
-				secondFile?.Dispose();
-			}
+
+			if (System.IO.File.Exists(FilePaths[file]) && secondMd5 != string.Empty)
+				firstMd5 = await CalculateMD5(FilePaths[file], token).ConfigureAwait(false);
+
+			if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
 
 			return result;
 		}
@@ -384,9 +372,8 @@ namespace OkkeiPatcher
 
 			output.Dispose();
 
-			var outFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
-			if (token.IsCancellationRequested && outFile.Exists()) outFile.Delete();
-			outFile.Dispose();
+			var outFile = Path.Combine(outFilePath, outFileName);
+			if (token.IsCancellationRequested && System.IO.File.Exists(outFile)) System.IO.File.Delete(outFile);
 
 			token.ThrowIfCancellationRequested();
 
@@ -441,9 +428,9 @@ namespace OkkeiPatcher
 				//await Task.Delay(1);    // Xamarin debugger bug workaround
 				download?.Dispose();
 				output.Dispose();
-				var downloadedFile = new Java.IO.File(Path.Combine(outFilePath, outFileName));
-				if (token.IsCancellationRequested && downloadedFile.Exists()) downloadedFile.Delete();
-				downloadedFile.Dispose();
+				var downloadedFile = Path.Combine(outFilePath, outFileName);
+				if (token.IsCancellationRequested && System.IO.File.Exists(downloadedFile))
+					System.IO.File.Delete(downloadedFile);
 				token.ThrowIfCancellationRequested();
 			}
 		}
