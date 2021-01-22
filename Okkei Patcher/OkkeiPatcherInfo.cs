@@ -2,7 +2,7 @@
 
 namespace OkkeiPatcher
 {
-	public class OkkeiPatcherInfo
+	internal class OkkeiPatcherInfo
 	{
 		[JsonInclude] public int Version { get; private set; }
 
