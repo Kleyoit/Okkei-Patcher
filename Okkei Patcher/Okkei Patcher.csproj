@@ -76,7 +76,6 @@
     <Reference Include="System.Numerics.Vectors" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="OkkeiManifest.cs" />
     <Compile Include="BaseManifestTasks.cs" />
     <Compile Include="BaseTasks.cs" />
     <Compile Include="BasePatchTasks.cs" />
