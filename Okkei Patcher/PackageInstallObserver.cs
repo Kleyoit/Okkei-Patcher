@@ -3,7 +3,7 @@ using Android.Content.PM;
 
 namespace OkkeiPatcher
 {
-	public class PackageInstallObserver : PackageInstaller.SessionCallback
+	internal class PackageInstallObserver : PackageInstaller.SessionCallback
 	{
 		public PackageInstallObserver(PackageInstaller packageInstaller)
 		{

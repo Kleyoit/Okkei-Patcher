@@ -83,7 +83,8 @@
     <Compile Include="MainActivity.cs" />
     <Compile Include="ManifestTasks.cs" />
     <Compile Include="MessageBox.cs" />
-    <Compile Include="ObbInfo.cs" />
+    <Compile Include="FileInfo.cs" />
+    <Compile Include="OkkeiManifest.cs" />
     <Compile Include="OkkeiPatcherInfo.cs" />
     <Compile Include="PackageInstallObserver.cs" />
     <Compile Include="PatchTasks.cs" />
@@ -91,7 +92,6 @@
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GlobalData.cs" />
-    <Compile Include="ScriptsInfo.cs" />
     <Compile Include="UnpatchTasks.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>

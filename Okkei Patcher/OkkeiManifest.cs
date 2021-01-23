@@ -2,14 +2,14 @@
 
 namespace OkkeiPatcher
 {
-	public class OkkeiManifest
+	internal class OkkeiManifest
 	{
 		[JsonInclude] public int Version { get; private set; }
 
 		[JsonInclude] public OkkeiPatcherInfo OkkeiPatcher { get; private set; }
 
-		[JsonInclude] public ScriptsInfo Scripts { get; private set; }
+		[JsonInclude] public FileInfo Scripts { get; private set; }
 
-		[JsonInclude] public ObbInfo Obb { get; private set; }
+		[JsonInclude] public FileInfo Obb { get; private set; }
 	}
 }

@@ -23,17 +23,11 @@ namespace OkkeiPatcher
 		{
 			IsRunning = true;
 
-			var backupApk = new Java.IO.File(FilePaths[Files.BackupApk]);
-			var backupObb = new Java.IO.File(FilePaths[Files.BackupObb]);
-			var backupSavedata = new Java.IO.File(FilePaths[Files.BackupSavedata]);
-			var backupSavedataCopy = new Java.IO.File(FilePaths[Files.SAVEDATA_BACKUP]);
-			var appSavedata = new Java.IO.File(FilePaths[Files.OriginalSavedata]);
-
 			try
 			{
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.restore_obb));
 
-				if (!backupObb.Exists())
+				if (!System.IO.File.Exists(FilePaths[Files.BackupObb]))
 				{
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
@@ -44,16 +38,16 @@ namespace OkkeiPatcher
 					throw new OperationCanceledException("The operation was canceled.", token);
 				}
 
-				await Utils.CopyFile(backupObb.Path, ObbPath, ObbFileName, token).ConfigureAwait(false);
+				await Utils.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token).ConfigureAwait(false);
 
 				if (processSavedata)
 				{
-					if (backupSavedata.Exists())
+					if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
 					{
 						OnStatusChanged(this,
 							Application.Context.Resources.GetText(Resource.String.restore_saves));
 
-						await Utils.CopyFile(backupSavedata.Path, SavedataPath, SavedataFileName, token)
+						await Utils.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, token)
 							.ConfigureAwait(false);
 					}
 					else
@@ -67,19 +61,22 @@ namespace OkkeiPatcher
 				}
 
 				// Clear backup
-				if (backupApk.Exists()) backupApk.Delete();
-				if (backupObb.Exists()) backupObb.Delete();
+				if (System.IO.File.Exists(FilePaths[Files.BackupApk]))
+					System.IO.File.Delete(FilePaths[Files.BackupApk]);
+				if (System.IO.File.Exists(FilePaths[Files.BackupObb]))
+					System.IO.File.Delete(FilePaths[Files.BackupObb]);
 
-				if (backupSavedata.Exists())
+				if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
 				{
-					backupSavedata.Delete();
-					if (backupSavedataCopy.Exists())
+					System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
+					if (System.IO.File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
 					{
-						backupSavedataCopy.RenameTo(new Java.IO.File(FilePaths[Files.BackupSavedata]));
-						backupSavedataCopy = new Java.IO.File(FilePaths[Files.BackupSavedata]);
+						if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
+							System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
+						System.IO.File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
 
 						Preferences.Set(Prefkey.savedata_md5.ToString(),
-							await Utils.CalculateMD5(backupSavedataCopy.Path, token).ConfigureAwait(false));
+							await Utils.CalculateMD5(FilePaths[Files.BackupSavedata], token).ConfigureAwait(false));
 					}
 				}
 
@@ -90,19 +87,15 @@ namespace OkkeiPatcher
 			}
 			catch (OperationCanceledException)
 			{
-				if (backupSavedataCopy.Exists()) backupSavedataCopy.Delete();
-				if (appSavedata.Exists()) appSavedata.Delete();
+				if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
+					System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
+				if (System.IO.File.Exists(FilePaths[Files.OriginalSavedata]))
+					System.IO.File.Delete(FilePaths[Files.OriginalSavedata]);
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 			}
 			finally
 			{
-				backupApk.Dispose();
-				backupObb.Dispose();
-				backupSavedata.Dispose();
-				backupSavedataCopy.Dispose();
-				appSavedata.Dispose();
-
 				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 				IsRunning = false;
 			}
@@ -150,7 +143,7 @@ namespace OkkeiPatcher
 
 				if (processSavedata)
 				{
-					if (new Java.IO.File(FilePaths[Files.OriginalSavedata]).Exists())
+					if (System.IO.File.Exists(FilePaths[Files.OriginalSavedata]))
 					{
 						// Backup save data
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
@@ -186,7 +179,7 @@ namespace OkkeiPatcher
 					OnStatusChanged(null, Application.Context.Resources.GetText(Resource.String.installing));
 
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 							Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							() =>

@@ -67,6 +67,10 @@ namespace OkkeiPatcher
 
 		public static readonly string PrivateStorage = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
+		public static readonly string TempApkFileName = "base.apk";
+		public static readonly string BackupApkFileName = "backup.apk";
+		public static readonly string SignedApkFileName = "signed.apk";
+		public static readonly string ScriptsFileName = "scripts.zip";
 		public static readonly string SavedataFileName = "SAVEDATA.DAT";
 		public static readonly string SavedataBackupFileName = "SAVEDATA_BACKUP.DAT";
 		public static readonly string ChaosChildPackageName = "com.mages.chaoschild_jp";
@@ -91,10 +95,10 @@ namespace OkkeiPatcher
 			{Files.OriginalSavedata, Path.Combine(SavedataPath, SavedataFileName)},
 			{Files.SAVEDATA_BACKUP, Path.Combine(OkkeiFilesPathBackup, SavedataBackupFileName)},
 			{Files.BackupSavedata, Path.Combine(OkkeiFilesPathBackup, SavedataFileName)},
-			{Files.TempApk, Path.Combine(OkkeiFilesPath, "base.apk")},
-			{Files.BackupApk, Path.Combine(OkkeiFilesPathBackup, "backup.apk")},
-			{Files.SignedApk, Path.Combine(OkkeiFilesPath, "signed.apk")},
-			{Files.Scripts, Path.Combine(OkkeiFilesPath, "scripts.zip")},
+			{Files.TempApk, Path.Combine(OkkeiFilesPath, TempApkFileName)},
+			{Files.BackupApk, Path.Combine(OkkeiFilesPathBackup, BackupApkFileName)},
+			{Files.SignedApk, Path.Combine(OkkeiFilesPath, SignedApkFileName)},
+			{Files.Scripts, Path.Combine(OkkeiFilesPath, ScriptsFileName)},
 			{Files.ObbToBackup, Path.Combine(ObbPath, ObbFileName)},
 			{Files.ObbToReplace, Path.Combine(ObbPath, ObbFileName)},
 			{Files.BackupObb, Path.Combine(OkkeiFilesPathBackup, ObbFileName)}
