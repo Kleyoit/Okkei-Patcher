@@ -65,6 +65,11 @@
     <AndroidDexTool>d8</AndroidDexTool>
     <AndroidLinkTool>r8</AndroidLinkTool>
     <AndroidSupportedAbis>armeabi-v7a</AndroidSupportedAbis>
+    <AndroidKeyStore>true</AndroidKeyStore>
+    <AndroidSigningKeyAlias>solru</AndroidSigningKeyAlias>
+    <AndroidSigningKeyStore>C:\Users\Ilya Fomichev\AppData\Local\Xamarin\Mono for Android\Keystore\solru\solru.keystore</AndroidSigningKeyStore>
+    <AndroidSigningKeyPass>file:D:\!repos\Okkei Patcher (Release)\keystore password.txt</AndroidSigningKeyPass>
+    <AndroidSigningStorePass>file:D:\!repos\Okkei Patcher (Release)\keystore password.txt</AndroidSigningStorePass>
     <AndroidTlsProvider>
     </AndroidTlsProvider>
     <AndroidHttpClientHandlerType>System.Net.Http.HttpClientHandler</AndroidHttpClientHandlerType>
