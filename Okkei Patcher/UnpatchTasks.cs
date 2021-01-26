@@ -71,8 +71,6 @@ namespace OkkeiPatcher
 					System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
 					if (System.IO.File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
 					{
-						if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
-							System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
 						System.IO.File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
 
 						Preferences.Set(Prefkey.savedata_md5.ToString(),
