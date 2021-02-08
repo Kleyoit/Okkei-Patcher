@@ -73,6 +73,7 @@ namespace OkkeiPatcher
 					{
 						System.IO.File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
 
+						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_saves_md5));
 						Preferences.Set(Prefkey.savedata_md5.ToString(),
 							await Utils.CalculateMD5(FilePaths[Files.BackupSavedata], token).ConfigureAwait(false));
 					}
@@ -94,7 +95,7 @@ namespace OkkeiPatcher
 			}
 			finally
 			{
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 				IsRunning = false;
 			}
 		}
@@ -160,6 +161,7 @@ namespace OkkeiPatcher
 				}
 
 				OnStatusChanged(this, string.Empty);
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
 
 
 				// Uninstall CHAOS;CHILD and install backup, then restore OBB and save data if checked
@@ -186,13 +188,11 @@ namespace OkkeiPatcher
 									Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
 							}, null));
 				}
-
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
 			}
 			catch (OperationCanceledException)
 			{
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 				IsRunning = false;
 			}
 		}

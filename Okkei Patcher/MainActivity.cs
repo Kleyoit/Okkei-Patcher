@@ -81,14 +81,14 @@ namespace OkkeiPatcher
 
 					if (!await ManifestTasks.Instance.GetManifest(_cts.Token).WriteReportOnException()) return;
 
-					if (ManifestTasks.Instance.CheckPatchUpdate())
+					if (ManifestTasks.Instance.IsPatchUpdateAvailable)
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
 							FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
 							MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 								Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
-									ManifestTasks.Instance.GetPatchUpdateSizeInMB().ToString()),
+									ManifestTasks.Instance.PatchUpdateSizeInMB.ToString()),
 								Resources.GetText(Resource.String.dialog_ok), UpdateApp);
 						});
 						return;
@@ -100,13 +100,13 @@ namespace OkkeiPatcher
 
 		private void UpdateApp()
 		{
-			if (ManifestTasks.Instance.CheckAppUpdate())
+			if (ManifestTasks.Instance.IsAppUpdateAvailable)
 				MainThread.BeginInvokeOnMainThread(() =>
 				{
 					MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 						Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
 							AppInfo.VersionString,
-							ManifestTasks.Instance.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
+							Utils.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
 							GlobalManifest.OkkeiPatcher.Changelog),
 						Resources.GetText(Resource.String.dialog_update),
 						Resources.GetText(Resource.String.dialog_cancel),
@@ -421,7 +421,7 @@ namespace OkkeiPatcher
 						_cts = new CancellationTokenSource();
 
 						patchButton.Enabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false) ||
-						                      ManifestTasks.Instance.CheckPatchUpdate();
+						                      ManifestTasks.Instance.IsPatchUpdateAvailable;
 						patchButton.Text = Resources.GetText(Resource.String.patch);
 						FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 						FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
@@ -453,7 +453,10 @@ namespace OkkeiPatcher
 		{
 			var progress = e.Progress;
 			var max = e.Max;
+			var isIndeterminate = e.IsIndeterminate;
 			var progressBar = FindCachedViewById<ProgressBar>(Resource.Id.progressBar);
+			if (progressBar.Indeterminate != isIndeterminate)
+				MainThread.BeginInvokeOnMainThread(() => progressBar.Indeterminate = isIndeterminate);
 			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => progressBar.Max = max);
 			MainThread.BeginInvokeOnMainThread(() => progressBar.Progress = progress);
 		}
@@ -480,9 +483,9 @@ namespace OkkeiPatcher
 						{
 							MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 								Java.Lang.String.Format(Resources.GetText(Resource.String.download_size_warning),
-									ManifestTasks.Instance.CheckPatchUpdate()
-										? ManifestTasks.Instance.GetPatchUpdateSizeInMB()
-										: ManifestTasks.Instance.GetPatchSizeInMB()),
+									ManifestTasks.Instance.IsPatchUpdateAvailable
+										? ManifestTasks.Instance.PatchUpdateSizeInMB
+										: Utils.GetPatchSizeInMB()),
 								Resources.GetText(Resource.String.dialog_ok),
 								Resources.GetText(Resource.String.dialog_cancel),
 								() =>
