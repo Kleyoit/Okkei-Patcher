@@ -194,7 +194,6 @@ namespace OkkeiPatcher
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
-			Platform.Init(this, savedInstanceState);
 			SetContentView(Resource.Layout.activity_main);
 
 
@@ -287,8 +286,6 @@ namespace OkkeiPatcher
 		public override void OnRequestPermissionsResult(int requestCode, string[] permissions,
 			[GeneratedEnum] Permission[] grantResults)
 		{
-			Platform.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
 			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
 
