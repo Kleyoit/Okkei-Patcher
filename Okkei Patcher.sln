@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Okkei Patcher", "Okkei Patc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SignApk", "SignApk\SignApk.csproj", "{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.Essentials", "Xamarin.Essentials\Xamarin.Essentials.csproj", "{4D992991-42A5-4981-BC72-407FC12D5CDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,14 @@ Global
 		{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}.Release|x86.ActiveCfg = Release|Any CPU
 		{C387AC4A-A77F-4181-8AB0-FEB92BE202A5}.Release|x86.Build.0 = Release|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Debug|x86.Build.0 = Debug|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Release|x86.ActiveCfg = Release|Any CPU
+		{4D992991-42A5-4981-BC72-407FC12D5CDD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
