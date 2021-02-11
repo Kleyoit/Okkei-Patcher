@@ -35,7 +35,7 @@ namespace OkkeiPatcher
 			var buffer = new byte[bufferLength];
 			int length;
 
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
 
 			var progressMax = (int) Math.Ceiling((double) stream.Length / bufferLength);
 			var progress = 0;
@@ -47,7 +47,7 @@ namespace OkkeiPatcher
 					md5.TransformBlock(buffer, 0, bufferLength, buffer, 0);
 				else
 					md5.TransformFinalBlock(buffer, 0, length);
-				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
+				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax, false));
 			}
 
 			token.ThrowIfCancellationRequested();
@@ -177,7 +177,7 @@ namespace OkkeiPatcher
 
 		public static void NotifyInstallFailed()
 		{
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
 			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
 			MessageGenerated?.Invoke(null, new MessageBox.Data(
 				Application.Context.Resources.GetText(Resource.String.error),
@@ -202,6 +202,8 @@ namespace OkkeiPatcher
 			else if (ManifestTasks.Instance.IsRunning)
 			{
 				//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
+				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
+				StatusChanged?.Invoke(null, string.Empty);
 				TaskFinished?.Invoke(null, EventArgs.Empty);
 			}
 		}
@@ -215,7 +217,7 @@ namespace OkkeiPatcher
 
 		public static async Task OnUninstallResult(Activity activity, CancellationToken token)
 		{
-			if (IsAppInstalled(ChaosChildPackageName) && !ManifestTasks.Instance.CheckScriptsUpdate())
+			if (IsAppInstalled(ChaosChildPackageName) && !ManifestTasks.Instance.IsScriptsUpdateAvailable)
 			{
 				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
 				MessageGenerated?.Invoke(null, new MessageBox.Data(
@@ -315,7 +317,7 @@ namespace OkkeiPatcher
 				}
 				catch (System.OperationCanceledException)
 				{
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
 					StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
 					TaskFinished?.Invoke(null, EventArgs.Empty);
 				}
@@ -328,7 +330,7 @@ namespace OkkeiPatcher
 			var buffer = new byte[bufferLength];
 			int length;
 
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100));
+			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
 
 			Directory.CreateDirectory(outFilePath);
 			var outPath = Path.Combine(outFilePath, outFileName);
@@ -348,7 +350,7 @@ namespace OkkeiPatcher
 				{
 					output.Write(buffer, 0, length);
 					++progress;
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax, false));
 				}
 
 				inputStream.Dispose();
@@ -363,7 +365,7 @@ namespace OkkeiPatcher
 				{
 					output.Write(buffer, 0, length);
 					++progress;
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax));
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax, false));
 				}
 
 				inputFile.Dispose();
@@ -420,7 +422,7 @@ namespace OkkeiPatcher
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
 					output.Write(buffer, 0, length);
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength));
+					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength, false));
 				}
 			}
 			finally
@@ -516,6 +518,18 @@ namespace OkkeiPatcher
 				WriteBugReport(ex);
 				return default;
 			}
+		}
+
+		public static int GetPatchSizeInMB()
+		{
+			var scriptsSize = (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000);
+			var obbSize = (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000);
+			return scriptsSize + obbSize;
+		}
+
+		public static double GetAppUpdateSizeInMB()
+		{
+			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double)0x100000, 2);
 		}
 	}
 }

@@ -22,6 +22,85 @@ namespace OkkeiPatcher
 			PatchTasks.Instance.PropertyChanged += PatchTasksOnPropertyChanged;
 		}
 
+		public static bool IsInstantiated => instance.IsValueCreated;
+
+		public static ManifestTasks Instance => instance.Value;
+
+		public bool IsAppUpdateAvailable
+		{
+			get
+			{
+				int appVersion;
+				if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+					appVersion = (int) Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0)
+						.LongVersionCode;
+				else
+					appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
+				IsRunning = false;
+				return GlobalManifest.OkkeiPatcher.Version > appVersion;
+			}
+		}
+
+		public bool IsScriptsUpdateAvailable
+		{
+			get
+			{
+				if (_scriptsUpdateAvailable != null) return _scriptsUpdateAvailable.Value;
+				if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+				{
+					if (!Preferences.ContainsKey(Prefkey.scripts_version.ToString()))
+						Preferences.Set(Prefkey.scripts_version.ToString(), 1);
+				}
+				else
+				{
+					_scriptsUpdateAvailable = false;
+					return _scriptsUpdateAvailable.Value;
+				}
+
+				var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
+				_scriptsUpdateAvailable = GlobalManifest.Scripts.Version > scriptsVersion;
+				return _scriptsUpdateAvailable.Value;
+			}
+		}
+
+		public bool IsObbUpdateAvailable
+		{
+			get
+			{
+				if (_obbUpdateAvailable != null) return _obbUpdateAvailable.Value;
+				if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
+				{
+					if (!Preferences.ContainsKey(Prefkey.obb_version.ToString()))
+						Preferences.Set(Prefkey.obb_version.ToString(), 1);
+				}
+				else
+				{
+					_obbUpdateAvailable = false;
+					return _obbUpdateAvailable.Value;
+				}
+
+				var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
+				_obbUpdateAvailable = GlobalManifest.Obb.Version > obbVersion;
+				return _obbUpdateAvailable.Value;
+			}
+		}
+
+		public bool IsPatchUpdateAvailable => IsScriptsUpdateAvailable || IsObbUpdateAvailable;
+
+		public int PatchUpdateSizeInMB
+		{
+			get
+			{
+				var scriptsSize = IsScriptsUpdateAvailable
+					? (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000)
+					: 0;
+				var obbSize = IsObbUpdateAvailable
+					? (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000)
+					: 0;
+				return scriptsSize + obbSize;
+			}
+		}
+
 		private void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning) && !PatchTasks.Instance.IsRunning)
@@ -70,6 +149,8 @@ namespace OkkeiPatcher
 
 				await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
 					.ConfigureAwait(false);
+
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
 
 				OkkeiManifest manifest;
 				try
@@ -140,7 +221,7 @@ namespace OkkeiPatcher
 			}
 			finally
 			{
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 			}
 
 			IsRunning = false;
@@ -177,10 +258,12 @@ namespace OkkeiPatcher
 							null, null));
 					OnErrorOccurred(this, EventArgs.Empty);
 					IsRunning = false;
+					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 				}
 				else
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 							Application.Context.Resources.GetText(Resource.String.update_app_attention),
@@ -208,89 +291,13 @@ namespace OkkeiPatcher
 							null, null));
 				OnErrorOccurred(this, EventArgs.Empty);
 				IsRunning = false;
-			}
-			finally
-			{
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
-			}
-		}
-
-		public virtual bool CheckAppUpdate()
-		{
-			int appVersion;
-			if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
-				appVersion = (int) Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0)
-					.LongVersionCode;
-			else
-				appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
-			IsRunning = false;
-			return GlobalManifest.OkkeiPatcher.Version > appVersion;
-		}
-
-		public virtual bool CheckScriptsUpdate()
-		{
-			if (_scriptsUpdateAvailable != null) return _scriptsUpdateAvailable.Value;
-			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-			{
-				if (!Preferences.ContainsKey(Prefkey.scripts_version.ToString()))
-					Preferences.Set(Prefkey.scripts_version.ToString(), 1);
-			}
-			else
-			{
-				_scriptsUpdateAvailable = false;
-				return _scriptsUpdateAvailable.Value;
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 			}
 
-			var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
-			_scriptsUpdateAvailable = GlobalManifest.Scripts.Version > scriptsVersion;
-			return _scriptsUpdateAvailable.Value;
-		}
-
-		public virtual bool CheckObbUpdate()
+		public static void SetInstanceFactory(Func<BaseManifestTasks> factory)
 		{
-			if (_obbUpdateAvailable != null) return _obbUpdateAvailable.Value;
-			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-			{
-				if (!Preferences.ContainsKey(Prefkey.obb_version.ToString()))
-					Preferences.Set(Prefkey.obb_version.ToString(), 1);
-			}
-			else
-			{
-				_obbUpdateAvailable = false;
-				return _obbUpdateAvailable.Value;
-			}
-
-			var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
-			_obbUpdateAvailable = GlobalManifest.Obb.Version > obbVersion;
-			return _obbUpdateAvailable.Value;
-		}
-
-		public bool CheckPatchUpdate()
-		{
-			return CheckScriptsUpdate() || CheckObbUpdate();
-		}
-
-		public virtual int GetPatchUpdateSizeInMB()
-		{
-			var scriptsSize = CheckScriptsUpdate()
-				? (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000)
-				: 0;
-			var obbSize = CheckObbUpdate()
-				? (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000)
-				: 0;
-			return scriptsSize + obbSize;
-		}
-
-		public virtual int GetPatchSizeInMB()
-		{
-			var scriptsSize = (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000);
-			var obbSize = (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000);
-			return scriptsSize + obbSize;
-		}
-
-		public virtual double GetAppUpdateSizeInMB()
-		{
-			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
+			_instance = new Lazy<BaseManifestTasks>(factory);
+>>>>>>>> merge:Okkei Patcher/ManifestTasks.cs
 		}
 	}
 }

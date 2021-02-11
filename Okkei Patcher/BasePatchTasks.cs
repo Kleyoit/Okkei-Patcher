@@ -20,7 +20,7 @@ namespace OkkeiPatcher
 
 			try
 			{
-				if (SaveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.CheckPatchUpdate() &&
+				if (_saveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable &&
 				    File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
 				{
 					OnStatusChanged(this,
@@ -33,17 +33,17 @@ namespace OkkeiPatcher
 						SavedataFileName, token).ConfigureAwait(false);
 				}
 
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
-				if (ManifestTasks.Instance.CheckObbUpdate() && File.Exists(FilePaths[Files.ObbToReplace]))
+				if (ManifestTasks.Instance.IsObbUpdateAvailable && File.Exists(FilePaths[Files.ObbToReplace]))
 					File.Delete(FilePaths[Files.ObbToReplace]);
 
-				if (!ManifestTasks.Instance.CheckPatchUpdate())
+				if (!ManifestTasks.Instance.IsPatchUpdateAvailable)
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-				if ((ManifestTasks.Instance.CheckObbUpdate() || !ManifestTasks.Instance.CheckScriptsUpdate()) &&
-					(!File.Exists(FilePaths[Files.ObbToReplace]) ||
-					 !await Utils.CompareMD5(Files.ObbToReplace, token).ConfigureAwait(false)))
+				if ((ManifestTasks.Instance.IsObbUpdateAvailable || !ManifestTasks.Instance.IsScriptsUpdateAvailable) &&
+				    (!File.Exists(FilePaths[Files.ObbToReplace]) ||
+				     !await Utils.CompareMD5(Files.ObbToReplace, token).ConfigureAwait(false)))
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_obb));
 
@@ -88,7 +88,7 @@ namespace OkkeiPatcher
 			}
 			catch (OperationCanceledException)
 			{
-				if (SaveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.CheckPatchUpdate() &&
+				if (_saveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable &&
 				    File.Exists(FilePaths[Files.BackupSavedata]))
 					File.Delete(FilePaths[Files.BackupSavedata]);
 
@@ -96,7 +96,7 @@ namespace OkkeiPatcher
 			}
 			finally
 			{
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 				IsRunning = false;
 			}
 		}
@@ -106,7 +106,7 @@ namespace OkkeiPatcher
 			IsRunning = true;
 			SaveDataBackupFromOldPatch = false;
 
-			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
 			try
 			{
@@ -114,7 +114,7 @@ namespace OkkeiPatcher
 
 				var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
-				if (isPatched && !ManifestTasks.Instance.CheckPatchUpdate())
+				if (isPatched && !ManifestTasks.Instance.IsPatchUpdateAvailable)
 				{
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
@@ -148,9 +148,9 @@ namespace OkkeiPatcher
 
 
 				// Backup save data
-				if (processSavedata && !ManifestTasks.Instance.CheckPatchUpdate())
+				if (processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable)
 				{
-					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
 					if (File.Exists(FilePaths[Files.BackupSavedata]))
 						if (await Utils.CompareMD5(Files.BackupSavedata, token).ConfigureAwait(false))
@@ -192,8 +192,8 @@ namespace OkkeiPatcher
 					}
 				}
 
-				if ((!ManifestTasks.Instance.CheckObbUpdate() || ManifestTasks.Instance.CheckScriptsUpdate()) &&
-					(!File.Exists(FilePaths[Files.SignedApk]) || !File.Exists(FilePaths[Files.BackupApk])))
+				if ((!ManifestTasks.Instance.IsObbUpdateAvailable || ManifestTasks.Instance.IsScriptsUpdateAvailable) &&
+				    (!File.Exists(FilePaths[Files.SignedApk]) || !File.Exists(FilePaths[Files.BackupApk])))
 				{
 					// Get installed CHAOS;CHILD APK
 					var originalApkPath = Application.Context.PackageManager
@@ -208,12 +208,12 @@ namespace OkkeiPatcher
 
 
 					// Backup APK
-					if (File.Exists(FilePaths[Files.TempApk]) && !ManifestTasks.Instance.CheckPatchUpdate())
+					if (File.Exists(FilePaths[Files.TempApk]) && !ManifestTasks.Instance.IsPatchUpdateAvailable)
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
 						if (!File.Exists(FilePaths[Files.BackupApk]) ||
-							!await Utils.CompareMD5(Files.TempApk, token).ConfigureAwait(false))
+						    !await Utils.CompareMD5(Files.TempApk, token).ConfigureAwait(false))
 						{
 							OnStatusChanged(this,
 								Application.Context.Resources.GetText(Resource.String.backup_apk));
@@ -229,15 +229,15 @@ namespace OkkeiPatcher
 						}
 					}
 
-					if (ManifestTasks.Instance.CheckScriptsUpdate() || !ManifestTasks.Instance.CheckObbUpdate())
+					if (ManifestTasks.Instance.IsScriptsUpdateAvailable || !ManifestTasks.Instance.IsObbUpdateAvailable)
 					{
 						// Download scripts
-						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 						OnStatusChanged(this,
 							Application.Context.Resources.GetText(Resource.String.compare_scripts));
 
 						if (!File.Exists(FilePaths[Files.Scripts]) ||
-							!await Utils.CompareMD5(Files.Scripts, token).ConfigureAwait(false))
+						    !await Utils.CompareMD5(Files.Scripts, token).ConfigureAwait(false))
 						{
 							OnStatusChanged(this,
 								Application.Context.Resources.GetText(Resource.String.download_scripts));
@@ -286,7 +286,7 @@ namespace OkkeiPatcher
 
 
 						// Extract scripts
-						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
 						var fastZip = new FastZip();
 						string fileFilter = null;
@@ -297,7 +297,7 @@ namespace OkkeiPatcher
 						fastZip.ExtractZip(FilePaths[Files.Scripts], Path.Combine(OkkeiFilesPath, "scripts"),
 							fileFilter);
 
-						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+						OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
 
 						// Replace scripts
@@ -316,9 +316,10 @@ namespace OkkeiPatcher
 						{
 							zipFile.Add(scriptfile, "assets/script/" + Path.GetFileName(scriptfile));
 							++progress;
-							OnProgressChanged(this, new ProgressChangedEventArgs(progress, scriptsCount));
+							OnProgressChanged(this, new ProgressChangedEventArgs(progress, scriptsCount, false));
 						}
 
+						OnProgressChanged(this, new ProgressChangedEventArgs(progress, scriptsCount, true));
 
 						// Remove APK signature
 						foreach (ZipEntry ze in zipFile)
@@ -371,17 +372,17 @@ namespace OkkeiPatcher
 					}
 				}
 
-				if (!ManifestTasks.Instance.CheckPatchUpdate())
+				if (!ManifestTasks.Instance.IsPatchUpdateAvailable)
 				{
 					// Backup OBB
-					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
 					if (File.Exists(FilePaths[Files.ObbToBackup]))
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
 						if (!File.Exists(FilePaths[Files.BackupObb]) ||
-							!await Utils.CompareMD5(Files.ObbToBackup, token).ConfigureAwait(false))
+						    !await Utils.CompareMD5(Files.ObbToBackup, token).ConfigureAwait(false))
 						{
 							OnStatusChanged(this,
 								Application.Context.Resources.GetText(Resource.String.backup_obb));
@@ -409,25 +410,25 @@ namespace OkkeiPatcher
 				}
 
 				OnStatusChanged(null, string.Empty);
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
 
-				if (!ManifestTasks.Instance.CheckPatchUpdate())
+				if (!ManifestTasks.Instance.IsPatchUpdateAvailable)
 					// Uninstall and install patched CHAOS;CHILD, then restore save data if exists and checked, after that download OBB
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 							Application.Context.Resources.GetText(Resource.String.uninstall_prompt_patch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
-				else if (ManifestTasks.Instance.CheckScriptsUpdate())
+				else if (ManifestTasks.Instance.IsScriptsUpdateAvailable)
 					await Utils.OnUninstallResult(activity, token).ConfigureAwait(false);
-				else if (ManifestTasks.Instance.CheckObbUpdate())
+				else if (ManifestTasks.Instance.IsObbUpdateAvailable)
 					Utils.OnInstallSuccess(false, token);
 			}
 			catch (OperationCanceledException)
 			{
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100));
+				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 				IsRunning = false;
 			}
 			finally
