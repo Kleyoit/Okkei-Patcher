@@ -422,7 +422,8 @@ namespace OkkeiPatcher
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
 					output.Write(buffer, 0, length);
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs((int) output.Length, contentLength, false));
+					ProgressChanged?.Invoke(null,
+						new ProgressChangedEventArgs((int) output.Length, contentLength, false));
 				}
 			}
 			finally
@@ -529,7 +530,7 @@ namespace OkkeiPatcher
 
 		public static double GetAppUpdateSizeInMB()
 		{
-			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double)0x100000, 2);
+			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
 		}
 	}
 }
