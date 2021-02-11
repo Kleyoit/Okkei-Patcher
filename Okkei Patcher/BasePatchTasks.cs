@@ -20,7 +20,7 @@ namespace OkkeiPatcher
 
 			try
 			{
-				if (_saveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable &&
+				if (SaveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable &&
 				    File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
 				{
 					OnStatusChanged(this,
@@ -88,7 +88,7 @@ namespace OkkeiPatcher
 			}
 			catch (OperationCanceledException)
 			{
-				if (_saveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable &&
+				if (SaveDataBackupFromOldPatch && processSavedata && !ManifestTasks.Instance.IsPatchUpdateAvailable &&
 				    File.Exists(FilePaths[Files.BackupSavedata]))
 					File.Delete(FilePaths[Files.BackupSavedata]);
 

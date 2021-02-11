@@ -22,10 +22,6 @@ namespace OkkeiPatcher
 			PatchTasks.Instance.PropertyChanged += PatchTasksOnPropertyChanged;
 		}
 
-		public static bool IsInstantiated => instance.IsValueCreated;
-
-		public static ManifestTasks Instance => instance.Value;
-
 		public bool IsAppUpdateAvailable
 		{
 			get
@@ -293,11 +289,6 @@ namespace OkkeiPatcher
 				IsRunning = false;
 				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 			}
-
-		public static void SetInstanceFactory(Func<BaseManifestTasks> factory)
-		{
-			_instance = new Lazy<BaseManifestTasks>(factory);
->>>>>>>> merge:Okkei Patcher/ManifestTasks.cs
 		}
 	}
 }
