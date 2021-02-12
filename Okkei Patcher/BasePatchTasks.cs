@@ -152,14 +152,14 @@ namespace OkkeiPatcher
 				{
 					OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 
-					if (File.Exists(FilePaths[Files.BackupSavedata]))
-						if (await Utils.CompareMD5(Files.BackupSavedata, token).ConfigureAwait(false))
-						{
-							SaveDataBackupFromOldPatch = true;
-							if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
-								File.Delete(FilePaths[Files.SAVEDATA_BACKUP]);
-							File.Move(FilePaths[Files.BackupSavedata], FilePaths[Files.SAVEDATA_BACKUP]);
-						}
+					if (File.Exists(FilePaths[Files.BackupSavedata]) &&
+					    await Utils.CompareMD5(Files.BackupSavedata, token).ConfigureAwait(false))
+					{
+						SaveDataBackupFromOldPatch = true;
+						if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
+							File.Delete(FilePaths[Files.SAVEDATA_BACKUP]);
+						File.Move(FilePaths[Files.BackupSavedata], FilePaths[Files.SAVEDATA_BACKUP]);
+					}
 
 					if (File.Exists(FilePaths[Files.OriginalSavedata]))
 					{

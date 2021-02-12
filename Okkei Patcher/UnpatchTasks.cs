@@ -173,21 +173,20 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.uninstall_prompt_unpatch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
+					return;
 				}
-				else
-				{
-					OnStatusChanged(null, Application.Context.Resources.GetText(Resource.String.installing));
 
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-							Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							() =>
-							{
-								MainThread.BeginInvokeOnMainThread(() => Utils.InstallPackage(activity,
-									Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
-							}, null));
-				}
+				OnStatusChanged(null, Application.Context.Resources.GetText(Resource.String.installing));
+
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+						Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+						() =>
+						{
+							MainThread.BeginInvokeOnMainThread(() => Utils.InstallPackage(activity,
+								Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
+						}, null));
 			}
 			catch (OperationCanceledException)
 			{

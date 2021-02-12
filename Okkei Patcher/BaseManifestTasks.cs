@@ -46,15 +46,12 @@ namespace OkkeiPatcher
 				{
 					if (!Preferences.ContainsKey(Prefkey.scripts_version.ToString()))
 						Preferences.Set(Prefkey.scripts_version.ToString(), 1);
-				}
-				else
-				{
-					_scriptsUpdateAvailable = false;
+					var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
+					_scriptsUpdateAvailable = GlobalManifest.Scripts.Version > scriptsVersion;
 					return _scriptsUpdateAvailable.Value;
 				}
 
-				var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
-				_scriptsUpdateAvailable = GlobalManifest.Scripts.Version > scriptsVersion;
+				_scriptsUpdateAvailable = false;
 				return _scriptsUpdateAvailable.Value;
 			}
 		}
@@ -68,15 +65,12 @@ namespace OkkeiPatcher
 				{
 					if (!Preferences.ContainsKey(Prefkey.obb_version.ToString()))
 						Preferences.Set(Prefkey.obb_version.ToString(), 1);
-				}
-				else
-				{
-					_obbUpdateAvailable = false;
+					var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
+					_obbUpdateAvailable = GlobalManifest.Obb.Version > obbVersion;
 					return _obbUpdateAvailable.Value;
 				}
 
-				var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
-				_obbUpdateAvailable = GlobalManifest.Obb.Version > obbVersion;
+				_obbUpdateAvailable = false;
 				return _obbUpdateAvailable.Value;
 			}
 		}
@@ -99,11 +93,10 @@ namespace OkkeiPatcher
 
 		private void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName == nameof(PatchTasks.Instance.IsRunning) && !PatchTasks.Instance.IsRunning)
-			{
-				_scriptsUpdateAvailable = false;
-				_obbUpdateAvailable = false;
-			}
+			if (e.PropertyName != nameof(PatchTasks.Instance.IsRunning) || PatchTasks.Instance.IsRunning)
+				return;
+			_scriptsUpdateAvailable = false;
+			_obbUpdateAvailable = false;
 		}
 
 		public virtual bool VerifyManifest(OkkeiManifest manifest)

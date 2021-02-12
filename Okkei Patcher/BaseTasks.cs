@@ -23,11 +23,9 @@ namespace OkkeiPatcher
 			get => _isRunning;
 			protected set
 			{
-				if (value != _isRunning)
-				{
-					_isRunning = value;
-					NotifyPropertyChanged();
-				}
+				if (value == _isRunning) return;
+				_isRunning = value;
+				NotifyPropertyChanged();
 			}
 		}
 
