@@ -50,7 +50,7 @@ namespace OkkeiPatcher
 
 		private bool RequestInstallPackagesPermission()
 		{
-			if (Build.VERSION.SdkInt < BuildVersionCodes.O || !PackageManager.CanRequestPackageInstalls())
+			if (Build.VERSION.SdkInt < BuildVersionCodes.O || PackageManager.CanRequestPackageInstalls())
 				return true;
 
 			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
