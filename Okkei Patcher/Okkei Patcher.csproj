@@ -82,12 +82,14 @@
   <ItemGroup>
     <Compile Include="BaseTasks.cs" />
     <Compile Include="MainActivity.cs" />
+    <Compile Include="BaseManifestTasks.cs" />
     <Compile Include="ManifestTasks.cs" />
     <Compile Include="MessageBox.cs" />
     <Compile Include="FileInfo.cs" />
     <Compile Include="OkkeiManifest.cs" />
     <Compile Include="OkkeiPatcherInfo.cs" />
     <Compile Include="PackageInstallObserver.cs" />
+    <Compile Include="BasePatchTasks.cs" />
     <Compile Include="PatchTasks.cs" />
     <Compile Include="ProgressChangedEventArgs.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
