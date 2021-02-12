@@ -226,101 +226,95 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 					null, null));
 				TaskFinished?.Invoke(null, EventArgs.Empty);
+				return;
 			}
-			else
+
+			// Install APK
+			var apkMd5 = string.Empty;
+			var path = string.Empty;
+			var message = string.Empty;
+
+			if (PatchTasks.Instance.IsRunning)
 			{
-				// Install APK
-				var apkMd5 = string.Empty;
-				var path = string.Empty;
-				var message = string.Empty;
+				if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
+					apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
+				path = FilePaths[Files.SignedApk];
+				message = Application.Context.Resources.GetText(Resource.String.install_prompt_patch);
+			}
+			else if (UnpatchTasks.Instance.IsRunning)
+			{
+				if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
+					apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), string.Empty);
+				path = FilePaths[Files.BackupApk];
+				message = Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch);
+			}
+
+			try
+			{
+				if (System.IO.File.Exists(path))
+				{
+					StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
+
+					var apkFileMd5 = await CalculateMD5(path, token).ConfigureAwait(false);
+
+					if (apkMd5 == apkFileMd5)
+					{
+						StatusChanged?.Invoke(null,
+							Application.Context.Resources.GetText(Resource.String.installing));
+
+						MessageGenerated?.Invoke(null,
+							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+								message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+								() => MainThread.BeginInvokeOnMainThread(() =>
+									InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))),
+								null));
+						return;
+					}
+
+					System.IO.File.Delete(path);
+
+					if (PatchTasks.Instance.IsRunning)
+						MessageGenerated?.Invoke(null, new MessageBox.Data(
+							Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_patch),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok),
+							null,
+							null, null));
+
+					else if (UnpatchTasks.Instance.IsRunning)
+						MessageGenerated?.Invoke(null, new MessageBox.Data(
+							Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_unpatch),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok),
+							null,
+							null, null));
+
+					ErrorOccurred?.Invoke(null, EventArgs.Empty);
+					throw new System.OperationCanceledException("The operation was canceled.", token);
+				}
 
 				if (PatchTasks.Instance.IsRunning)
-				{
-					if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
-						apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
-					path = FilePaths[Files.SignedApk];
-					message = Application.Context.Resources.GetText(Resource.String.install_prompt_patch);
-				}
+					MessageGenerated?.Invoke(null,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null));
+
 				else if (UnpatchTasks.Instance.IsRunning)
-				{
-					if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
-						apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), string.Empty);
-					path = FilePaths[Files.BackupApk];
-					message = Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch);
-				}
+					MessageGenerated?.Invoke(null,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							null, null));
 
-				try
-				{
-					if (System.IO.File.Exists(path))
-					{
-						StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
-
-						var apkFileMd5 = await CalculateMD5(path, token).ConfigureAwait(false);
-
-						if (apkMd5 == apkFileMd5)
-						{
-							StatusChanged?.Invoke(null,
-								Application.Context.Resources.GetText(Resource.String.installing));
-
-							MessageGenerated?.Invoke(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-									message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									() => MainThread.BeginInvokeOnMainThread(() =>
-										InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))),
-									null));
-						}
-						else
-						{
-							System.IO.File.Delete(path);
-
-							if (PatchTasks.Instance.IsRunning)
-								MessageGenerated?.Invoke(null, new MessageBox.Data(
-									Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String
-										.not_trustworthy_apk_patch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok),
-									null,
-									null, null));
-
-							else if (UnpatchTasks.Instance.IsRunning)
-								MessageGenerated?.Invoke(null, new MessageBox.Data(
-									Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String
-										.not_trustworthy_apk_unpatch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok),
-									null,
-									null, null));
-
-							ErrorOccurred?.Invoke(null, EventArgs.Empty);
-							throw new System.OperationCanceledException("The operation was canceled.", token);
-						}
-					}
-					else
-					{
-						if (PatchTasks.Instance.IsRunning)
-							MessageGenerated?.Invoke(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null));
-
-						else if (UnpatchTasks.Instance.IsRunning)
-							MessageGenerated?.Invoke(null,
-								new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-									Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
-									Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-									null, null));
-
-						ErrorOccurred?.Invoke(null, EventArgs.Empty);
-						throw new System.OperationCanceledException("The operation was canceled.", token);
-					}
-				}
-				catch (System.OperationCanceledException)
-				{
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
-					StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-					TaskFinished?.Invoke(null, EventArgs.Empty);
-				}
+				ErrorOccurred?.Invoke(null, EventArgs.Empty);
+				throw new System.OperationCanceledException("The operation was canceled.", token);
+			}
+			catch (System.OperationCanceledException)
+			{
+				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
+				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
+				TaskFinished?.Invoke(null, EventArgs.Empty);
 			}
 		}
 
