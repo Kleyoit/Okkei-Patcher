@@ -219,6 +219,7 @@ namespace OkkeiPatcher
 		{
 			if (IsAppInstalled(ChaosChildPackageName) && !ManifestTasks.Instance.IsScriptsUpdateAvailable)
 			{
+				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
 				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
 				MessageGenerated?.Invoke(null, new MessageBox.Data(
 					Application.Context.Resources.GetText(Resource.String.error),
