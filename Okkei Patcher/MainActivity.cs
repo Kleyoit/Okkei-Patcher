@@ -498,7 +498,7 @@ namespace OkkeiPatcher
 
 								var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 								var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
-								var obbUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
+								var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
 								PatchTools.Value.Start(this, savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
 									_cancelTokenSource.Token);
 							}, null);
