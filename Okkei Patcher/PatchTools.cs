@@ -15,7 +15,7 @@ namespace OkkeiPatcher
 	{
 		private bool _saveDataBackupFromOldPatch;
 
-		public override async Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
+		protected override async Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
@@ -107,7 +107,14 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public async Task Start(Activity activity, bool processSavedata, bool scriptsUpdate, bool obbUpdate,
+		public void Start(Activity activity, bool processSavedata, bool scriptsUpdate, bool obbUpdate,
+			CancellationToken token)
+		{
+			Task.Run(() =>
+				StartPrivate(activity, processSavedata, scriptsUpdate, obbUpdate, token).OnException(WriteBugReport));
+		}
+
+		private async Task StartPrivate(Activity activity, bool processSavedata, bool scriptsUpdate, bool obbUpdate,
 			CancellationToken token)
 		{
 			IsRunning = true;

@@ -129,6 +129,7 @@ namespace OkkeiPatcher
 
 		public abstract Task OnUninstallResult(Activity activity, bool scriptsUpdate, CancellationToken token);
 
-		public abstract Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate, CancellationToken token);
+		protected abstract Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
+			CancellationToken token);
 	}
 }

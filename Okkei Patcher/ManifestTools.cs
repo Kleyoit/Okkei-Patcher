@@ -280,7 +280,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public override Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate, CancellationToken token)
+		protected override Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate, CancellationToken token)
 		{
 			if (!IsRunning) return Task.CompletedTask;
 			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);

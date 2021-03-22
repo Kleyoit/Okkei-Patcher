@@ -499,10 +499,8 @@ namespace OkkeiPatcher
 								var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 								var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
 								var obbUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
-								Task.Run(() =>
-									PatchTools.Value.Start(this, savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
-											_cancelTokenSource.Token)
-										.OnException(ex => PatchTools.Value.WriteBugReport(ex)));
+								PatchTools.Value.Start(this, savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
+									_cancelTokenSource.Token);
 							}, null);
 					}, null);
 				return;
@@ -550,9 +548,7 @@ namespace OkkeiPatcher
 						}
 
 						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-						Task.Run(
-							() => UnpatchTools.Value.Start(this, savedataCheckbox.Checked, _cancelTokenSource.Token)
-								.OnException(ex => UnpatchTools.Value.WriteBugReport(ex)));
+						UnpatchTools.Value.Start(this, savedataCheckbox.Checked, _cancelTokenSource.Token);
 					}, null);
 				return;
 			}

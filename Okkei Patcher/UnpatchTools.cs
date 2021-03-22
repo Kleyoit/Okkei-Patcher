@@ -9,7 +9,7 @@ namespace OkkeiPatcher
 {
 	internal class UnpatchTools : ToolsBase
 	{
-		public override async Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
+		protected override async Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
@@ -94,7 +94,12 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public async Task Start(Activity activity, bool processSavedata, CancellationToken token)
+		public void Start(Activity activity, bool processSavedata, CancellationToken token)
+		{
+			Task.Run(() => StartPrivate(activity, processSavedata, token).OnException(WriteBugReport));
+		}
+
+		private async Task StartPrivate(Activity activity, bool processSavedata, CancellationToken token)
 		{
 			IsRunning = true;
 
