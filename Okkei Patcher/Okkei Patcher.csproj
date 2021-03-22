@@ -80,6 +80,7 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TaskExtensions.cs" />
     <Compile Include="BaseTasks.cs" />
     <Compile Include="MainActivity.cs" />
     <Compile Include="ManifestTasks.cs" />

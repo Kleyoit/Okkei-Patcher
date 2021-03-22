@@ -28,9 +28,14 @@ namespace OkkeiPatcher
 		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache =
 			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
 
+		private static readonly Lazy<PatchTasks> PatchTools = new Lazy<PatchTasks>(() => new PatchTasks());
+		private static readonly Lazy<UnpatchTasks> UnpatchTools = new Lazy<UnpatchTasks>(() => new UnpatchTasks());
+		private static readonly Lazy<ManifestTasks> ManifestTools = new Lazy<ManifestTasks>(() => new ManifestTasks());
+
 		private bool _backPressed;
 
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
+		private BaseTasks _currentToolsObject;
 		private int _lastBackPressedTimestamp;
 		private bool _patchTasksEventsSubscribed;
 		private bool _unpatchTasksEventsSubscribed;
@@ -71,22 +76,24 @@ namespace OkkeiPatcher
 				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
 				() => Task.Run(async () =>
 				{
-					ManifestTasks.Instance.StatusChanged += OnStatusChanged;
-					ManifestTasks.Instance.ProgressChanged += OnProgressChanged;
-					ManifestTasks.Instance.MessageGenerated += OnMessageGenerated;
-					ManifestTasks.Instance.ErrorOccurred += OnErrorOccurred_ManifestTasks;
-					ManifestTasks.Instance.PropertyChanged += OnPropertyChanged_ManifestTasks;
+					_currentToolsObject = ManifestTools.Value;
+					ManifestTools.Value.StatusChanged += OnStatusChanged;
+					ManifestTools.Value.ProgressChanged += OnProgressChanged;
+					ManifestTools.Value.MessageGenerated += OnMessageGenerated;
+					ManifestTools.Value.ErrorOccurred += OnErrorOccurred_ManifestTasks;
+					ManifestTools.Value.PropertyChanged += OnPropertyChanged_ManifestTasks;
 
-					if (!await ManifestTasks.Instance.GetManifest(_cancelTokenSource.Token).WriteReportOnException()) return;
+					if (!await ManifestTools.Value.GetManifest(_cancelTokenSource.Token)
+						.OnException(ex => ManifestTools.Value.WriteBugReport(ex))) return;
 
-					if (ManifestTasks.Instance.IsPatchUpdateAvailable)
+					if (ManifestTools.Value.IsPatchUpdateAvailable)
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
 							FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
 							MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 								Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
-									ManifestTasks.Instance.PatchUpdateSizeInMB.ToString()),
+									ManifestTools.Value.PatchUpdateSizeInMB.ToString()),
 								Resources.GetText(Resource.String.dialog_ok), UpdateApp);
 						});
 						return;
@@ -98,7 +105,7 @@ namespace OkkeiPatcher
 
 		private void UpdateApp()
 		{
-			if (!ManifestTasks.Instance.IsAppUpdateAvailable) return;
+			if (!ManifestTools.Value.IsAppUpdateAvailable) return;
 			MainThread.BeginInvokeOnMainThread(() =>
 				MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 					Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
@@ -108,7 +115,8 @@ namespace OkkeiPatcher
 					Resources.GetText(Resource.String.dialog_update),
 					Resources.GetText(Resource.String.dialog_cancel),
 					() => Task.Run(() =>
-						ManifestTasks.Instance.InstallAppUpdate(this, _cancelTokenSource.Token).WriteReportOnException()), null));
+						ManifestTools.Value.InstallAppUpdate(this, _cancelTokenSource.Token)
+							.OnException(ex => ManifestTools.Value.WriteBugReport(ex))), null));
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -144,17 +152,23 @@ namespace OkkeiPatcher
 					if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 					break;
 				case (int) RequestCodes.UninstallCode:
-					Task.Run(() => Utils.OnUninstallResult(this, _cancelTokenSource.Token).WriteReportOnException());
+					var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
+					Task.Run(() =>
+						_currentToolsObject.OnUninstallResult(this, scriptsUpdate, _cancelTokenSource.Token)
+							.OnException(ex => _currentToolsObject.WriteBugReport(ex)));
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
 					{
 						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-						Utils.OnInstallSuccess(savedataCheckbox.Checked, _cancelTokenSource.Token);
+						scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
+						var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
+						_currentToolsObject.OnInstallSuccess(savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
+							_cancelTokenSource.Token);
 						break;
 					}
 
-					Utils.NotifyInstallFailed();
+					_currentToolsObject.NotifyInstallFailed();
 					break;
 			}
 		}
@@ -175,7 +189,10 @@ namespace OkkeiPatcher
 					break;
 				case (int) PackageInstallStatus.Success:
 					var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-					Utils.OnInstallSuccess(savedataCheckbox.Checked, _cancelTokenSource.Token);
+					var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
+					var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
+					_currentToolsObject.OnInstallSuccess(savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
+						_cancelTokenSource.Token);
 					break;
 			}
 		}
@@ -329,12 +346,12 @@ namespace OkkeiPatcher
 
 		private void OnPropertyChanged_Patch(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName != nameof(PatchTasks.Instance.IsRunning)) return;
+			if (e.PropertyName != nameof(PatchTools.Value.IsRunning)) return;
 			MainThread.BeginInvokeOnMainThread(() =>
 			{
 				var patchButton = FindCachedViewById<Button>(Resource.Id.patchButton);
 
-				if (!PatchTasks.Instance.IsRunning)
+				if (!PatchTools.Value.IsRunning)
 				{
 					_cancelTokenSource.Dispose();
 					_cancelTokenSource = new CancellationTokenSource();
@@ -358,12 +375,12 @@ namespace OkkeiPatcher
 
 		private void OnPropertyChanged_Unpatch(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName != nameof(UnpatchTasks.Instance.IsRunning)) return;
+			if (e.PropertyName != nameof(UnpatchTools.Value.IsRunning)) return;
 			MainThread.BeginInvokeOnMainThread(() =>
 			{
 				var unpatchButton = FindCachedViewById<Button>(Resource.Id.unpatchButton);
 
-				if (!UnpatchTasks.Instance.IsRunning)
+				if (!UnpatchTools.Value.IsRunning)
 				{
 					_cancelTokenSource.Dispose();
 					_cancelTokenSource = new CancellationTokenSource();
@@ -389,18 +406,18 @@ namespace OkkeiPatcher
 
 		private void OnPropertyChanged_ManifestTasks(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName != nameof(ManifestTasks.Instance.IsRunning)) return;
+			if (e.PropertyName != nameof(ManifestTools.Value.IsRunning)) return;
 			MainThread.BeginInvokeOnMainThread(() =>
 			{
 				var patchButton = FindCachedViewById<Button>(Resource.Id.patchButton);
 
-				if (!ManifestTasks.Instance.IsRunning)
+				if (!ManifestTools.Value.IsRunning)
 				{
 					_cancelTokenSource.Dispose();
 					_cancelTokenSource = new CancellationTokenSource();
 
 					patchButton.Enabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false) ||
-					                      ManifestTasks.Instance.IsPatchUpdateAvailable;
+					                      ManifestTools.Value.IsPatchUpdateAvailable;
 					patchButton.Text = Resources.GetText(Resource.String.patch);
 					FindCachedViewById<Button>(Resource.Id.unpatchButton).Enabled = Utils.IsBackupAvailable();
 					FindCachedViewById<Button>(Resource.Id.clearDataButton).Enabled = true;
@@ -447,10 +464,11 @@ namespace OkkeiPatcher
 
 		private void Patch_Click(object sender, EventArgs e)
 		{
-			if (UnpatchTasks.IsInstantiated && UnpatchTasks.Instance.IsRunning || _cancelTokenSource.IsCancellationRequested)
+			if (UnpatchTools.IsValueCreated && UnpatchTools.Value.IsRunning ||
+			    _cancelTokenSource.IsCancellationRequested)
 				return;
-			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
-			    (!ManifestTasks.IsInstantiated || !ManifestTasks.Instance.IsRunning))
+			if ((!PatchTools.IsValueCreated || !PatchTools.Value.IsRunning) &&
+			    (!ManifestTools.IsValueCreated || !ManifestTools.Value.IsRunning))
 			{
 				MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 					Resources.GetText(Resource.String.long_process_warning),
@@ -459,27 +477,32 @@ namespace OkkeiPatcher
 					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 							Java.Lang.String.Format(Resources.GetText(Resource.String.download_size_warning),
-								ManifestTasks.Instance.IsPatchUpdateAvailable
-									? ManifestTasks.Instance.PatchUpdateSizeInMB
+								ManifestTools.Value.IsPatchUpdateAvailable
+									? ManifestTools.Value.PatchUpdateSizeInMB
 									: Utils.GetPatchSizeInMB()),
 							Resources.GetText(Resource.String.dialog_ok),
 							Resources.GetText(Resource.String.dialog_cancel),
 							() =>
 							{
+								_currentToolsObject = PatchTools.Value;
 								if (!_patchTasksEventsSubscribed)
 								{
-									PatchTasks.Instance.StatusChanged += OnStatusChanged;
-									PatchTasks.Instance.ProgressChanged += OnProgressChanged;
-									PatchTasks.Instance.MessageGenerated += OnMessageGenerated;
-									PatchTasks.Instance.PropertyChanged += OnPropertyChanged_Patch;
-									PatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Patch;
+									PatchTools.Value.StatusChanged += OnStatusChanged;
+									PatchTools.Value.ProgressChanged += OnProgressChanged;
+									PatchTools.Value.MessageGenerated += OnMessageGenerated;
+									PatchTools.Value.PropertyChanged += OnPropertyChanged_Patch;
+									PatchTools.Value.ErrorOccurred += OnErrorOccurred_Patch;
+									PatchTools.Value.PropertyChanged += ManifestTools.Value.PatchTasksOnPropertyChanged;
 									_patchTasksEventsSubscribed = true;
 								}
 
 								var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
+								var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
+								var obbUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
 								Task.Run(() =>
-									PatchTasks.Instance.PatchTask(this, savedataCheckbox.Checked, _cancelTokenSource.Token)
-										.WriteReportOnException());
+									PatchTools.Value.Start(this, savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
+											_cancelTokenSource.Token)
+										.OnException(ex => PatchTools.Value.WriteBugReport(ex)));
 							}, null);
 					}, null);
 				return;
@@ -490,44 +513,46 @@ namespace OkkeiPatcher
 				Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
 				() =>
 				{
-					if (PatchTasks.IsInstantiated && PatchTasks.Instance.IsRunning ||
-					    ManifestTasks.IsInstantiated && ManifestTasks.Instance.IsRunning)
+					if (PatchTools.IsValueCreated && PatchTools.Value.IsRunning ||
+					    ManifestTools.IsValueCreated && ManifestTools.Value.IsRunning)
 						_cancelTokenSource.Cancel();
 				}, null);
 		}
 
 		private void OnErrorOccurred_Patch(object sender, EventArgs e)
 		{
-			if ((!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cancelTokenSource.IsCancellationRequested &&
-			    PatchTasks.IsInstantiated && PatchTasks.Instance.IsRunning)
+			if ((!UnpatchTools.IsValueCreated || !UnpatchTools.Value.IsRunning) &&
+			    !_cancelTokenSource.IsCancellationRequested &&
+			    PatchTools.IsValueCreated && PatchTools.Value.IsRunning)
 				_cancelTokenSource.Cancel();
 		}
 
 		private void Unpatch_Click(object sender, EventArgs e)
 		{
-			if (PatchTasks.IsInstantiated && PatchTasks.Instance.IsRunning || _cancelTokenSource.IsCancellationRequested)
+			if (PatchTools.IsValueCreated && PatchTools.Value.IsRunning || _cancelTokenSource.IsCancellationRequested)
 				return;
-			if (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning)
+			if (!UnpatchTools.IsValueCreated || !UnpatchTools.Value.IsRunning)
 			{
 				MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 					Resources.GetText(Resource.String.long_process_warning),
 					Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
 					() =>
 					{
+						_currentToolsObject = UnpatchTools.Value;
 						if (!_unpatchTasksEventsSubscribed)
 						{
-							UnpatchTasks.Instance.StatusChanged += OnStatusChanged;
-							UnpatchTasks.Instance.ProgressChanged += OnProgressChanged;
-							UnpatchTasks.Instance.MessageGenerated += OnMessageGenerated;
-							UnpatchTasks.Instance.PropertyChanged += OnPropertyChanged_Unpatch;
-							UnpatchTasks.Instance.ErrorOccurred += OnErrorOccurred_Unpatch;
+							UnpatchTools.Value.StatusChanged += OnStatusChanged;
+							UnpatchTools.Value.ProgressChanged += OnProgressChanged;
+							UnpatchTools.Value.MessageGenerated += OnMessageGenerated;
+							UnpatchTools.Value.PropertyChanged += OnPropertyChanged_Unpatch;
+							UnpatchTools.Value.ErrorOccurred += OnErrorOccurred_Unpatch;
 							_unpatchTasksEventsSubscribed = true;
 						}
 
 						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
 						Task.Run(
-							() => UnpatchTasks.Instance.UnpatchTask(this, savedataCheckbox.Checked, _cancelTokenSource.Token)
-								.WriteReportOnException());
+							() => UnpatchTools.Value.Start(this, savedataCheckbox.Checked, _cancelTokenSource.Token)
+								.OnException(ex => UnpatchTools.Value.WriteBugReport(ex)));
 					}, null);
 				return;
 			}
@@ -537,22 +562,23 @@ namespace OkkeiPatcher
 				Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
 				() =>
 				{
-					if (UnpatchTasks.IsInstantiated && UnpatchTasks.Instance.IsRunning)
+					if (UnpatchTools.IsValueCreated && UnpatchTools.Value.IsRunning)
 						_cancelTokenSource.Cancel();
 				}, null);
 		}
 
 		private void OnErrorOccurred_Unpatch(object sender, EventArgs e)
 		{
-			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) && !_cancelTokenSource.IsCancellationRequested &&
-			    UnpatchTasks.IsInstantiated && UnpatchTasks.Instance.IsRunning)
+			if ((!PatchTools.IsValueCreated || !PatchTools.Value.IsRunning) &&
+			    !_cancelTokenSource.IsCancellationRequested &&
+			    UnpatchTools.IsValueCreated && UnpatchTools.Value.IsRunning)
 				_cancelTokenSource.Cancel();
 		}
 
 		private void ClearData_Click(object sender, EventArgs e)
 		{
-			if (PatchTasks.IsInstantiated && PatchTasks.Instance.IsRunning ||
-			    UnpatchTasks.IsInstantiated && UnpatchTasks.Instance.IsRunning)
+			if (PatchTools.IsValueCreated && PatchTools.Value.IsRunning ||
+			    UnpatchTools.IsValueCreated && UnpatchTools.Value.IsRunning)
 				return;
 			MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 				Resources.GetText(Resource.String.clear_data_warning),
@@ -575,9 +601,10 @@ namespace OkkeiPatcher
 
 		private void OnErrorOccurred_ManifestTasks(object sender, EventArgs e)
 		{
-			if ((!PatchTasks.IsInstantiated || !PatchTasks.Instance.IsRunning) &&
-			    (!UnpatchTasks.IsInstantiated || !UnpatchTasks.Instance.IsRunning) && !_cancelTokenSource.IsCancellationRequested &&
-			    ManifestTasks.IsInstantiated && ManifestTasks.Instance.IsRunning)
+			if ((!PatchTools.IsValueCreated || !PatchTools.Value.IsRunning) &&
+			    (!UnpatchTools.IsValueCreated || !UnpatchTools.Value.IsRunning) &&
+			    !_cancelTokenSource.IsCancellationRequested &&
+			    ManifestTools.IsValueCreated && ManifestTools.Value.IsRunning)
 				_cancelTokenSource.Cancel();
 		}
 

@@ -14,18 +14,7 @@ namespace OkkeiPatcher
 {
 	internal class ManifestTasks : BaseTasks
 	{
-		private static readonly Lazy<ManifestTasks> instance = new Lazy<ManifestTasks>(() => new ManifestTasks());
-
 		private bool? _scriptsUpdateAvailable, _obbUpdateAvailable;
-
-		private ManifestTasks()
-		{
-			PatchTasks.Instance.PropertyChanged += PatchTasksOnPropertyChanged;
-		}
-
-		public static bool IsInstantiated => instance.IsValueCreated;
-
-		public static ManifestTasks Instance => instance.Value;
 
 		public bool IsAppUpdateAvailable
 		{
@@ -96,9 +85,10 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+		public void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (e.PropertyName != nameof(PatchTasks.Instance.IsRunning) || PatchTasks.Instance.IsRunning)
+			if (!(sender is PatchTasks patchTools)) return;
+			if (e.PropertyName != nameof(patchTools.IsRunning) || patchTools.IsRunning)
 				return;
 			_scriptsUpdateAvailable = false;
 			_obbUpdateAvailable = false;
@@ -136,12 +126,12 @@ namespace OkkeiPatcher
 			{
 				if (File.Exists(ManifestPath))
 				{
-					await Utils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token)
+					await UtilsInstance.Value.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token)
 						.ConfigureAwait(false);
 					File.Delete(ManifestPath);
 				}
 
-				await Utils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
+				await UtilsInstance.Value.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
 					.ConfigureAwait(false);
 
 				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
@@ -231,7 +221,8 @@ namespace OkkeiPatcher
 			{
 				try
 				{
-					await Utils.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName,
+					await UtilsInstance.Value.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath,
+						AppUpdateFileName,
 						token).ConfigureAwait(false);
 				}
 				catch (Exception ex) when (!(ex is System.OperationCanceledException))
@@ -240,7 +231,7 @@ namespace OkkeiPatcher
 				}
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
-				var updateHash = await Utils.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
+				var updateHash = await UtilsInstance.Value.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
 
 				if (updateHash != GlobalManifest.OkkeiPatcher.MD5)
 				{
@@ -263,7 +254,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.update_app_attention),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							() => MainThread.BeginInvokeOnMainThread(() =>
-								Utils.InstallPackage(activity,
+								UtilsInstance.Value.InstallPackage(activity,
 									Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),
 							null));
 				}
@@ -287,6 +278,21 @@ namespace OkkeiPatcher
 				IsRunning = false;
 				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 			}
+		}
+
+		public override Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate, CancellationToken token)
+		{
+			if (!IsRunning) return Task.CompletedTask;
+			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
+			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
+			OnStatusChanged(this, string.Empty);
+			IsRunning = false;
+			return Task.CompletedTask;
+		}
+
+		public override Task OnUninstallResult(Activity activity, bool scriptsUpdate, CancellationToken token)
+		{
+			throw new NotImplementedException("This should not be called.");
 		}
 	}
 }

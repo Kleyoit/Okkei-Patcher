@@ -47,7 +47,7 @@ namespace OkkeiPatcher
 		}
 
 		public const long TwoGb = (long) 1024 * 1024 * 1024 * 2;
-		public static readonly X509Certificate2 Testkey;
+		public static X509Certificate2 Testkey;
 
 		public static readonly string ActionPackageInstalled =
 			"solru.okkeipatcher.PACKAGE_INSTALLED_ACTION";
@@ -117,19 +117,5 @@ namespace OkkeiPatcher
 			{Files.ObbToReplace, Prefkey.downloaded_obb_md5.ToString()},
 			{Files.BackupObb, Prefkey.backup_obb_md5.ToString()}
 		};
-
-		static GlobalData()
-		{
-			// Read testcert for signing APK
-			var assets = Android.App.Application.Context.Assets;
-			var testkeyFile = assets.Open(CertFileName);
-			var testkeySize = 2797;
-
-			var testkeyTemp = new X509Certificate2(Utils.ReadCert(testkeyFile, testkeySize), CertPassword);
-			Testkey = testkeyTemp;
-
-			testkeyFile?.Close();
-			testkeyFile?.Dispose();
-		}
 	}
 }

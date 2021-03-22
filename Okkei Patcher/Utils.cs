@@ -15,18 +15,16 @@ using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	internal static class Utils
+	internal class Utils
 	{
-		private static readonly HttpClient Client = new HttpClient();
+		private static readonly Lazy<HttpClient> Client = new Lazy<HttpClient>(() => new HttpClient());
 
-		public static event EventHandler<string> StatusChanged;
-		public static event EventHandler<ProgressChangedEventArgs> ProgressChanged;
-		public static event EventHandler<MessageBox.Data> MessageGenerated;
-		public static event EventHandler ErrorOccurred;
-		public static event EventHandler TaskFinished;
-		public static event EventHandler FatalExceptionOccurred;
+		public event EventHandler<ProgressChangedEventArgs> ProgressChanged;
+		public event EventHandler<MessageBox.Data> MessageGenerated;
+		public event EventHandler ErrorOccurred;
+		public event EventHandler InstallFailed;
 
-		public static Task<string> CalculateMD5(string filename, CancellationToken token)
+		public Task<string> CalculateMD5(string filename, CancellationToken token)
 		{
 			using var md5 = MD5.Create();
 			using var stream = System.IO.File.OpenRead(filename);
@@ -59,7 +57,7 @@ namespace OkkeiPatcher
 		///     Compares given file with a predefined corresponding file or corresponding checksum written in preferences and
 		///     returns true if checksums are equal, false otherwise. See predefined values in <see cref="FileToCompareWith" />.
 		/// </summary>
-		public static async Task<bool> CompareMD5(Files file, CancellationToken token)
+		public async Task<bool> CompareMD5(Files file, CancellationToken token)
 		{
 			var result = false;
 
@@ -85,15 +83,16 @@ namespace OkkeiPatcher
 			return result;
 		}
 
-		public static byte[] ReadCert(Stream certStream, int size)
+		public byte[] ReadCert(Stream certStream, int size)
 		{
+			if (certStream == null) throw new ArgumentNullException(nameof(certStream));
 			var data = new byte[size];
 			size = certStream.Read(data, 0, size);
 			certStream.Close();
 			return data;
 		}
 
-		public static bool IsAppInstalled(string packageName)
+		public bool IsAppInstalled(string packageName)
 		{
 			try
 			{
@@ -106,7 +105,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private static void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
+		private void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
 		{
 			var packageInSession = session.OpenWrite("package", 0, -1);
 			FileStream input = null;
@@ -129,7 +128,7 @@ namespace OkkeiPatcher
 			GC.Collect();
 		}
 
-		public static void InstallPackage(Activity activity, Android.Net.Uri apkUri)
+		public void InstallPackage(Activity activity, Android.Net.Uri apkUri)
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
 			{
@@ -169,157 +168,20 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private static void OnInstallFailed(object sender, EventArgs e)
+		private void OnInstallFailed(object sender, EventArgs e)
 		{
-			NotifyInstallFailed();
+			InstallFailed?.Invoke(this, e);
 			((PackageInstallObserver) sender).InstallFailed -= OnInstallFailed;
 		}
 
-		public static void NotifyInstallFailed()
-		{
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
-			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-			MessageGenerated?.Invoke(null, new MessageBox.Data(
-				Application.Context.Resources.GetText(Resource.String.error),
-				Application.Context.Resources.GetText(Resource.String.install_error),
-				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-				null, null));
-			TaskFinished?.Invoke(null, EventArgs.Empty);
-		}
-
-		public static void OnInstallSuccess(bool processSavedata, CancellationToken token)
-		{
-			if (PatchTasks.Instance.IsRunning)
-			{
-				if (System.IO.File.Exists(FilePaths[Files.SignedApk]))
-					System.IO.File.Delete(FilePaths[Files.SignedApk]);
-				Task.Run(() => PatchTasks.Instance.FinishPatch(processSavedata, token).WriteReportOnException());
-			}
-			else if (UnpatchTasks.Instance.IsRunning)
-			{
-				Task.Run(() => UnpatchTasks.Instance.RestoreFiles(processSavedata, token).WriteReportOnException());
-			}
-			else if (ManifestTasks.Instance.IsRunning)
-			{
-				//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
-				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
-				StatusChanged?.Invoke(null, string.Empty);
-				TaskFinished?.Invoke(null, EventArgs.Empty);
-			}
-		}
-
-		public static void UninstallPackage(Activity activity, string packageName)
+		public void UninstallPackage(Activity activity, string packageName)
 		{
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
 			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 
-		public static async Task OnUninstallResult(Activity activity, CancellationToken token)
-		{
-			if (IsAppInstalled(ChaosChildPackageName) && !ManifestTasks.Instance.IsScriptsUpdateAvailable)
-			{
-				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
-				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-				MessageGenerated?.Invoke(null, new MessageBox.Data(
-					Application.Context.Resources.GetText(Resource.String.error),
-					Application.Context.Resources.GetText(Resource.String.uninstall_error),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-					null, null));
-				TaskFinished?.Invoke(null, EventArgs.Empty);
-				return;
-			}
-
-			// Install APK
-			var apkMd5 = string.Empty;
-			var path = string.Empty;
-			var message = string.Empty;
-
-			if (PatchTasks.Instance.IsRunning)
-			{
-				if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
-					apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
-				path = FilePaths[Files.SignedApk];
-				message = Application.Context.Resources.GetText(Resource.String.install_prompt_patch);
-			}
-			else if (UnpatchTasks.Instance.IsRunning)
-			{
-				if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
-					apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), string.Empty);
-				path = FilePaths[Files.BackupApk];
-				message = Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch);
-			}
-
-			try
-			{
-				if (System.IO.File.Exists(path))
-				{
-					StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.compare_apk));
-
-					var apkFileMd5 = await CalculateMD5(path, token).ConfigureAwait(false);
-
-					if (apkMd5 == apkFileMd5)
-					{
-						StatusChanged?.Invoke(null,
-							Application.Context.Resources.GetText(Resource.String.installing));
-
-						MessageGenerated?.Invoke(null,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-								message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								() => MainThread.BeginInvokeOnMainThread(() =>
-									InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))),
-								null));
-						return;
-					}
-
-					System.IO.File.Delete(path);
-
-					if (PatchTasks.Instance.IsRunning)
-						MessageGenerated?.Invoke(null, new MessageBox.Data(
-							Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_patch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok),
-							null,
-							null, null));
-
-					else if (UnpatchTasks.Instance.IsRunning)
-						MessageGenerated?.Invoke(null, new MessageBox.Data(
-							Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_unpatch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok),
-							null,
-							null, null));
-
-					ErrorOccurred?.Invoke(null, EventArgs.Empty);
-					throw new System.OperationCanceledException("The operation was canceled.", token);
-				}
-
-				if (PatchTasks.Instance.IsRunning)
-					MessageGenerated?.Invoke(null,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null));
-
-				else if (UnpatchTasks.Instance.IsRunning)
-					MessageGenerated?.Invoke(null,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null));
-
-				ErrorOccurred?.Invoke(null, EventArgs.Empty);
-				throw new System.OperationCanceledException("The operation was canceled.", token);
-			}
-			catch (System.OperationCanceledException)
-			{
-				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
-				StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-				TaskFinished?.Invoke(null, EventArgs.Empty);
-			}
-		}
-
-		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)
+		public Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)
 		{
 			const int bufferLength = 0x14000;
 			var buffer = new byte[bufferLength];
@@ -377,7 +239,7 @@ namespace OkkeiPatcher
 			return Task.CompletedTask;
 		}
 
-		public static async Task DownloadFile(string URL, string outFilePath, string outFileName,
+		public async Task DownloadFile(string URL, string outFilePath, string outFileName,
 			CancellationToken token)
 		{
 			Directory.CreateDirectory(outFilePath);
@@ -393,7 +255,7 @@ namespace OkkeiPatcher
 
 			try
 			{
-				var response = await Client.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead)
+				var response = await Client.Value.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead)
 					.ConfigureAwait(false);
 				var contentLength = -1;
 
@@ -433,13 +295,13 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public static string GetBugReportText(Exception ex)
+		public string GetBugReportText(Exception ex)
 		{
 			return
 				$"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
 		}
 
-		public static string GetDeviceInfo()
+		public string GetDeviceInfo()
 		{
 			var manufacturer = Build.Manufacturer;
 			var model = Build.Model;
@@ -449,18 +311,6 @@ namespace OkkeiPatcher
 			var sdkInt = Build.VERSION.SdkInt;
 			return
 				$"manufacturer:       {manufacturer}\nmodel:              {model}\nproduct:            {product}\nincremental:        {incremental}\nrelease:            {release}\nsdkInt:             {sdkInt}";
-		}
-
-		public static void WriteBugReport(Exception ex)
-		{
-			FatalExceptionOccurred?.Invoke(null, EventArgs.Empty);
-			var bugReport = GetBugReportText(ex);
-			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
-			MessageGenerated?.Invoke(null,
-				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
-					Application.Context.Resources.GetText(Resource.String.exception_notice),
-					Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
-					() => System.Environment.Exit(0), null));
 		}
 
 		public static bool IsBackupAvailable()
@@ -489,31 +339,6 @@ namespace OkkeiPatcher
 					RecursiveClearFiles(dir);
 					Directory.Delete(dir);
 				}
-		}
-
-		public static async Task WriteReportOnException(this Task task)
-		{
-			try
-			{
-				await task;
-			}
-			catch (Exception ex)
-			{
-				WriteBugReport(ex);
-			}
-		}
-
-		public static async Task<T> WriteReportOnException<T>(this Task<T> task)
-		{
-			try
-			{
-				return await task;
-			}
-			catch (Exception ex)
-			{
-				WriteBugReport(ex);
-				return default;
-			}
 		}
 
 		public static int GetPatchSizeInMB()
