@@ -11,7 +11,7 @@ using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	internal class PatchTasks : BaseTasks
+	internal class PatchTools : ToolsBase
 	{
 		private bool _saveDataBackupFromOldPatch;
 

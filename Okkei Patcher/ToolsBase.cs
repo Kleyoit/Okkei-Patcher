@@ -8,12 +8,12 @@ using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	internal abstract class BaseTasks : INotifyPropertyChanged
+	internal abstract class ToolsBase : INotifyPropertyChanged
 	{
 		protected readonly Lazy<Utils> UtilsInstance = new Lazy<Utils>(() => new Utils());
 		protected bool IsRunningField;
 
-		protected BaseTasks()
+		protected ToolsBase()
 		{
 			UtilsInstance.Value.ProgressChanged += UtilsOnProgressChanged;
 			UtilsInstance.Value.MessageGenerated += UtilsOnMessageGenerated;

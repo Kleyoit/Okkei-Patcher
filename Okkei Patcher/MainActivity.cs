@@ -28,14 +28,14 @@ namespace OkkeiPatcher
 		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache =
 			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
 
-		private static readonly Lazy<PatchTasks> PatchTools = new Lazy<PatchTasks>(() => new PatchTasks());
-		private static readonly Lazy<UnpatchTasks> UnpatchTools = new Lazy<UnpatchTasks>(() => new UnpatchTasks());
-		private static readonly Lazy<ManifestTasks> ManifestTools = new Lazy<ManifestTasks>(() => new ManifestTasks());
+		private static readonly Lazy<PatchTools> PatchTools = new Lazy<PatchTools>(() => new PatchTools());
+		private static readonly Lazy<UnpatchTools> UnpatchTools = new Lazy<UnpatchTools>(() => new UnpatchTools());
+		private static readonly Lazy<ManifestTools> ManifestTools = new Lazy<ManifestTools>(() => new ManifestTools());
 
 		private bool _backPressed;
 
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
-		private BaseTasks _currentToolsObject;
+		private ToolsBase _currentToolsObject;
 		private int _lastBackPressedTimestamp;
 		private bool _patchTasksEventsSubscribed;
 		private bool _unpatchTasksEventsSubscribed;

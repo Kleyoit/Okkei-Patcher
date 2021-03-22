@@ -7,7 +7,7 @@ using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	internal class UnpatchTasks : BaseTasks
+	internal class UnpatchTools : ToolsBase
 	{
 		public override async Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
 			CancellationToken token)

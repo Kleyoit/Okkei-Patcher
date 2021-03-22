@@ -12,7 +12,7 @@ using static OkkeiPatcher.GlobalData;
 
 namespace OkkeiPatcher
 {
-	internal class ManifestTasks : BaseTasks
+	internal class ManifestTools : ToolsBase
 	{
 		private bool? _scriptsUpdateAvailable, _obbUpdateAvailable;
 
@@ -87,7 +87,7 @@ namespace OkkeiPatcher
 
 		public void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
 		{
-			if (!(sender is PatchTasks patchTools)) return;
+			if (!(sender is PatchTools patchTools)) return;
 			if (e.PropertyName != nameof(patchTools.IsRunning) || patchTools.IsRunning)
 				return;
 			_scriptsUpdateAvailable = false;
