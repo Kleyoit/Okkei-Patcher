@@ -353,6 +353,8 @@ namespace OkkeiPatcher
 
 				if (!PatchTools.Value.IsRunning)
 				{
+					ManifestTools.Value.InvalidateUpdatesAvailability();
+
 					_cancelTokenSource.Dispose();
 					_cancelTokenSource = new CancellationTokenSource();
 
@@ -492,7 +494,6 @@ namespace OkkeiPatcher
 									PatchTools.Value.MessageGenerated += OnMessageGenerated;
 									PatchTools.Value.PropertyChanged += OnPropertyChanged_Patch;
 									PatchTools.Value.ErrorOccurred += OnErrorOccurred_Patch;
-									PatchTools.Value.PropertyChanged += ManifestTools.Value.PatchTasksOnPropertyChanged;
 									_patchTasksEventsSubscribed = true;
 								}
 

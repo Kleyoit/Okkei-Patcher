@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
@@ -85,11 +84,8 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public void PatchTasksOnPropertyChanged(object sender, PropertyChangedEventArgs e)
+		public void InvalidateUpdatesAvailability()
 		{
-			if (!(sender is PatchTools patchTools)) return;
-			if (e.PropertyName != nameof(patchTools.IsRunning) || patchTools.IsRunning)
-				return;
 			_scriptsUpdateAvailable = false;
 			_obbUpdateAvailable = false;
 		}
