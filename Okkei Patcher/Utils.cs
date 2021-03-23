@@ -33,7 +33,7 @@ namespace OkkeiPatcher
 			var buffer = new byte[bufferLength];
 			int length;
 
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
+			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
 
 			var progressMax = (int) Math.Ceiling((double) stream.Length / bufferLength);
 			var progress = 0;
@@ -45,7 +45,7 @@ namespace OkkeiPatcher
 					md5.TransformBlock(buffer, 0, bufferLength, buffer, 0);
 				else
 					md5.TransformFinalBlock(buffer, 0, length);
-				ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax, false));
+				ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, progressMax, false));
 			}
 
 			token.ThrowIfCancellationRequested();
@@ -187,7 +187,7 @@ namespace OkkeiPatcher
 			var buffer = new byte[bufferLength];
 			int length;
 
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
+			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
 
 			Directory.CreateDirectory(outFilePath);
 			var outPath = Path.Combine(outFilePath, outFileName);
@@ -207,7 +207,7 @@ namespace OkkeiPatcher
 				{
 					output.Write(buffer, 0, length);
 					++progress;
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax, false));
+					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, progressMax, false));
 				}
 
 				inputStream.Dispose();
@@ -222,7 +222,7 @@ namespace OkkeiPatcher
 				{
 					output.Write(buffer, 0, length);
 					++progress;
-					ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(progress, progressMax, false));
+					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, progressMax, false));
 				}
 
 				inputFile.Dispose();
@@ -266,20 +266,20 @@ namespace OkkeiPatcher
 				}
 				else
 				{
-					MessageGenerated?.Invoke(null,
+					MessageGenerated?.Invoke(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 							Java.Lang.String.Format(
 								Application.Context.Resources.GetText(Resource.String.http_file_access_error),
 								response.StatusCode.ToString()),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							null, null));
-					ErrorOccurred?.Invoke(null, EventArgs.Empty);
+					ErrorOccurred?.Invoke(this, EventArgs.Empty);
 				}
 
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
 					output.Write(buffer, 0, length);
-					ProgressChanged?.Invoke(null,
+					ProgressChanged?.Invoke(this,
 						new ProgressChangedEventArgs((int) output.Length, contentLength, false));
 				}
 			}

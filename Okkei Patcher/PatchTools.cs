@@ -442,7 +442,7 @@ namespace OkkeiPatcher
 					}
 				}
 
-				OnStatusChanged(null, string.Empty);
+				OnStatusChanged(this, string.Empty);
 				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
 
 				if (!patchUpdate)

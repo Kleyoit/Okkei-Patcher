@@ -117,9 +117,9 @@ namespace OkkeiPatcher
 
 		public void NotifyInstallFailed()
 		{
-			ProgressChanged?.Invoke(null, new ProgressChangedEventArgs(0, 100, false));
-			StatusChanged?.Invoke(null, Application.Context.Resources.GetText(Resource.String.aborted));
-			MessageGenerated?.Invoke(null, new MessageBox.Data(
+			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
+			StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.aborted));
+			MessageGenerated?.Invoke(this, new MessageBox.Data(
 				Application.Context.Resources.GetText(Resource.String.error),
 				Application.Context.Resources.GetText(Resource.String.install_error),
 				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,

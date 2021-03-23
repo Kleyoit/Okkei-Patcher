@@ -175,7 +175,7 @@ namespace OkkeiPatcher
 					return;
 				}
 
-				OnStatusChanged(null, Application.Context.Resources.GetText(Resource.String.installing));
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
 
 				OnMessageGenerated(this,
 					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
