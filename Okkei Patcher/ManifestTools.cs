@@ -70,19 +70,28 @@ namespace OkkeiPatcher
 
 		public bool IsPatchUpdateAvailable => IsScriptsUpdateAvailable || IsObbUpdateAvailable;
 
-		public int PatchUpdateSizeInMB
+		public int PatchSizeInMB
 		{
 			get
 			{
-				var scriptsSize = IsScriptsUpdateAvailable
+				if (!IsPatchUpdateAvailable)
+				{
+					var scriptsSize = (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000);
+					var obbSize = (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000);
+					return scriptsSize + obbSize;
+				}
+
+				var scriptsUpdateSize = IsScriptsUpdateAvailable
 					? (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000)
 					: 0;
-				var obbSize = IsObbUpdateAvailable
+				var obbUpdateSize = IsObbUpdateAvailable
 					? (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000)
 					: 0;
-				return scriptsSize + obbSize;
+				return scriptsUpdateSize + obbUpdateSize;
 			}
 		}
+
+		public double AppUpdateSizeInMB => Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
 
 		public void InvalidateUpdatesAvailability()
 		{
@@ -276,7 +285,8 @@ namespace OkkeiPatcher
 			}
 		}
 
-		protected override Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate, CancellationToken token)
+		protected override Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
+			CancellationToken token)
 		{
 			if (!IsRunning) return Task.CompletedTask;
 			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);

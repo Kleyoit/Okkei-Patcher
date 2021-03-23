@@ -340,17 +340,5 @@ namespace OkkeiPatcher
 					Directory.Delete(dir);
 				}
 		}
-
-		public static int GetPatchSizeInMB()
-		{
-			var scriptsSize = (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000);
-			var obbSize = (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000);
-			return scriptsSize + obbSize;
-		}
-
-		public static double GetAppUpdateSizeInMB()
-		{
-			return Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
-		}
 	}
 }

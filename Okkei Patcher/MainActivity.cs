@@ -93,7 +93,7 @@ namespace OkkeiPatcher
 							FindCachedViewById<Button>(Resource.Id.patchButton).Enabled = true;
 							MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 								Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
-									ManifestTools.Value.PatchUpdateSizeInMB.ToString()),
+									ManifestTools.Value.PatchSizeInMB.ToString()),
 								Resources.GetText(Resource.String.dialog_ok), UpdateApp);
 						});
 						return;
@@ -110,7 +110,7 @@ namespace OkkeiPatcher
 				MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
 					Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
 						AppInfo.VersionString,
-						Utils.GetAppUpdateSizeInMB().ToString(CultureInfo.CurrentCulture),
+						ManifestTools.Value.AppUpdateSizeInMB.ToString(CultureInfo.CurrentCulture),
 						GlobalManifest.OkkeiPatcher.Changelog),
 					Resources.GetText(Resource.String.dialog_update),
 					Resources.GetText(Resource.String.dialog_cancel),
@@ -479,9 +479,7 @@ namespace OkkeiPatcher
 					{
 						MessageBox.Show(this, Resources.GetText(Resource.String.warning),
 							Java.Lang.String.Format(Resources.GetText(Resource.String.download_size_warning),
-								ManifestTools.Value.IsPatchUpdateAvailable
-									? ManifestTools.Value.PatchUpdateSizeInMB
-									: Utils.GetPatchSizeInMB()),
+								ManifestTools.Value.PatchSizeInMB),
 							Resources.GetText(Resource.String.dialog_ok),
 							Resources.GetText(Resource.String.dialog_cancel),
 							() =>
