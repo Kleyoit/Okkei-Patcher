@@ -37,8 +37,8 @@ namespace OkkeiPatcher
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
 		private ToolsBase _currentToolsObject;
 		private int _lastBackPressedTimestamp;
-		private bool _patchTasksEventsSubscribed;
-		private bool _unpatchTasksEventsSubscribed;
+		private bool _patchToolsEventsSubscribed;
+		private bool _unpatchToolsEventsSubscribed;
 
 #nullable enable
 		private T? FindCachedViewById<T>(int id) where T : View
@@ -485,14 +485,14 @@ namespace OkkeiPatcher
 							() =>
 							{
 								_currentToolsObject = PatchTools.Value;
-								if (!_patchTasksEventsSubscribed)
+								if (!_patchToolsEventsSubscribed)
 								{
 									PatchTools.Value.StatusChanged += OnStatusChanged;
 									PatchTools.Value.ProgressChanged += OnProgressChanged;
 									PatchTools.Value.MessageGenerated += OnMessageGenerated;
 									PatchTools.Value.PropertyChanged += OnPropertyChanged_Patch;
 									PatchTools.Value.ErrorOccurred += OnErrorOccurred_Patch;
-									_patchTasksEventsSubscribed = true;
+									_patchToolsEventsSubscribed = true;
 								}
 
 								var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
@@ -536,14 +536,14 @@ namespace OkkeiPatcher
 					() =>
 					{
 						_currentToolsObject = UnpatchTools.Value;
-						if (!_unpatchTasksEventsSubscribed)
+						if (!_unpatchToolsEventsSubscribed)
 						{
 							UnpatchTools.Value.StatusChanged += OnStatusChanged;
 							UnpatchTools.Value.ProgressChanged += OnProgressChanged;
 							UnpatchTools.Value.MessageGenerated += OnMessageGenerated;
 							UnpatchTools.Value.PropertyChanged += OnPropertyChanged_Unpatch;
 							UnpatchTools.Value.ErrorOccurred += OnErrorOccurred_Unpatch;
-							_unpatchTasksEventsSubscribed = true;
+							_unpatchToolsEventsSubscribed = true;
 						}
 
 						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
