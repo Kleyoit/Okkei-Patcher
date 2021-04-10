@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace OkkeiPatcher
+﻿namespace OkkeiPatcher
 {
-	internal class ProgressChangedEventArgs : EventArgs
+	public readonly struct ProgressChangedEventArgs
 	{
 		public ProgressChangedEventArgs(int progress, int max, bool isIndeterminate)
 		{

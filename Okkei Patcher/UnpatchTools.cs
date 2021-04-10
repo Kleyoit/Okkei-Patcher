@@ -9,8 +9,11 @@ namespace OkkeiPatcher
 {
 	internal class UnpatchTools : ToolsBase
 	{
-		protected override async Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
-			CancellationToken token)
+		public UnpatchTools(Utils utils) : base(utils)
+		{
+		}
+
+		protected override async Task Finish(CancellationToken token)
 		{
 			if (!IsRunning) return;
 
@@ -29,17 +32,17 @@ namespace OkkeiPatcher
 					throw new OperationCanceledException("The operation was canceled.", token);
 				}
 
-				await UtilsInstance.Value.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token)
+				await UtilsInstance.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token)
 					.ConfigureAwait(false);
 
-				if (processSavedata)
+				if (ProcessState.ProcessSavedata)
 				{
 					if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
 					{
 						OnStatusChanged(this,
 							Application.Context.Resources.GetText(Resource.String.restore_saves));
 
-						await UtilsInstance.Value.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath,
+						await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath,
 								SavedataFileName, token)
 							.ConfigureAwait(false);
 					}
@@ -68,7 +71,7 @@ namespace OkkeiPatcher
 
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_saves_md5));
 						Preferences.Set(Prefkey.savedata_md5.ToString(),
-							await UtilsInstance.Value.CalculateMD5(FilePaths[Files.BackupSavedata], token)
+							await UtilsInstance.CalculateMD5(FilePaths[Files.BackupSavedata], token)
 								.ConfigureAwait(false));
 					}
 				}
@@ -94,14 +97,16 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public void Start(Activity activity, bool processSavedata, CancellationToken token)
+		public void Start(Activity activity, ProcessState processState, CancellationToken token)
 		{
-			Task.Run(() => StartPrivate(activity, processSavedata, token).OnException(WriteBugReport));
+			Task.Run(() => StartPrivate(activity, processState, token).OnException(WriteBugReport));
 		}
 
-		private async Task StartPrivate(Activity activity, bool processSavedata, CancellationToken token)
+		private async Task StartPrivate(Activity activity, ProcessState processState, CancellationToken token)
 		{
 			IsRunning = true;
+
+			ProcessState = processState;
 
 			var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
@@ -139,14 +144,14 @@ namespace OkkeiPatcher
 					throw new OperationCanceledException("The operation was canceled.", token);
 				}
 
-				if (processSavedata)
+				if (ProcessState.ProcessSavedata)
 				{
 					if (System.IO.File.Exists(FilePaths[Files.OriginalSavedata]))
 					{
 						// Backup save data
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
 
-						await UtilsInstance.Value.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup,
+						await UtilsInstance.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup,
 							SavedataBackupFileName, token).ConfigureAwait(false);
 					}
 					else
@@ -165,13 +170,13 @@ namespace OkkeiPatcher
 
 				// Uninstall CHAOS;CHILD and install backup, then restore OBB and save data if checked
 				// Install backup immediately if CHAOS;CHILD is not installed
-				if (UtilsInstance.Value.IsAppInstalled(ChaosChildPackageName))
+				if (UtilsInstance.IsAppInstalled(ChaosChildPackageName))
 				{
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 							Application.Context.Resources.GetText(Resource.String.uninstall_prompt_unpatch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							() => UtilsInstance.Value.UninstallPackage(activity, ChaosChildPackageName), null));
+							() => UtilsInstance.UninstallPackage(activity, ChaosChildPackageName), null));
 					return;
 				}
 
@@ -183,7 +188,7 @@ namespace OkkeiPatcher
 						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 						() =>
 						{
-							MainThread.BeginInvokeOnMainThread(() => UtilsInstance.Value.InstallPackage(activity,
+							MainThread.BeginInvokeOnMainThread(() => UtilsInstance.InstallPackage(activity,
 								Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
 						}, null));
 			}
@@ -195,9 +200,9 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public override async Task OnUninstallResult(Activity activity, bool scriptsUpdate, CancellationToken token)
+		public override async Task OnUninstallResult(Activity activity, CancellationToken token)
 		{
-			if (!CheckUninstallSuccess(scriptsUpdate)) return;
+			if (!CheckUninstallSuccess()) return;
 
 			// Install APK
 			var apkMd5 = string.Empty;
@@ -215,7 +220,7 @@ namespace OkkeiPatcher
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-					var apkFileMd5 = await UtilsInstance.Value.CalculateMD5(path, token).ConfigureAwait(false);
+					var apkFileMd5 = await UtilsInstance.CalculateMD5(path, token).ConfigureAwait(false);
 
 					if (apkMd5 == apkFileMd5)
 					{
@@ -226,7 +231,7 @@ namespace OkkeiPatcher
 							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
 								message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 								() => MainThread.BeginInvokeOnMainThread(() =>
-									UtilsInstance.Value.InstallPackage(activity,
+									UtilsInstance.InstallPackage(activity,
 										Android.Net.Uri.FromFile(new Java.IO.File(path)))),
 								null));
 						return;

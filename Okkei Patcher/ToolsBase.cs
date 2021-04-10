@@ -10,24 +10,26 @@ namespace OkkeiPatcher
 {
 	internal abstract class ToolsBase : INotifyPropertyChanged
 	{
-		protected readonly Lazy<Utils> UtilsInstance = new Lazy<Utils>(() => new Utils());
-		protected bool IsRunningField;
+		protected readonly Utils UtilsInstance;
+		protected ProcessState ProcessState;
+		private bool _isRunningField;
 
-		protected ToolsBase()
+		protected ToolsBase(Utils utils)
 		{
-			UtilsInstance.Value.ProgressChanged += UtilsOnProgressChanged;
-			UtilsInstance.Value.MessageGenerated += UtilsOnMessageGenerated;
-			UtilsInstance.Value.ErrorOccurred += UtilsOnErrorOccurred;
-			UtilsInstance.Value.InstallFailed += UtilsOnInstallFailed;
+			UtilsInstance = utils;
+			UtilsInstance.ProgressChanged += UtilsOnProgressChanged;
+			UtilsInstance.MessageGenerated += UtilsOnMessageGenerated;
+			UtilsInstance.ErrorOccurred += UtilsOnErrorOccurred;
+			UtilsInstance.InstallFailed += UtilsOnInstallFailed;
 		}
 
 		public bool IsRunning
 		{
-			get => IsRunningField;
+			get => _isRunningField;
 			protected set
 			{
-				if (value == IsRunningField) return;
-				IsRunningField = value;
+				if (value == _isRunningField) return;
+				_isRunningField = value;
 				NotifyPropertyChanged();
 			}
 		}
@@ -86,7 +88,7 @@ namespace OkkeiPatcher
 		public void WriteBugReport(Exception ex)
 		{
 			IsRunning = true;
-			var bugReport = UtilsInstance.Value.GetBugReportText(ex);
+			var bugReport = UtilsInstance.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
 			MessageGenerated?.Invoke(this,
 				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
@@ -95,9 +97,9 @@ namespace OkkeiPatcher
 					() => Environment.Exit(0), null));
 		}
 
-		protected bool CheckUninstallSuccess(bool scriptsUpdate)
+		protected bool CheckUninstallSuccess()
 		{
-			if (!UtilsInstance.Value.IsAppInstalled(ChaosChildPackageName) || scriptsUpdate) return true;
+			if (!UtilsInstance.IsAppInstalled(ChaosChildPackageName) || ProcessState.ScriptsUpdate) return true;
 
 			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
@@ -110,9 +112,9 @@ namespace OkkeiPatcher
 			return false;
 		}
 
-		public void OnInstallSuccess(bool processSavedata, bool scriptsUpdate, bool obbUpdate, CancellationToken token)
+		public void OnInstallSuccess(CancellationToken token)
 		{
-			Task.Run(() => Finish(processSavedata, scriptsUpdate, obbUpdate, token).OnException(WriteBugReport));
+			Task.Run(() => Finish(token).OnException(WriteBugReport));
 		}
 
 		public void NotifyInstallFailed()
@@ -127,9 +129,8 @@ namespace OkkeiPatcher
 			IsRunning = false;
 		}
 
-		public abstract Task OnUninstallResult(Activity activity, bool scriptsUpdate, CancellationToken token);
+		public abstract Task OnUninstallResult(Activity activity, CancellationToken token);
 
-		protected abstract Task Finish(bool processSavedata, bool scriptsUpdate, bool obbUpdate,
-			CancellationToken token);
+		protected abstract Task Finish(CancellationToken token);
 	}
 }

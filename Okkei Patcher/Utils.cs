@@ -158,7 +158,9 @@ namespace OkkeiPatcher
 			}
 			else
 			{
+#pragma warning disable CS0618 // Type or member is obsolete
 				var intent = new Intent(Intent.ActionInstallPackage);
+#pragma warning restore CS0618 // Type or member is obsolete
 				intent.SetData(apkUri);
 				intent.SetFlags(ActivityFlags.GrantReadUriPermission);
 				intent.PutExtra(Intent.ExtraNotUnknownSource, false);

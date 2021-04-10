@@ -28,9 +28,16 @@ namespace OkkeiPatcher
 		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache =
 			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
 
-		private static readonly Lazy<PatchTools> PatchTools = new Lazy<PatchTools>(() => new PatchTools());
-		private static readonly Lazy<UnpatchTools> UnpatchTools = new Lazy<UnpatchTools>(() => new UnpatchTools());
-		private static readonly Lazy<ManifestTools> ManifestTools = new Lazy<ManifestTools>(() => new ManifestTools());
+		private static readonly Lazy<Utils> UtilsInstance = new Lazy<Utils>(() => new Utils());
+
+		private static readonly Lazy<PatchTools> PatchTools =
+			new Lazy<PatchTools>(() => new PatchTools(UtilsInstance.Value));
+
+		private static readonly Lazy<UnpatchTools> UnpatchTools =
+			new Lazy<UnpatchTools>(() => new UnpatchTools(UtilsInstance.Value));
+
+		private static readonly Lazy<ManifestTools> ManifestTools =
+			new Lazy<ManifestTools>(() => new ManifestTools(UtilsInstance.Value));
 
 		private bool _backPressed;
 
@@ -52,6 +59,14 @@ namespace OkkeiPatcher
 			return (T?) view;
 		}
 #nullable disable
+
+		private ProcessState CreateProcessState()
+		{
+			var processSavedata = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox).Checked;
+			var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
+			var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
+			return new ProcessState(processSavedata, scriptsUpdate, obbUpdate);
+		}
 
 		private bool RequestInstallPackagesPermission()
 		{
@@ -83,7 +98,7 @@ namespace OkkeiPatcher
 					ManifestTools.Value.ErrorOccurred += OnErrorOccurred_ManifestTasks;
 					ManifestTools.Value.PropertyChanged += OnPropertyChanged_ManifestTasks;
 
-					if (!await ManifestTools.Value.GetManifest(_cancelTokenSource.Token)
+					if (!await ManifestTools.Value.RetrieveManifest(_cancelTokenSource.Token)
 						.OnException(ex => ManifestTools.Value.WriteBugReport(ex))) return;
 
 					if (ManifestTools.Value.IsPatchUpdateAvailable)
@@ -152,19 +167,14 @@ namespace OkkeiPatcher
 					if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 					break;
 				case (int) RequestCodes.UninstallCode:
-					var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
 					Task.Run(() =>
-						_currentToolsObject.OnUninstallResult(this, scriptsUpdate, _cancelTokenSource.Token)
+						_currentToolsObject.OnUninstallResult(this, _cancelTokenSource.Token)
 							.OnException(ex => _currentToolsObject.WriteBugReport(ex)));
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
 					{
-						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-						scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
-						var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
-						_currentToolsObject.OnInstallSuccess(savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
-							_cancelTokenSource.Token);
+						_currentToolsObject.OnInstallSuccess(_cancelTokenSource.Token);
 						break;
 					}
 
@@ -188,11 +198,7 @@ namespace OkkeiPatcher
 					StartActivity(confirmIntent);
 					break;
 				case (int) PackageInstallStatus.Success:
-					var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-					var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
-					var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
-					_currentToolsObject.OnInstallSuccess(savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
-						_cancelTokenSource.Token);
+					_currentToolsObject.OnInstallSuccess(_cancelTokenSource.Token);
 					break;
 			}
 		}
@@ -445,14 +451,17 @@ namespace OkkeiPatcher
 
 		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
 		{
-			var progress = e.Progress;
-			var max = e.Max;
-			var isIndeterminate = e.IsIndeterminate;
-			var progressBar = FindCachedViewById<ProgressBar>(Resource.Id.progressBar);
-			if (progressBar.Indeterminate != isIndeterminate)
-				MainThread.BeginInvokeOnMainThread(() => progressBar.Indeterminate = isIndeterminate);
-			if (progressBar.Max != max) MainThread.BeginInvokeOnMainThread(() => progressBar.Max = max);
-			MainThread.BeginInvokeOnMainThread(() => progressBar.Progress = progress);
+			MainThread.BeginInvokeOnMainThread(() =>
+			{
+				var progress = e.Progress;
+				var max = e.Max;
+				var isIndeterminate = e.IsIndeterminate;
+				var progressBar = FindCachedViewById<ProgressBar>(Resource.Id.progressBar);
+				if (progressBar == null) return;
+				if (progressBar.Indeterminate != isIndeterminate) progressBar.Indeterminate = isIndeterminate;
+				if (progressBar.Max != max) progressBar.Max = max;
+				progressBar.Progress = progress;
+			});
 		}
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
@@ -495,11 +504,7 @@ namespace OkkeiPatcher
 									_patchToolsEventsSubscribed = true;
 								}
 
-								var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-								var scriptsUpdate = ManifestTools.Value.IsScriptsUpdateAvailable;
-								var obbUpdate = ManifestTools.Value.IsObbUpdateAvailable;
-								PatchTools.Value.Start(this, savedataCheckbox.Checked, scriptsUpdate, obbUpdate,
-									_cancelTokenSource.Token);
+								PatchTools.Value.Start(this, CreateProcessState(), _cancelTokenSource.Token);
 							}, null);
 					}, null);
 				return;
@@ -546,8 +551,7 @@ namespace OkkeiPatcher
 							_unpatchToolsEventsSubscribed = true;
 						}
 
-						var savedataCheckbox = FindCachedViewById<CheckBox>(Resource.Id.savedataCheckbox);
-						UnpatchTools.Value.Start(this, savedataCheckbox.Checked, _cancelTokenSource.Token);
+						UnpatchTools.Value.Start(this, CreateProcessState(), _cancelTokenSource.Token);
 					}, null);
 				return;
 			}
