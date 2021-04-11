@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
@@ -19,185 +20,202 @@ namespace OkkeiPatcher
 
 			try
 			{
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.restore_obb));
+				await RestoreObb(token);
+				await RestoreSavedata(token);
+				await RecoverPreviousSavedataBackup(token);
+				ClearBackup();
 
-				if (!System.IO.File.Exists(FilePaths[Files.BackupObb]))
-				{
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null));
-					OnErrorOccurred(this, EventArgs.Empty);
-					throw new OperationCanceledException("The operation was canceled.", token);
-				}
-
-				await UtilsInstance.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token)
-					.ConfigureAwait(false);
-
-				if (ProcessState.ProcessSavedata)
-				{
-					if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
-					{
-						OnStatusChanged(this,
-							Application.Context.Resources.GetText(Resource.String.restore_saves));
-
-						await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath,
-								SavedataFileName, token)
-							.ConfigureAwait(false);
-					}
-					else
-					{
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
-								Application.Context.Resources.GetText(Resource.String.saves_backup_not_found),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null));
-					}
-				}
-
-				// Clear backup
-				if (System.IO.File.Exists(FilePaths[Files.BackupApk]))
-					System.IO.File.Delete(FilePaths[Files.BackupApk]);
-				if (System.IO.File.Exists(FilePaths[Files.BackupObb]))
-					System.IO.File.Delete(FilePaths[Files.BackupObb]);
-
-				if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
-				{
-					System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
-					if (System.IO.File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
-					{
-						System.IO.File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
-
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_saves_md5));
-						Preferences.Set(Prefkey.savedata_md5.ToString(),
-							await UtilsInstance.CalculateMD5(FilePaths[Files.BackupSavedata], token)
-								.ConfigureAwait(false));
-					}
-				}
-
-				// Finish unpatch
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.unpatch_success));
 			}
 			catch (OperationCanceledException)
 			{
-				if (System.IO.File.Exists(FilePaths[Files.BackupSavedata]))
-					System.IO.File.Delete(FilePaths[Files.BackupSavedata]);
-				if (System.IO.File.Exists(FilePaths[Files.OriginalSavedata]))
-					System.IO.File.Delete(FilePaths[Files.OriginalSavedata]);
+				if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
+				if (File.Exists(FilePaths[Files.OriginalSavedata])) File.Delete(FilePaths[Files.OriginalSavedata]);
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+				SetStatusToAborted();
 			}
 			finally
 			{
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
+				ResetProgress();
 				IsRunning = false;
 			}
 		}
 
-		public void Start(Activity activity, ProcessState processState, CancellationToken token)
+		private async Task RestoreObb(CancellationToken token)
 		{
-			Task.Run(() => StartPrivate(activity, processState, token).OnException(WriteBugReport));
+			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.restore_obb));
+
+			if (!File.Exists(FilePaths[Files.BackupObb]))
+			{
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+				NotifyAboutError();
+				Utils.ThrowOperationCanceledException(token);
+			}
+
+			await UtilsInstance.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token).ConfigureAwait(false);
 		}
 
-		private async Task StartPrivate(Activity activity, ProcessState processState, CancellationToken token)
+		private async Task RestoreSavedata(CancellationToken token)
+		{
+			if (!ProcessState.ProcessSavedata) return;
+
+			if (File.Exists(FilePaths[Files.BackupSavedata]))
+			{
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.restore_saves));
+
+				await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, token)
+					.ConfigureAwait(false);
+				return;
+			}
+
+			OnMessageGenerated(this,
+				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+					Application.Context.Resources.GetText(Resource.String.saves_backup_not_found),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+		}
+
+		private async Task RecoverPreviousSavedataBackup(CancellationToken token)
+		{
+			if (!File.Exists(FilePaths[Files.BackupSavedata])) return;
+
+			File.Delete(FilePaths[Files.BackupSavedata]);
+
+			if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
+			{
+				File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
+
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_saves_md5));
+				Preferences.Set(Prefkey.savedata_md5.ToString(),
+					await UtilsInstance.CalculateMD5(FilePaths[Files.BackupSavedata], token).ConfigureAwait(false));
+			}
+		}
+
+		private static void ClearBackup()
+		{
+			if (File.Exists(FilePaths[Files.BackupApk])) File.Delete(FilePaths[Files.BackupApk]);
+			if (File.Exists(FilePaths[Files.BackupObb])) File.Delete(FilePaths[Files.BackupObb]);
+		}
+
+		public void Unpatch(Activity activity, ProcessState processState, CancellationToken token)
+		{
+			Task.Run(() => UnpatchPrivate(activity, processState, token).OnException(WriteBugReport));
+		}
+
+		private async Task UnpatchPrivate(Activity activity, ProcessState processState, CancellationToken token)
 		{
 			IsRunning = true;
-
 			ProcessState = processState;
-
-			var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
-
+			
 			try
 			{
-				if (!isPatched)
+				if (!CheckIfCouldUnpatch()) Utils.ThrowOperationCanceledException(token);
+
+				await BackupSavedata(token);
+
+				ClearStatus();
+				SetIndeterminateProgress();
+				
+				if (Utils.IsAppInstalled(ChaosChildPackageName))
 				{
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.error_not_patched),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null));
-					OnErrorOccurred(this, EventArgs.Empty);
-					throw new OperationCanceledException("The operation was canceled.", token);
-				}
-
-				if (!Utils.IsBackupAvailable())
-				{
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.backup_not_found),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							null, null));
-					OnErrorOccurred(this, EventArgs.Empty);
-					throw new OperationCanceledException("The operation was canceled.", token);
-				}
-
-				if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
-				{
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.no_free_space_unpatch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
-					OnErrorOccurred(this, EventArgs.Empty);
-					throw new OperationCanceledException("The operation was canceled.", token);
-				}
-
-				if (ProcessState.ProcessSavedata)
-				{
-					if (System.IO.File.Exists(FilePaths[Files.OriginalSavedata]))
-					{
-						// Backup save data
-						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
-
-						await UtilsInstance.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup,
-							SavedataBackupFileName, token).ConfigureAwait(false);
-					}
-					else
-					{
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
-								Application.Context.Resources.GetText(Resource.String.saves_not_found_unpatch),
-								Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								null, null));
-					}
-				}
-
-				OnStatusChanged(this, string.Empty);
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
-
-
-				// Uninstall CHAOS;CHILD and install backup, then restore OBB and save data if checked
-				// Install backup immediately if CHAOS;CHILD is not installed
-				if (UtilsInstance.IsAppInstalled(ChaosChildPackageName))
-				{
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-							Application.Context.Resources.GetText(Resource.String.uninstall_prompt_unpatch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-							() => UtilsInstance.UninstallPackage(activity, ChaosChildPackageName), null));
+					UninstallPatchedPackage(activity);
 					return;
 				}
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
-
-				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-						Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-						() =>
-						{
-							MainThread.BeginInvokeOnMainThread(() => UtilsInstance.InstallPackage(activity,
-								Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
-						}, null));
+				InstallBackupApk(activity);
 			}
 			catch (OperationCanceledException)
 			{
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
+				SetStatusToAborted();
+				ResetProgress();
 				IsRunning = false;
 			}
+		}
+
+		private bool CheckIfCouldUnpatch()
+		{
+			var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+			if (!isPatched)
+			{
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.error_not_patched),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+						null, null));
+				NotifyAboutError();
+				return false;
+			}
+
+			if (!Utils.IsBackupAvailable())
+			{
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.backup_not_found),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+						null, null));
+				NotifyAboutError();
+				return false;
+			}
+
+			if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
+			{
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.no_free_space_unpatch),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+				NotifyAboutError();
+				return false;
+			}
+
+			return true;
+		}
+
+		private async Task BackupSavedata(CancellationToken token)
+		{
+			if (!ProcessState.ProcessSavedata) return;
+
+			if (File.Exists(FilePaths[Files.OriginalSavedata]))
+			{
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
+
+				await UtilsInstance
+					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, token)
+					.ConfigureAwait(false);
+				return;
+			}
+
+			OnMessageGenerated(this,
+				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
+					Application.Context.Resources.GetText(Resource.String.saves_not_found_unpatch),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+		}
+
+		private void UninstallPatchedPackage(Activity activity)
+		{
+			OnMessageGenerated(this,
+				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+					Application.Context.Resources.GetText(Resource.String.uninstall_prompt_unpatch),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+					() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
+		}
+
+		private void InstallBackupApk(Activity activity)
+		{
+			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+
+			OnMessageGenerated(this,
+				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+					Application.Context.Resources.GetText(Resource.String.install_prompt_unpatch),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+					() =>
+					{
+						MainThread.BeginInvokeOnMainThread(() => UtilsInstance.InstallPackage(activity,
+							Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
+					}, null));
 		}
 
 		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
@@ -216,53 +234,45 @@ namespace OkkeiPatcher
 
 			try
 			{
-				if (System.IO.File.Exists(path))
+				if (!File.Exists(path))
 				{
-					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
-
-					var apkFileMd5 = await UtilsInstance.CalculateMD5(path, token).ConfigureAwait(false);
-
-					if (apkMd5 == apkFileMd5)
-					{
-						OnStatusChanged(this,
-							Application.Context.Resources.GetText(Resource.String.installing));
-
-						OnMessageGenerated(this,
-							new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-								message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-								() => MainThread.BeginInvokeOnMainThread(() =>
-									UtilsInstance.InstallPackage(activity,
-										Android.Net.Uri.FromFile(new Java.IO.File(path)))),
-								null));
-						return;
-					}
-
-					System.IO.File.Delete(path);
-
-					OnMessageGenerated(this, new MessageBox.Data(
-						Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_unpatch),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok),
-						null,
-						null, null));
-
-					OnErrorOccurred(this, EventArgs.Empty);
-					throw new OperationCanceledException("The operation was canceled.", token);
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+							Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
+							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					NotifyAboutError();
+					Utils.ThrowOperationCanceledException(token);
 				}
 
-				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
-						null, null));
+				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 
-				OnErrorOccurred(this, EventArgs.Empty);
-				throw new OperationCanceledException("The operation was canceled.", token);
+				var apkFileMd5 = await UtilsInstance.CalculateMD5(path, token).ConfigureAwait(false);
+
+				if (apkMd5 == apkFileMd5)
+				{
+					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+					OnMessageGenerated(this,
+						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
+							message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							() => MainThread.BeginInvokeOnMainThread(() =>
+								UtilsInstance.InstallPackage(activity,
+									Android.Net.Uri.FromFile(new Java.IO.File(path)))), null));
+					return;
+				}
+
+				File.Delete(path);
+
+				OnMessageGenerated(this, new MessageBox.Data(
+					Application.Context.Resources.GetText(Resource.String.error),
+					Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_unpatch),
+					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+				NotifyAboutError();
+				Utils.ThrowOperationCanceledException(token);
 			}
 			catch (OperationCanceledException)
 			{
-				OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+				SetStatusToAborted();
+				ResetProgress();
 				IsRunning = false;
 			}
 		}

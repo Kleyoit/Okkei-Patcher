@@ -85,10 +85,35 @@ namespace OkkeiPatcher
 			NotifyInstallFailed();
 		}
 
-		public void WriteBugReport(Exception ex)
+		protected void ResetProgress()
+		{
+			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
+		}
+
+		protected void SetIndeterminateProgress()
+		{
+			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
+		}
+
+		protected void ClearStatus()
+		{
+			OnStatusChanged(this, string.Empty);
+		}
+
+		protected void SetStatusToAborted()
+		{
+			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+		}
+
+		protected void NotifyAboutError()
+		{
+			OnErrorOccurred(this, EventArgs.Empty);
+		}
+
+		protected void WriteBugReport(Exception ex)
 		{
 			IsRunning = true;
-			var bugReport = UtilsInstance.GetBugReportText(ex);
+			var bugReport = Utils.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
 			MessageGenerated?.Invoke(this,
 				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
@@ -99,10 +124,10 @@ namespace OkkeiPatcher
 
 		protected bool CheckUninstallSuccess()
 		{
-			if (!UtilsInstance.IsAppInstalled(ChaosChildPackageName) || ProcessState.ScriptsUpdate) return true;
+			if (!Utils.IsAppInstalled(ChaosChildPackageName) || ProcessState.ScriptsUpdate) return true;
 
-			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+			ResetProgress();
+			SetStatusToAborted();
 			OnMessageGenerated(this, new MessageBox.Data(
 				Application.Context.Resources.GetText(Resource.String.error),
 				Application.Context.Resources.GetText(Resource.String.uninstall_error),
@@ -112,14 +137,14 @@ namespace OkkeiPatcher
 			return false;
 		}
 
-		public void OnInstallSuccess(CancellationToken token)
-		{
-			Task.Run(() => OnInstallSuccessProtected(token).OnException(WriteBugReport));
-		}
-
 		public void OnUninstallResult(Activity activity, CancellationToken token)
 		{
 			Task.Run(() => OnUninstallResultProtected(activity, token).OnException(WriteBugReport));
+		}
+
+		public void OnInstallSuccess(CancellationToken token)
+		{
+			Task.Run(() => OnInstallSuccessProtected(token).OnException(WriteBugReport));
 		}
 
 		public void NotifyInstallFailed()

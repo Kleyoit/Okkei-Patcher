@@ -3,15 +3,18 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using ICSharpCode.SharpZipLib.Zip;
 using Java.IO;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
+using File = System.IO.File;
 
 namespace OkkeiPatcher
 {
@@ -27,7 +30,7 @@ namespace OkkeiPatcher
 		public Task<string> CalculateMD5(string filename, CancellationToken token)
 		{
 			using var md5 = MD5.Create();
-			using var stream = System.IO.File.OpenRead(filename);
+			using var stream = File.OpenRead(filename);
 
 			const int bufferLength = 0x100000;
 			var buffer = new byte[bufferLength];
@@ -67,7 +70,7 @@ namespace OkkeiPatcher
 			switch (file)
 			{
 				case Files.OriginalSavedata:
-					if (System.IO.File.Exists(FileToCompareWith[file]))
+					if (File.Exists(FileToCompareWith[file]))
 						secondMd5 = await CalculateMD5(FileToCompareWith[file], token).ConfigureAwait(false);
 					break;
 				default:
@@ -75,7 +78,7 @@ namespace OkkeiPatcher
 					break;
 			}
 
-			if (System.IO.File.Exists(FilePaths[file]) && secondMd5 != string.Empty)
+			if (File.Exists(FilePaths[file]) && secondMd5 != string.Empty)
 				firstMd5 = await CalculateMD5(FilePaths[file], token).ConfigureAwait(false);
 
 			if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
@@ -83,7 +86,7 @@ namespace OkkeiPatcher
 			return result;
 		}
 
-		public byte[] ReadCert(Stream certStream, int size)
+		public static byte[] ReadCertificate(Stream certStream, int size)
 		{
 			if (certStream == null) throw new ArgumentNullException(nameof(certStream));
 			var data = new byte[size];
@@ -92,7 +95,7 @@ namespace OkkeiPatcher
 			return data;
 		}
 
-		public bool IsAppInstalled(string packageName)
+		public static bool IsAppInstalled(string packageName)
 		{
 			try
 			{
@@ -105,7 +108,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
+		private static void AddApkToInstallSession(Android.Net.Uri apkUri, PackageInstaller.Session session)
 		{
 			var packageInSession = session.OpenWrite("package", 0, -1);
 			FileStream input = null;
@@ -143,9 +146,8 @@ namespace OkkeiPatcher
 				var intent = new Intent(activity, activity.Class);
 				intent.SetAction(ActionPackageInstalled);
 
-				var pendingIntent =
-					PendingIntent.GetActivity(activity, (int) RequestCodes.PendingIntentInstallCode, intent,
-						PendingIntentFlags.UpdateCurrent);
+				var pendingIntent = PendingIntent.GetActivity(activity, (int) RequestCodes.PendingIntentInstallCode,
+					intent, PendingIntentFlags.UpdateCurrent);
 
 				var observer = new PackageInstallObserver(packageInstaller);
 				observer.InstallFailed += OnInstallFailed;
@@ -176,7 +178,7 @@ namespace OkkeiPatcher
 			((PackageInstallObserver) sender).InstallFailed -= OnInstallFailed;
 		}
 
-		public void UninstallPackage(Activity activity, string packageName)
+		public static void UninstallPackage(Activity activity, string packageName)
 		{
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
@@ -193,7 +195,7 @@ namespace OkkeiPatcher
 
 			Directory.CreateDirectory(outFilePath);
 			var outPath = Path.Combine(outFilePath, outFileName);
-			if (System.IO.File.Exists(outPath)) System.IO.File.Delete(outPath);
+			if (File.Exists(outPath)) File.Delete(outPath);
 
 			var output = new FileStream(outPath, FileMode.OpenOrCreate);
 
@@ -234,7 +236,7 @@ namespace OkkeiPatcher
 			output.Dispose();
 
 			var outFile = Path.Combine(outFilePath, outFileName);
-			if (token.IsCancellationRequested && System.IO.File.Exists(outFile)) System.IO.File.Delete(outFile);
+			if (token.IsCancellationRequested && File.Exists(outFile)) File.Delete(outFile);
 
 			token.ThrowIfCancellationRequested();
 
@@ -246,7 +248,7 @@ namespace OkkeiPatcher
 		{
 			Directory.CreateDirectory(outFilePath);
 			var outPath = Path.Combine(outFilePath, outFileName);
-			if (System.IO.File.Exists(outPath)) System.IO.File.Delete(outPath);
+			if (File.Exists(outPath)) File.Delete(outPath);
 			var output = new FileStream(outPath, FileMode.OpenOrCreate);
 
 			const int bufferLength = 0x14000;
@@ -291,19 +293,19 @@ namespace OkkeiPatcher
 				download?.Dispose();
 				output.Dispose();
 				var downloadedFile = Path.Combine(outFilePath, outFileName);
-				if (token.IsCancellationRequested && System.IO.File.Exists(downloadedFile))
-					System.IO.File.Delete(downloadedFile);
+				if (token.IsCancellationRequested && File.Exists(downloadedFile))
+					File.Delete(downloadedFile);
 				token.ThrowIfCancellationRequested();
 			}
 		}
 
-		public string GetBugReportText(Exception ex)
+		public static string GetBugReportText(Exception ex)
 		{
 			return
 				$"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
 		}
 
-		public string GetDeviceInfo()
+		public static string GetDeviceInfo()
 		{
 			var manufacturer = Build.Manufacturer;
 			var model = Build.Model;
@@ -317,15 +319,15 @@ namespace OkkeiPatcher
 
 		public static bool IsBackupAvailable()
 		{
-			return System.IO.File.Exists(FilePaths[Files.BackupApk]) &&
-			       System.IO.File.Exists(FilePaths[Files.BackupObb]);
+			return File.Exists(FilePaths[Files.BackupApk]) &&
+			       File.Exists(FilePaths[Files.BackupObb]);
 		}
 
 		public static void ClearOkkeiFiles()
 		{
 			if (Directory.Exists(OkkeiFilesPath)) RecursiveClearFiles(OkkeiFilesPath);
-			if (System.IO.File.Exists(ManifestPath)) System.IO.File.Delete(ManifestPath);
-			if (System.IO.File.Exists(ManifestBackupPath)) System.IO.File.Delete(ManifestBackupPath);
+			if (File.Exists(ManifestPath)) File.Delete(ManifestPath);
+			if (File.Exists(ManifestBackupPath)) File.Delete(ManifestBackupPath);
 		}
 
 		public static void RecursiveClearFiles(string path)
@@ -333,7 +335,7 @@ namespace OkkeiPatcher
 			var files = Directory.GetFiles(path);
 			if (files.Length > 0)
 				foreach (var file in files)
-					System.IO.File.Delete(file);
+					File.Delete(file);
 			var directories = Directory.GetDirectories(path);
 			if (directories.Length > 0)
 				foreach (var dir in directories)
@@ -341,6 +343,48 @@ namespace OkkeiPatcher
 					RecursiveClearFiles(dir);
 					Directory.Delete(dir);
 				}
+		}
+
+		public static void DeleteFolder(string folderPath)
+		{
+			RecursiveClearFiles(folderPath);
+			Directory.Delete(folderPath);
+		}
+
+		public static void UpdateZip(ZipFile zipFile)
+		{
+			zipFile.CommitUpdate();
+			zipFile.Close();
+		}
+
+		public static void RemoveApkSignature(ZipFile zipFile)
+		{
+			foreach (ZipEntry ze in zipFile)
+				if (ze.Name.StartsWith("META-INF/"))
+					zipFile.Delete(ze);
+		}
+
+		public static void ExtractZip(string zipPath, string extractPath)
+		{
+			var fastZip = new FastZip();
+			const string fileFilter = null;
+			fastZip.ExtractZip(zipPath, extractPath, fileFilter);
+		}
+
+		public X509Certificate2 GetSigningCertificate()
+		{
+			var assets = Application.Context.Assets;
+			var testkeyFile = assets?.Open(CertFileName);
+			var testkeySize = 2797;
+			var testkey = new X509Certificate2(ReadCertificate(testkeyFile, testkeySize), CertPassword);
+			testkeyFile?.Close();
+			testkeyFile?.Dispose();
+			return testkey;
+		}
+
+		public static void ThrowOperationCanceledException(CancellationToken token)
+		{
+			throw new System.OperationCanceledException("The operation was canceled.", token);
 		}
 	}
 }

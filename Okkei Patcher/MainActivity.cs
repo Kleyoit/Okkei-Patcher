@@ -98,8 +98,7 @@ namespace OkkeiPatcher
 					ManifestTools.Value.ErrorOccurred += OnErrorOccurred_ManifestTasks;
 					ManifestTools.Value.PropertyChanged += OnPropertyChanged_ManifestTasks;
 
-					if (!await ManifestTools.Value.RetrieveManifest(_cancelTokenSource.Token)
-						.OnException(ex => ManifestTools.Value.WriteBugReport(ex))) return;
+					if (!await ManifestTools.Value.RetrieveManifest(_cancelTokenSource.Token)) return;
 
 					if (ManifestTools.Value.IsPatchUpdateAvailable)
 					{
@@ -129,9 +128,7 @@ namespace OkkeiPatcher
 						ManifestTools.Value.Manifest.OkkeiPatcher.Changelog),
 					Resources.GetText(Resource.String.dialog_update),
 					Resources.GetText(Resource.String.dialog_cancel),
-					() => Task.Run(() =>
-						ManifestTools.Value.InstallAppUpdate(this, _cancelTokenSource.Token)
-							.OnException(ex => ManifestTools.Value.WriteBugReport(ex))), null));
+					() => ManifestTools.Value.UpdateApp(this, _cancelTokenSource.Token), null));
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -502,7 +499,7 @@ namespace OkkeiPatcher
 									_patchToolsEventsSubscribed = true;
 								}
 
-								PatchTools.Value.Start(this, CreateProcessState(), ManifestTools.Value.Manifest,
+								PatchTools.Value.Patch(this, CreateProcessState(), ManifestTools.Value.Manifest,
 									_cancelTokenSource.Token);
 							}, null);
 					}, null);
@@ -550,7 +547,7 @@ namespace OkkeiPatcher
 							_unpatchToolsEventsSubscribed = true;
 						}
 
-						UnpatchTools.Value.Start(this, CreateProcessState(), _cancelTokenSource.Token);
+						UnpatchTools.Value.Unpatch(this, CreateProcessState(), _cancelTokenSource.Token);
 					}, null);
 				return;
 			}
