@@ -14,12 +14,13 @@ namespace OkkeiPatcher
 	internal class PatchTools : ToolsBase
 	{
 		private bool _saveDataBackupFromOldPatch;
+		private OkkeiManifest _manifest;
 
 		public PatchTools(Utils utils) : base(utils)
 		{
 		}
 
-		protected override async Task Finish(CancellationToken token)
+		protected override async Task OnInstallSuccessProtected(CancellationToken token)
 		{
 			if (!IsRunning) return;
 
@@ -56,7 +57,7 @@ namespace OkkeiPatcher
 
 					try
 					{
-						await UtilsInstance.DownloadFile(GlobalManifest.Obb.URL, ObbPath, ObbFileName, token)
+						await UtilsInstance.DownloadFile(_manifest.Obb.URL, ObbPath, ObbFileName, token)
 							.ConfigureAwait(false);
 					}
 					catch (Exception ex) when (!(ex is OperationCanceledException))
@@ -74,7 +75,7 @@ namespace OkkeiPatcher
 
 					var obbHash = await UtilsInstance.CalculateMD5(FilePaths[Files.ObbToReplace], token)
 						.ConfigureAwait(false);
-					if (obbHash != GlobalManifest.Obb.MD5)
+					if (obbHash != _manifest.Obb.MD5)
 					{
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 						OnMessageGenerated(this,
@@ -87,7 +88,7 @@ namespace OkkeiPatcher
 					}
 
 					Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), obbHash);
-					Preferences.Set(Prefkey.obb_version.ToString(), GlobalManifest.Obb.Version);
+					Preferences.Set(Prefkey.obb_version.ToString(), _manifest.Obb.Version);
 				}
 
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
@@ -109,31 +110,21 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public void Start(Activity activity, ProcessState processState, CancellationToken token)
+		public void Start(Activity activity, ProcessState processState, OkkeiManifest manifest, CancellationToken token)
 		{
-			Task.Run(() => StartPrivate(activity, processState, token).OnException(WriteBugReport));
+			Task.Run(() => StartPrivate(activity, processState, manifest, token).OnException(WriteBugReport));
 		}
 
-		private async Task StartPrivate(Activity activity, ProcessState processState, CancellationToken token)
+		private async Task StartPrivate(Activity activity, ProcessState processState, OkkeiManifest manifest,
+			CancellationToken token)
 		{
 			IsRunning = true;
 			_saveDataBackupFromOldPatch = false;
 
 			ProcessState = processState;
+			_manifest = manifest;
 
 			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
-
-			// Read testcert for signing APK
-			var assets = Application.Context.Assets;
-			var testkeyFile = assets?.Open(CertFileName);
-			var testkeySize = 2797;
-
-			var testkeyTemp =
-				new X509Certificate2(UtilsInstance.ReadCert(testkeyFile, testkeySize), CertPassword);
-			Testkey = testkeyTemp;
-
-			testkeyFile?.Close();
-			testkeyFile?.Dispose();
 
 			try
 			{
@@ -273,7 +264,7 @@ namespace OkkeiPatcher
 
 							try
 							{
-								await UtilsInstance.DownloadFile(GlobalManifest.Scripts.URL, OkkeiFilesPath,
+								await UtilsInstance.DownloadFile(manifest.Scripts.URL, OkkeiFilesPath,
 									ScriptsFileName, token).ConfigureAwait(false);
 							}
 							catch (Exception ex) when (!(ex is OperationCanceledException))
@@ -295,7 +286,7 @@ namespace OkkeiPatcher
 							var scriptsHash =
 								await UtilsInstance.CalculateMD5(FilePaths[Files.Scripts], token)
 									.ConfigureAwait(false);
-							if (scriptsHash != GlobalManifest.Scripts.MD5)
+							if (scriptsHash != manifest.Scripts.MD5)
 							{
 								OnStatusChanged(this,
 									Application.Context.Resources.GetText(Resource.String.aborted));
@@ -311,7 +302,7 @@ namespace OkkeiPatcher
 							}
 
 							Preferences.Set(Prefkey.scripts_md5.ToString(), scriptsHash);
-							Preferences.Set(Prefkey.scripts_version.ToString(), GlobalManifest.Scripts.Version);
+							Preferences.Set(Prefkey.scripts_version.ToString(), manifest.Scripts.Version);
 						}
 
 
@@ -376,12 +367,19 @@ namespace OkkeiPatcher
 						// Sign APK
 						OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.sign_apk));
 
+						var assets = Application.Context.Assets;
+						var testkeyFile = assets?.Open(CertFileName);
+						var testkeySize = 2797;
+						var testkey = new X509Certificate2(UtilsInstance.ReadCert(testkeyFile, testkeySize), CertPassword);
+						testkeyFile?.Close();
+						testkeyFile?.Dispose();
+
 						var apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
 						var signedApkStream =
 							new FileStream(FilePaths[Files.SignedApk], FileMode.OpenOrCreate);
 						var signWholeFile = false;
 
-						SignPackage(apkToSign, Testkey, signedApkStream, signWholeFile);
+						SignPackage(apkToSign, testkey, signedApkStream, signWholeFile);
 
 						apkToSign.Dispose();
 						signedApkStream.Dispose();
@@ -458,7 +456,7 @@ namespace OkkeiPatcher
 
 				if (ProcessState.ScriptsUpdate)
 				{
-					await OnUninstallResult(activity, token).ConfigureAwait(false);
+					await OnUninstallResultProtected(activity, token).ConfigureAwait(false);
 					return;
 				}
 
@@ -477,7 +475,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public override async Task OnUninstallResult(Activity activity, CancellationToken token)
+		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
 

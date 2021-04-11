@@ -13,7 +13,7 @@ namespace OkkeiPatcher
 		{
 		}
 
-		protected override async Task Finish(CancellationToken token)
+		protected override async Task OnInstallSuccessProtected(CancellationToken token)
 		{
 			if (!IsRunning) return;
 
@@ -200,7 +200,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		public override async Task OnUninstallResult(Activity activity, CancellationToken token)
+		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
 

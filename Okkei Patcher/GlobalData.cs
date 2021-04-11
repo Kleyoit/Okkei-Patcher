@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
 
 namespace OkkeiPatcher
 {
@@ -47,7 +46,6 @@ namespace OkkeiPatcher
 		}
 
 		public const long TwoGb = (long) 1024 * 1024 * 1024 * 2;
-		public static X509Certificate2 Testkey;
 
 		public static readonly string ActionPackageInstalled =
 			"solru.okkeipatcher.PACKAGE_INSTALLED_ACTION";
@@ -88,7 +86,6 @@ namespace OkkeiPatcher
 		public static readonly string BugReportLogPath = Path.Combine(OkkeiFilesPath, "bugreport.log");
 		public static readonly string CertFileName = "testkey.p12";
 		public static readonly string CertPassword = "password";
-		public static OkkeiManifest GlobalManifest;
 
 		public static readonly Dictionary<Files, string> FilePaths = new Dictionary<Files, string>
 		{

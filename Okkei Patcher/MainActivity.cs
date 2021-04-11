@@ -126,7 +126,7 @@ namespace OkkeiPatcher
 					Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available),
 						AppInfo.VersionString,
 						ManifestTools.Value.AppUpdateSizeInMB.ToString(CultureInfo.CurrentCulture),
-						GlobalManifest.OkkeiPatcher.Changelog),
+						ManifestTools.Value.Manifest.OkkeiPatcher.Changelog),
 					Resources.GetText(Resource.String.dialog_update),
 					Resources.GetText(Resource.String.dialog_cancel),
 					() => Task.Run(() =>
@@ -167,9 +167,7 @@ namespace OkkeiPatcher
 					if (RequestInstallPackagesPermission()) ExecuteManifestTasks();
 					break;
 				case (int) RequestCodes.UninstallCode:
-					Task.Run(() =>
-						_currentToolsObject.OnUninstallResult(this, _cancelTokenSource.Token)
-							.OnException(ex => _currentToolsObject.WriteBugReport(ex)));
+					_currentToolsObject.OnUninstallResult(this, _cancelTokenSource.Token);
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
@@ -504,7 +502,8 @@ namespace OkkeiPatcher
 									_patchToolsEventsSubscribed = true;
 								}
 
-								PatchTools.Value.Start(this, CreateProcessState(), _cancelTokenSource.Token);
+								PatchTools.Value.Start(this, CreateProcessState(), ManifestTools.Value.Manifest,
+									_cancelTokenSource.Token);
 							}, null);
 					}, null);
 				return;

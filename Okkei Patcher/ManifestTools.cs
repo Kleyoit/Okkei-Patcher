@@ -19,6 +19,8 @@ namespace OkkeiPatcher
 		{
 		}
 
+		public OkkeiManifest Manifest { get; private set; }
+
 		public bool IsAppUpdateAvailable
 		{
 			get
@@ -32,7 +34,7 @@ namespace OkkeiPatcher
 					appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
 #pragma warning restore CS0618 // Type or member is obsolete
 				IsRunning = false;
-				return GlobalManifest.OkkeiPatcher.Version > appVersion;
+				return Manifest.OkkeiPatcher.Version > appVersion;
 			}
 		}
 
@@ -46,7 +48,7 @@ namespace OkkeiPatcher
 					if (!Preferences.ContainsKey(Prefkey.scripts_version.ToString()))
 						Preferences.Set(Prefkey.scripts_version.ToString(), 1);
 					var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
-					_scriptsUpdateAvailable = GlobalManifest.Scripts.Version > scriptsVersion;
+					_scriptsUpdateAvailable = Manifest.Scripts.Version > scriptsVersion;
 					return _scriptsUpdateAvailable.Value;
 				}
 
@@ -65,7 +67,7 @@ namespace OkkeiPatcher
 					if (!Preferences.ContainsKey(Prefkey.obb_version.ToString()))
 						Preferences.Set(Prefkey.obb_version.ToString(), 1);
 					var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
-					_obbUpdateAvailable = GlobalManifest.Obb.Version > obbVersion;
+					_obbUpdateAvailable = Manifest.Obb.Version > obbVersion;
 					return _obbUpdateAvailable.Value;
 				}
 
@@ -82,22 +84,22 @@ namespace OkkeiPatcher
 			{
 				if (!IsPatchUpdateAvailable)
 				{
-					var scriptsSize = (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000);
-					var obbSize = (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000);
+					var scriptsSize = (int) Math.Round(Manifest.Scripts.Size / (double) 0x100000);
+					var obbSize = (int) Math.Round(Manifest.Obb.Size / (double) 0x100000);
 					return scriptsSize + obbSize;
 				}
 
 				var scriptsUpdateSize = IsScriptsUpdateAvailable
-					? (int) Math.Round(GlobalManifest.Scripts.Size / (double) 0x100000)
+					? (int) Math.Round(Manifest.Scripts.Size / (double) 0x100000)
 					: 0;
 				var obbUpdateSize = IsObbUpdateAvailable
-					? (int) Math.Round(GlobalManifest.Obb.Size / (double) 0x100000)
+					? (int) Math.Round(Manifest.Obb.Size / (double) 0x100000)
 					: 0;
 				return scriptsUpdateSize + obbUpdateSize;
 			}
 		}
 
-		public double AppUpdateSizeInMB => Math.Round(GlobalManifest.OkkeiPatcher.Size / (double) 0x100000, 2);
+		public double AppUpdateSizeInMB => Math.Round(Manifest.OkkeiPatcher.Size / (double) 0x100000, 2);
 
 		public void InvalidateUpdatesAvailability()
 		{
@@ -172,7 +174,7 @@ namespace OkkeiPatcher
 				{
 					OnStatusChanged(this,
 						Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
-					GlobalManifest = manifest;
+					Manifest = manifest;
 					return true;
 				}
 			}
@@ -211,7 +213,7 @@ namespace OkkeiPatcher
 				File.Copy(ManifestBackupPath, ManifestPath);
 				File.Delete(ManifestBackupPath);
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
-				GlobalManifest = manifest;
+				Manifest = manifest;
 				return true;
 			}
 			finally
@@ -232,7 +234,7 @@ namespace OkkeiPatcher
 			{
 				try
 				{
-					await UtilsInstance.DownloadFile(GlobalManifest.OkkeiPatcher.URL, OkkeiFilesPath,
+					await UtilsInstance.DownloadFile(Manifest.OkkeiPatcher.URL, OkkeiFilesPath,
 						AppUpdateFileName,
 						token).ConfigureAwait(false);
 				}
@@ -244,7 +246,7 @@ namespace OkkeiPatcher
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
 				var updateHash = await UtilsInstance.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
 
-				if (updateHash != GlobalManifest.OkkeiPatcher.MD5)
+				if (updateHash != Manifest.OkkeiPatcher.MD5)
 				{
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
 					OnMessageGenerated(this,
@@ -291,7 +293,7 @@ namespace OkkeiPatcher
 			}
 		}
 
-		protected override Task Finish(CancellationToken token)
+		protected override Task OnInstallSuccessProtected(CancellationToken token)
 		{
 			if (!IsRunning) return Task.CompletedTask;
 			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
@@ -301,7 +303,7 @@ namespace OkkeiPatcher
 			return Task.CompletedTask;
 		}
 
-		public override Task OnUninstallResult(Activity activity, CancellationToken token)
+		protected override Task OnUninstallResultProtected(Activity activity, CancellationToken token)
 		{
 			throw new NotImplementedException("This should not be called.");
 		}
