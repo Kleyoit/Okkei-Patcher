@@ -156,7 +156,8 @@ namespace OkkeiPatcher
 					return false;
 				}
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
+				OnStatusChanged(this,
+					Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
 				return true;
 			}
 			catch (Exception)
@@ -290,7 +291,7 @@ namespace OkkeiPatcher
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 							Application.Context.Resources.GetText(Resource.String.update_app_aborted),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
-				
+
 				if (ex is HttpRequestException)
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),

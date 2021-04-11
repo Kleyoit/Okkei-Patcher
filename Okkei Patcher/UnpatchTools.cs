@@ -110,7 +110,7 @@ namespace OkkeiPatcher
 		{
 			IsRunning = true;
 			ProcessState = processState;
-			
+
 			try
 			{
 				if (!CheckIfCouldUnpatch()) Utils.ThrowOperationCanceledException(token);
@@ -119,7 +119,7 @@ namespace OkkeiPatcher
 
 				ClearStatus();
 				SetIndeterminateProgress();
-				
+
 				if (Utils.IsAppInstalled(ChaosChildPackageName))
 				{
 					UninstallPatchedPackage(activity);

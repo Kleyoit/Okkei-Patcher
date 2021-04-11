@@ -11,8 +11,8 @@ namespace OkkeiPatcher
 	internal abstract class ToolsBase : INotifyPropertyChanged
 	{
 		protected readonly Utils UtilsInstance;
-		protected ProcessState ProcessState;
 		private bool _isRunningField;
+		protected ProcessState ProcessState;
 
 		protected ToolsBase(Utils utils)
 		{

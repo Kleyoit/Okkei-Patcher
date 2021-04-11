@@ -13,8 +13,8 @@ namespace OkkeiPatcher
 {
 	internal class PatchTools : ToolsBase
 	{
-		private bool _saveDataBackupFromOldPatch;
 		private OkkeiManifest _manifest;
+		private bool _saveDataBackupFromOldPatch;
 		private X509Certificate2 _signingCertificate;
 
 		public PatchTools(Utils utils) : base(utils)
@@ -75,12 +75,10 @@ namespace OkkeiPatcher
 			if (!ProcessState.PatchUpdate)
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
 
-			if ((!ProcessState.ObbUpdate && ProcessState.ScriptsUpdate) ||
-			    (File.Exists(FilePaths[Files.ObbToReplace]) &&
-			     await UtilsInstance.CompareMD5(Files.ObbToReplace, token).ConfigureAwait(false)))
-			{
+			if (!ProcessState.ObbUpdate && ProcessState.ScriptsUpdate ||
+			    File.Exists(FilePaths[Files.ObbToReplace]) &&
+			    await UtilsInstance.CompareMD5(Files.ObbToReplace, token).ConfigureAwait(false))
 				return;
-			}
 
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_obb));
 
@@ -166,7 +164,7 @@ namespace OkkeiPatcher
 							if (File.Exists(FilePaths[Files.TempApk])) File.Delete(FilePaths[Files.TempApk]);
 							Utils.ThrowOperationCanceledException(token);
 						}
-						
+
 						await SignApk(token);
 
 						if (token.IsCancellationRequested)
@@ -311,9 +309,7 @@ namespace OkkeiPatcher
 
 			if (File.Exists(FilePaths[Files.BackupApk]) &&
 			    await UtilsInstance.CompareMD5(Files.TempApk, token).ConfigureAwait(false))
-			{
 				return;
-			}
 
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_apk));
 
@@ -332,10 +328,8 @@ namespace OkkeiPatcher
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_scripts));
 
 			if (File.Exists(FilePaths[Files.Scripts]) &&
-				await UtilsInstance.CompareMD5(Files.Scripts, token).ConfigureAwait(false))
-			{
+			    await UtilsInstance.CompareMD5(Files.Scripts, token).ConfigureAwait(false))
 				return;
-			}
 
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_scripts));
 
@@ -436,9 +430,7 @@ namespace OkkeiPatcher
 
 				if (File.Exists(FilePaths[Files.BackupObb]) &&
 				    await UtilsInstance.CompareMD5(Files.ObbToBackup, token).ConfigureAwait(false))
-				{
 					return;
-				}
 
 				OnStatusChanged(this,
 					Application.Context.Resources.GetText(Resource.String.backup_obb));
