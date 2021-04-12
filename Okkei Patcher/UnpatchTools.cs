@@ -20,6 +20,8 @@ namespace OkkeiPatcher
 
 			try
 			{
+				ResetProgress();
+
 				await RestoreObb(token);
 				await RestoreSavedata(token);
 				await RecoverPreviousSavedataBackup(token);
@@ -250,6 +252,7 @@ namespace OkkeiPatcher
 
 				if (apkMd5 == apkFileMd5)
 				{
+					SetIndeterminateProgress();
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),

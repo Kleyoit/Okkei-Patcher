@@ -25,10 +25,12 @@ namespace OkkeiPatcher
 		{
 			if (!IsRunning) return;
 
-			if (File.Exists(FilePaths[Files.SignedApk])) File.Delete(FilePaths[Files.SignedApk]);
-
 			try
 			{
+				ResetProgress();
+
+				if (File.Exists(FilePaths[Files.SignedApk])) File.Delete(FilePaths[Files.SignedApk]);
+
 				await RestoreSavedataBackup(token);
 				await DownloadObb(token);
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
@@ -52,17 +54,20 @@ namespace OkkeiPatcher
 
 		private async Task RestoreSavedataBackup(CancellationToken token)
 		{
-			if (_saveDataBackupFromOldPatch && ProcessState.ProcessSavedata && !ProcessState.PatchUpdate &&
-			    File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
+			if (!ProcessState.ProcessSavedata || ProcessState.PatchUpdate ||
+			    !File.Exists(FilePaths[Files.SAVEDATA_BACKUP])) return;
+
+			if (_saveDataBackupFromOldPatch)
 			{
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.restore_old_saves));
 
-				if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
-				File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
-
-				await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, token)
-					.ConfigureAwait(false);
+				if (File.Exists(FilePaths[Files.BackupSavedata]))
+					await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, token)
+						.ConfigureAwait(false);
 			}
+
+			if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
+			File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
 		}
 
 		private async Task DownloadObb(CancellationToken token)
@@ -127,10 +132,10 @@ namespace OkkeiPatcher
 			ProcessState = processState;
 			_manifest = manifest;
 
-			ResetProgress();
-
 			try
 			{
+				ResetProgress();
+
 				if (!CheckIfCouldApplyPatch()) Utils.ThrowOperationCanceledException(token);
 
 				await BackupSavedata(token);
@@ -251,13 +256,9 @@ namespace OkkeiPatcher
 
 			ResetProgress();
 
-			if (File.Exists(FilePaths[Files.BackupSavedata]) &&
-			    await UtilsInstance.CompareMD5(Files.BackupSavedata, token).ConfigureAwait(false))
-			{
-				_saveDataBackupFromOldPatch = true;
-				if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP])) File.Delete(FilePaths[Files.SAVEDATA_BACKUP]);
-				File.Move(FilePaths[Files.BackupSavedata], FilePaths[Files.SAVEDATA_BACKUP]);
-			}
+			_saveDataBackupFromOldPatch = File.Exists(FilePaths[Files.BackupSavedata]) &&
+			                              await UtilsInstance.CompareMD5(Files.BackupSavedata, token)
+				                              .ConfigureAwait(false);
 
 			if (File.Exists(FilePaths[Files.OriginalSavedata]))
 			{
@@ -268,7 +269,7 @@ namespace OkkeiPatcher
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
 
 				await UtilsInstance
-					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataFileName, token)
+					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, token)
 					.ConfigureAwait(false);
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_saves_md5));
@@ -506,6 +507,7 @@ namespace OkkeiPatcher
 
 				if (apkMd5 == apkFileMd5)
 				{
+					SetIndeterminateProgress();
 					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
 					OnMessageGenerated(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),

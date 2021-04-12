@@ -86,7 +86,7 @@ namespace OkkeiPatcher
 			return result;
 		}
 
-		public static byte[] ReadCertificate(Stream certStream, int size)
+		private static byte[] ReadCertificate(Stream certStream, int size)
 		{
 			if (certStream == null) throw new ArgumentNullException(nameof(certStream));
 			var data = new byte[size];
