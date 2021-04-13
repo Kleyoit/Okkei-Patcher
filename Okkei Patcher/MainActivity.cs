@@ -354,8 +354,6 @@ namespace OkkeiPatcher
 
 				if (!PatchTools.Value.IsRunning)
 				{
-					ManifestTools.Value.InvalidateUpdatesAvailability();
-
 					_cancelTokenSource.Dispose();
 					_cancelTokenSource = new CancellationTokenSource();
 

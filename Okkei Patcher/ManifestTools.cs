@@ -13,8 +13,6 @@ namespace OkkeiPatcher
 {
 	internal class ManifestTools : ToolsBase
 	{
-		private bool? _scriptsUpdateAvailable, _obbUpdateAvailable;
-
 		public ManifestTools(Utils utils) : base(utils)
 		{
 		}
@@ -33,7 +31,7 @@ namespace OkkeiPatcher
 #pragma warning disable CS0618 // Type or member is obsolete
 					appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0).VersionCode;
 #pragma warning restore CS0618 // Type or member is obsolete
-				IsRunning = false;
+
 				return Manifest.OkkeiPatcher.Version > appVersion;
 			}
 		}
@@ -42,18 +40,12 @@ namespace OkkeiPatcher
 		{
 			get
 			{
-				if (_scriptsUpdateAvailable != null) return _scriptsUpdateAvailable.Value;
-				if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-				{
-					if (!Preferences.ContainsKey(Prefkey.scripts_version.ToString()))
-						Preferences.Set(Prefkey.scripts_version.ToString(), 1);
-					var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
-					_scriptsUpdateAvailable = Manifest.Scripts.Version > scriptsVersion;
-					return _scriptsUpdateAvailable.Value;
-				}
+				if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) return false;
 
-				_scriptsUpdateAvailable = false;
-				return _scriptsUpdateAvailable.Value;
+				if (!Preferences.ContainsKey(Prefkey.scripts_version.ToString()))
+					Preferences.Set(Prefkey.scripts_version.ToString(), 1);
+				var scriptsVersion = Preferences.Get(Prefkey.scripts_version.ToString(), 1);
+				return Manifest.Scripts.Version > scriptsVersion;
 			}
 		}
 
@@ -61,18 +53,12 @@ namespace OkkeiPatcher
 		{
 			get
 			{
-				if (_obbUpdateAvailable != null) return _obbUpdateAvailable.Value;
-				if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-				{
-					if (!Preferences.ContainsKey(Prefkey.obb_version.ToString()))
-						Preferences.Set(Prefkey.obb_version.ToString(), 1);
-					var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
-					_obbUpdateAvailable = Manifest.Obb.Version > obbVersion;
-					return _obbUpdateAvailable.Value;
-				}
+				if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) return false;
 
-				_obbUpdateAvailable = false;
-				return _obbUpdateAvailable.Value;
+				if (!Preferences.ContainsKey(Prefkey.obb_version.ToString()))
+					Preferences.Set(Prefkey.obb_version.ToString(), 1);
+				var obbVersion = Preferences.Get(Prefkey.obb_version.ToString(), 1);
+				return Manifest.Obb.Version > obbVersion;
 			}
 		}
 
@@ -101,13 +87,7 @@ namespace OkkeiPatcher
 
 		public double AppUpdateSizeInMB => Math.Round(Manifest.OkkeiPatcher.Size / (double) 0x100000, 2);
 
-		public void InvalidateUpdatesAvailability()
-		{
-			_scriptsUpdateAvailable = false;
-			_obbUpdateAvailable = false;
-		}
-
-		public bool VerifyManifest(OkkeiManifest manifest)
+		public static bool VerifyManifest(OkkeiManifest manifest)
 		{
 			return
 				manifest != null &&
@@ -151,13 +131,13 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					NotifyAboutError();
-
 					IsRunning = false;
 					return false;
 				}
 
 				OnStatusChanged(this,
 					Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
+				IsRunning = false;
 				return true;
 			}
 			catch (Exception)
@@ -178,6 +158,7 @@ namespace OkkeiPatcher
 				}
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
+				IsRunning = false;
 				return true;
 			}
 			finally
