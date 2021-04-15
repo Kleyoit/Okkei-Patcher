@@ -131,13 +131,11 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					NotifyAboutError();
-					IsRunning = false;
 					return false;
 				}
 
 				OnStatusChanged(this,
 					Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
-				IsRunning = false;
 				return true;
 			}
 			catch (Exception)
@@ -153,17 +151,16 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					NotifyAboutError();
-					IsRunning = false;
 					return false;
 				}
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
-				IsRunning = false;
 				return true;
 			}
 			finally
 			{
 				ResetProgress();
+				IsRunning = false;
 			}
 		}
 
@@ -192,13 +189,9 @@ namespace OkkeiPatcher
 				manifest = null;
 			}
 
-			if (VerifyManifest(manifest))
-			{
-				Manifest = manifest;
-				return true;
-			}
-
-			return false;
+			if (!VerifyManifest(manifest)) return false;
+			Manifest = manifest;
+			return true;
 		}
 
 		private bool RestoreManifestBackup()
@@ -254,7 +247,6 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.update_app_corrupted),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 					NotifyAboutError();
-					IsRunning = false;
 					ResetProgress();
 					return;
 				}
@@ -280,8 +272,11 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 
 				NotifyAboutError();
-				IsRunning = false;
 				ResetProgress();
+			}
+			finally
+			{
+				IsRunning = false;
 			}
 		}
 

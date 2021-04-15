@@ -25,8 +25,7 @@ namespace OkkeiPatcher
 		LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
-		private static readonly Lazy<ConcurrentDictionary<int, View>> ViewCache =
-			new Lazy<ConcurrentDictionary<int, View>>(() => new ConcurrentDictionary<int, View>());
+		private static readonly ConcurrentDictionary<int, View> ViewCache = new ConcurrentDictionary<int, View>();
 
 		private static readonly Lazy<Utils> UtilsInstance = new Lazy<Utils>(() => new Utils());
 
@@ -50,10 +49,10 @@ namespace OkkeiPatcher
 #nullable enable
 		private T? FindCachedViewById<T>(int id) where T : View
 		{
-			if (!ViewCache.Value.TryGetValue(id, out var view))
+			if (!ViewCache.TryGetValue(id, out var view))
 			{
 				view = FindViewById<T>(id);
-				if (view != null) ViewCache.Value.TryAdd(id, view);
+				if (view != null) ViewCache.TryAdd(id, view);
 			}
 
 			return (T?) view;
