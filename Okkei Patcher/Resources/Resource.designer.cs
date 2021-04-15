@@ -5320,100 +5320,100 @@ namespace OkkeiPatcher
 			public const int expand_activities_button = 2131230871;
 			
 			// aapt resource value: 0x7F080099
-			public const int fab = 2131230873;
+			public const int fade = 2131230873;
 			
 			// aapt resource value: 0x7F08009A
-			public const int fade = 2131230874;
-			
-			// aapt resource value: 0x7F08009B
-			public const int fill = 2131230875;
-			
-			// aapt resource value: 0x7F08009E
-			public const int filled = 2131230878;
-			
-			// aapt resource value: 0x7F08009C
-			public const int fill_horizontal = 2131230876;
+			public const int fill = 2131230874;
 			
 			// aapt resource value: 0x7F08009D
-			public const int fill_vertical = 2131230877;
+			public const int filled = 2131230877;
+			
+			// aapt resource value: 0x7F08009B
+			public const int fill_horizontal = 2131230875;
+			
+			// aapt resource value: 0x7F08009C
+			public const int fill_vertical = 2131230876;
+			
+			// aapt resource value: 0x7F08009E
+			public const int fitToContents = 2131230878;
 			
 			// aapt resource value: 0x7F08009F
-			public const int fitToContents = 2131230879;
+			public const int @fixed = 2131230879;
 			
 			// aapt resource value: 0x7F0800A0
-			public const int @fixed = 2131230880;
+			public const int flip = 2131230880;
 			
 			// aapt resource value: 0x7F0800A1
-			public const int flip = 2131230881;
+			public const int floating = 2131230881;
 			
 			// aapt resource value: 0x7F0800A2
-			public const int floating = 2131230882;
+			public const int forever = 2131230882;
 			
 			// aapt resource value: 0x7F0800A3
-			public const int forever = 2131230883;
-			
-			// aapt resource value: 0x7F0800A4
-			public const int fragment_container_view_tag = 2131230884;
+			public const int fragment_container_view_tag = 2131230883;
 			
 			// aapt resource value: 0x7F080004
 			public const int FUNCTION = 2131230724;
 			
+			// aapt resource value: 0x7F0800A4
+			public const int ghost_view = 2131230884;
+			
 			// aapt resource value: 0x7F0800A5
-			public const int ghost_view = 2131230885;
+			public const int ghost_view_holder = 2131230885;
 			
 			// aapt resource value: 0x7F0800A6
-			public const int ghost_view_holder = 2131230886;
+			public const int gone = 2131230886;
 			
 			// aapt resource value: 0x7F0800A7
-			public const int gone = 2131230887;
+			public const int graph = 2131230887;
 			
 			// aapt resource value: 0x7F0800A8
-			public const int graph = 2131230888;
-			
-			// aapt resource value: 0x7F0800A9
-			public const int graph_wrap = 2131230889;
-			
-			// aapt resource value: 0x7F0800AB
-			public const int grouping = 2131230891;
-			
-			// aapt resource value: 0x7F0800AC
-			public const int groups = 2131230892;
+			public const int graph_wrap = 2131230888;
 			
 			// aapt resource value: 0x7F0800AA
-			public const int group_divider = 2131230890;
+			public const int grouping = 2131230890;
+			
+			// aapt resource value: 0x7F0800AB
+			public const int groups = 2131230891;
+			
+			// aapt resource value: 0x7F0800A9
+			public const int group_divider = 2131230889;
+			
+			// aapt resource value: 0x7F0800AC
+			public const int hideable = 2131230892;
 			
 			// aapt resource value: 0x7F0800AD
-			public const int hideable = 2131230893;
+			public const int home = 2131230893;
 			
 			// aapt resource value: 0x7F0800AE
-			public const int home = 2131230894;
+			public const int homeAsUp = 2131230894;
 			
 			// aapt resource value: 0x7F0800AF
-			public const int homeAsUp = 2131230895;
+			public const int honorRequest = 2131230895;
 			
 			// aapt resource value: 0x7F0800B0
-			public const int honorRequest = 2131230896;
+			public const int icon = 2131230896;
 			
 			// aapt resource value: 0x7F0800B1
-			public const int icon = 2131230897;
+			public const int icon_group = 2131230897;
 			
 			// aapt resource value: 0x7F0800B2
-			public const int icon_group = 2131230898;
+			public const int ifRoom = 2131230898;
 			
 			// aapt resource value: 0x7F0800B3
-			public const int ifRoom = 2131230899;
+			public const int ignore = 2131230899;
 			
 			// aapt resource value: 0x7F0800B4
-			public const int ignore = 2131230900;
+			public const int ignoreRequest = 2131230900;
 			
 			// aapt resource value: 0x7F0800B5
-			public const int ignoreRequest = 2131230901;
+			public const int image = 2131230901;
 			
 			// aapt resource value: 0x7F0800B6
-			public const int image = 2131230902;
+			public const int info = 2131230902;
 			
 			// aapt resource value: 0x7F0800B7
-			public const int info = 2131230903;
+			public const int infoButton = 2131230903;
 			
 			// aapt resource value: 0x7F0800B8
 			public const int invisible = 2131230904;
