@@ -56,7 +56,7 @@ namespace OkkeiPatcher
 			_patchButton = FindViewById<Button>(Resource.Id.patchButton);
 			_unpatchButton = FindViewById<Button>(Resource.Id.unpatchButton);
 			_clearDataButton = FindViewById<Button>(Resource.Id.clearDataButton);
-			_savedataCheckBox = FindViewById<CheckBox>(Resource.Id.savedataCheckbox);
+			_savedataCheckBox = FindViewById<CheckBox>(Resource.Id.savedataCheckBox);
 			_statusText = FindViewById<TextView>(Resource.Id.statusText);
 			_progressBar = FindViewById<ProgressBar>(Resource.Id.progressBar);
 		}
@@ -236,7 +236,7 @@ namespace OkkeiPatcher
 
 			SetApkIsPatchedPreferenceIfNotSet();
 			SetButtonsState();
-			RestoreCheckBoxState();
+			SetCheckBoxState();
 			RequestReadWriteStoragePermissions();
 		}
 
@@ -262,7 +262,7 @@ namespace OkkeiPatcher
 			_unpatchButton.Enabled = false;
 		}
 
-		private void RestoreCheckBoxState()
+		private void SetCheckBoxState()
 		{
 			if (!Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString()))
 			{

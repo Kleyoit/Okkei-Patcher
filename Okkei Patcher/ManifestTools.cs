@@ -138,7 +138,7 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
 				return true;
 			}
-			catch (Exception)
+			catch
 			{
 				File.Delete(ManifestPath);
 
@@ -255,21 +255,26 @@ namespace OkkeiPatcher
 				SetIndeterminateProgress();
 				InstallAppUpdate(activity);
 			}
-			catch (Exception ex)
+			catch (System.OperationCanceledException)
 			{
 				SetStatusToAborted();
 
-				if (ex is System.OperationCanceledException)
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.update_app_aborted),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.update_app_aborted),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 
-				if (ex is HttpRequestException)
-					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+				NotifyAboutError();
+				ResetProgress();
+			}
+			catch (HttpRequestException)
+			{
+				SetStatusToAborted();
+
+				OnMessageGenerated(this,
+					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
+						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 
 				NotifyAboutError();
 				ResetProgress();
@@ -282,15 +287,8 @@ namespace OkkeiPatcher
 
 		private async Task DownloadAppUpdate(CancellationToken token)
 		{
-			try
-			{
-				await UtilsInstance.DownloadFile(Manifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName, token)
-					.ConfigureAwait(false);
-			}
-			catch (Exception ex) when (!(ex is System.OperationCanceledException))
-			{
-				throw new HttpRequestException("Download failed.");
-			}
+			await UtilsInstance.DownloadFile(Manifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName, token)
+				.ConfigureAwait(false);
 		}
 
 		private void InstallAppUpdate(Activity activity)

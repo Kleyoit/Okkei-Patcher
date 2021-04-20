@@ -5680,7 +5680,7 @@ namespace OkkeiPatcher
 			public const int row_index_key = 2131230989;
 			
 			// aapt resource value: 0x7F080110
-			public const int savedataCheckbox = 2131230992;
+			public const int savedataCheckBox = 2131230992;
 			
 			// aapt resource value: 0x7F08010E
 			public const int save_non_transition_alpha = 2131230990;

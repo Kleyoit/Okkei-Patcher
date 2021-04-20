@@ -56,7 +56,7 @@ namespace OkkeiPatcher
 						Application.Context.Resources.GetText(Resource.String.obb_not_found_unpatch),
 						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 
 			await UtilsInstance.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token).ConfigureAwait(false);
@@ -115,7 +115,7 @@ namespace OkkeiPatcher
 
 			try
 			{
-				if (!CheckIfCouldUnpatch()) Utils.ThrowOperationCanceledException(token);
+				if (!CheckIfCouldUnpatch()) token.Throw();
 
 				await BackupSavedata(token);
 
@@ -223,8 +223,7 @@ namespace OkkeiPatcher
 		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
-
-			// Install APK
+			
 			var apkMd5 = string.Empty;
 
 			if (!IsRunning) return;
@@ -243,7 +242,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.apk_not_found_unpatch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 					NotifyAboutError();
-					Utils.ThrowOperationCanceledException(token);
+					token.Throw();
 				}
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
@@ -270,7 +269,7 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_unpatch),
 					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 			catch (OperationCanceledException)
 			{

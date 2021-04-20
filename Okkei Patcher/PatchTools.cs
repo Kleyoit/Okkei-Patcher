@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,14 +92,14 @@ namespace OkkeiPatcher
 			{
 				await UtilsInstance.DownloadFile(_manifest.Obb.URL, ObbPath, ObbFileName, token).ConfigureAwait(false);
 			}
-			catch (Exception ex) when (!(ex is OperationCanceledException))
+			catch (HttpRequestException)
 			{
 				OnMessageGenerated(this,
 					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
 						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_obb_md5));
@@ -112,7 +113,7 @@ namespace OkkeiPatcher
 						Application.Context.Resources.GetText(Resource.String.hash_obb_mismatch),
 						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 
 			Preferences.Set(Prefkey.downloaded_obb_md5.ToString(), obbHash);
@@ -136,7 +137,7 @@ namespace OkkeiPatcher
 			{
 				ResetProgress();
 
-				if (!CheckIfCouldApplyPatch()) Utils.ThrowOperationCanceledException(token);
+				if (!CheckIfCouldApplyPatch()) token.Throw();
 
 				await BackupSavedata(token);
 
@@ -167,7 +168,7 @@ namespace OkkeiPatcher
 						if (token.IsCancellationRequested)
 						{
 							if (File.Exists(FilePaths[Files.TempApk])) File.Delete(FilePaths[Files.TempApk]);
-							Utils.ThrowOperationCanceledException(token);
+							token.Throw();
 						}
 
 						await SignApk(token);
@@ -175,7 +176,7 @@ namespace OkkeiPatcher
 						if (token.IsCancellationRequested)
 						{
 							if (File.Exists(FilePaths[Files.SignedApk])) File.Delete(FilePaths[Files.SignedApk]);
-							Utils.ThrowOperationCanceledException(token);
+							token.Throw();
 						}
 					}
 				}
@@ -339,14 +340,14 @@ namespace OkkeiPatcher
 				await UtilsInstance.DownloadFile(_manifest.Scripts.URL, OkkeiFilesPath, ScriptsFileName, token)
 					.ConfigureAwait(false);
 			}
-			catch (Exception ex) when (!(ex is OperationCanceledException))
+			catch (HttpRequestException)
 			{
 				OnMessageGenerated(this,
 					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
 						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
 						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 
 			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_scripts_md5));
@@ -360,7 +361,7 @@ namespace OkkeiPatcher
 						Application.Context.Resources.GetText(Resource.String.hash_scripts_mismatch),
 						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 
 			Preferences.Set(Prefkey.scripts_md5.ToString(), scriptsHash);
@@ -453,7 +454,7 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null,
 					null));
 			NotifyAboutError();
-			Utils.ThrowOperationCanceledException(token);
+			token.Throw();
 		}
 
 		private void UninstallOriginalPackage(Activity activity)
@@ -478,8 +479,7 @@ namespace OkkeiPatcher
 		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
-
-			// Install APK
+			
 			var apkMd5 = string.Empty;
 
 			if (!IsRunning) return;
@@ -498,7 +498,7 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 					NotifyAboutError();
-					Utils.ThrowOperationCanceledException(token);
+					token.Throw();
 				}
 
 				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
@@ -525,7 +525,7 @@ namespace OkkeiPatcher
 					Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_patch),
 					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
-				Utils.ThrowOperationCanceledException(token);
+				token.Throw();
 			}
 			catch (OperationCanceledException)
 			{

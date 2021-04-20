@@ -70,7 +70,7 @@
     android:layout_marginTop="24dp"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toBottomOf="@+id/savedataCheckbox" />
+    app:layout_constraintTop_toBottomOf="@+id/savedataCheckBox" />
 
   <Button
     android:id="@+id/clearDataButton"
@@ -84,7 +84,7 @@
     app:layout_constraintTop_toBottomOf="@+id/patchButton" />
 
   <CheckBox
-    android:id="@+id/savedataCheckbox"
+    android:id="@+id/savedataCheckBox"
     android:layout_width="wrap_content"
     android:layout_height="0dp"
     android:checked="true"

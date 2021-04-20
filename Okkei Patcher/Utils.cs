@@ -263,12 +263,7 @@ namespace OkkeiPatcher
 					.ConfigureAwait(false);
 				var contentLength = -1;
 
-				if (response.StatusCode == HttpStatusCode.OK)
-				{
-					contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
-					download = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-				}
-				else
+				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					MessageGenerated?.Invoke(this,
 						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
@@ -278,7 +273,11 @@ namespace OkkeiPatcher
 							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
 							null, null));
 					ErrorOccurred?.Invoke(this, EventArgs.Empty);
+					return;
 				}
+
+				contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
+				download = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
@@ -380,11 +379,6 @@ namespace OkkeiPatcher
 			testkeyFile?.Close();
 			testkeyFile?.Dispose();
 			return testkey;
-		}
-
-		public static void ThrowOperationCanceledException(CancellationToken token)
-		{
-			throw new System.OperationCanceledException("The operation was canceled.", token);
 		}
 	}
 }

@@ -80,6 +80,7 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CancellationTokenExtensions.cs" />
     <Compile Include="ProcessState.cs" />
     <Compile Include="TaskExtensions.cs" />
     <Compile Include="ToolsBase.cs" />
