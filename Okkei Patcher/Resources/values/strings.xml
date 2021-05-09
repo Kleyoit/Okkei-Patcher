@@ -80,7 +80,7 @@
   <string name="manifest_download">Downloading manifest...</string>
   <string name="manifest_download_completed">Manifest downloaded.</string>
   <string name="manifest_backup_used">Manifest backup is used.</string>
-  <string name="manifest_download_aborted">Manifest download aborted. Okkei Patcher can\'t proceed. Please restart Okkei Patcher.</string>
+  <string name="manifest_download_failed">Manifest download failed. Okkei Patcher can\'t proceed. Please restart Okkei Patcher.</string>
   <string name="manifest_corrupted">Manifest is corrupted. Okkei Patcher can\'t proceed. Please try to restart Okkei Patcher.</string>
   <string name="hash_obb_mismatch">Downloaded OBB is corrupted. Please try restarting patch process again.</string>
   <string name="hash_scripts_mismatch">Downloaded scripts are corrupted. Please try restarting patch process again.</string>

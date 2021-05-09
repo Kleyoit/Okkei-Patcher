@@ -79,7 +79,7 @@
   <string name="manifest_download">Загрузка манифеста...</string>
   <string name="manifest_download_completed">Манифест загружен.</string>
   <string name="manifest_backup_used">Используется резервная копия манифеста.</string>
-  <string name="manifest_download_aborted">Загрузка манифеста прервана. Okkei Patcher не может продолжить работу. Пожалуйста, перезапустите Okkei Patcher.</string>
+  <string name="manifest_download_failed">Не удалось загрузить манифест. Okkei Patcher не может продолжить работу. Пожалуйста, перезапустите Okkei Patcher.</string>
   <string name="manifest_corrupted">Манифест повреждён. Okkei Patcher не может продолжить работу. Пожалуйста, попробуйте перезапустить Okkei Patcher.</string>
   <string name="hash_obb_mismatch">Загруженный OBB повреждён. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="hash_scripts_mismatch">Загруженные скрипты повреждены. Пожалуйста, попробуйте перезапустить процесс патча.</string>

@@ -25,8 +25,6 @@ namespace OkkeiPatcher
 		
 		public static void UpdateIdValues()
 		{
-			global::SignApk.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
-			global::Xamarin.Essentials.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
 		}
 		
 		public partial class Animation
@@ -6815,10 +6813,10 @@ namespace OkkeiPatcher
 			public const int manifest_download = 2131689561;
 			
 			// aapt resource value: 0x7F0F005A
-			public const int manifest_download_aborted = 2131689562;
+			public const int manifest_download_completed = 2131689562;
 			
 			// aapt resource value: 0x7F0F005B
-			public const int manifest_download_completed = 2131689563;
+			public const int manifest_download_failed = 2131689563;
 			
 			// aapt resource value: 0x7F0F005C
 			public const int manifest_prompt = 2131689564;

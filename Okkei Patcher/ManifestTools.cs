@@ -118,7 +118,7 @@ namespace OkkeiPatcher
 		private async Task<bool> RetrieveManifestPrivate(CancellationToken token)
 		{
 			IsRunning = true;
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_download));
+			OnStatusChanged(this, Utils.GetText(Resource.String.manifest_download));
 
 			try
 			{
@@ -126,16 +126,15 @@ namespace OkkeiPatcher
 				{
 					SetStatusToAborted();
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.manifest_corrupted),
-							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+						new MessageBox.Data(Utils.GetText(Resource.String.error),
+							Utils.GetText(Resource.String.manifest_corrupted),
+							Utils.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					NotifyAboutError();
 					return false;
 				}
 
-				OnStatusChanged(this,
-					Application.Context.Resources.GetText(Resource.String.manifest_download_completed));
+				OnStatusChanged(this, Utils.GetText(Resource.String.manifest_download_completed));
 				return true;
 			}
 			catch
@@ -146,15 +145,15 @@ namespace OkkeiPatcher
 				{
 					SetStatusToAborted();
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.manifest_download_aborted),
-							Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+						new MessageBox.Data(Utils.GetText(Resource.String.error),
+							Utils.GetText(Resource.String.manifest_download_failed),
+							Utils.GetText(Resource.String.dialog_exit), null,
 							() => System.Environment.Exit(0), null));
 					NotifyAboutError();
 					return false;
 				}
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.manifest_backup_used));
+				OnStatusChanged(this, Utils.GetText(Resource.String.manifest_backup_used));
 				return true;
 			}
 			finally
@@ -196,24 +195,24 @@ namespace OkkeiPatcher
 
 		private bool RestoreManifestBackup()
 		{
-			OkkeiManifest manifest = null;
-			if (File.Exists(ManifestBackupPath))
-			{
-				try
-				{
-					var json = File.ReadAllText(ManifestBackupPath);
-					manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
-				}
-				catch
-				{
-					manifest = null;
-				}
+			OkkeiManifest manifest;
 
-				if (!VerifyManifest(manifest))
-				{
-					File.Delete(ManifestBackupPath);
-					return false;
-				}
+			if (!File.Exists(ManifestBackupPath)) return false;
+
+			try
+			{
+				var json = File.ReadAllText(ManifestBackupPath);
+				manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
+			}
+			catch
+			{
+				manifest = null;
+			}
+
+			if (!VerifyManifest(manifest))
+			{
+				File.Delete(ManifestBackupPath);
+				return false;
 			}
 
 			File.Copy(ManifestBackupPath, ManifestPath);
@@ -230,28 +229,28 @@ namespace OkkeiPatcher
 		private async Task UpdateAppPrivate(Activity activity, CancellationToken token)
 		{
 			IsRunning = true;
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.update_app_download));
+			OnStatusChanged(this, Utils.GetText(Resource.String.update_app_download));
 
 			try
 			{
 				await DownloadAppUpdate(token);
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
+				OnStatusChanged(this, Utils.GetText(Resource.String.compare_apk));
 				var updateHash = await UtilsInstance.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
 
 				if (updateHash != Manifest.OkkeiPatcher.MD5)
 				{
 					SetStatusToAborted();
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.update_app_corrupted),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+						new MessageBox.Data(Utils.GetText(Resource.String.error),
+							Utils.GetText(Resource.String.update_app_corrupted),
+							Utils.GetText(Resource.String.dialog_ok), null, null, null));
 					NotifyAboutError();
 					ResetProgress();
 					return;
 				}
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+				OnStatusChanged(this, Utils.GetText(Resource.String.installing));
 				SetIndeterminateProgress();
 				InstallAppUpdate(activity);
 			}
@@ -260,9 +259,9 @@ namespace OkkeiPatcher
 				SetStatusToAborted();
 
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.update_app_aborted),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.update_app_aborted), Utils.GetText(Resource.String.dialog_ok),
+						null, null, null));
 
 				NotifyAboutError();
 				ResetProgress();
@@ -272,9 +271,9 @@ namespace OkkeiPatcher
 				SetStatusToAborted();
 
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.http_file_download_error),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 
 				NotifyAboutError();
 				ResetProgress();
@@ -294,9 +293,9 @@ namespace OkkeiPatcher
 		private void InstallAppUpdate(Activity activity)
 		{
 			OnMessageGenerated(this,
-				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-					Application.Context.Resources.GetText(Resource.String.update_app_attention),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+				new MessageBox.Data(Utils.GetText(Resource.String.attention),
+					Utils.GetText(Resource.String.update_app_attention),
+					Utils.GetText(Resource.String.dialog_ok), null,
 					() => MainThread.BeginInvokeOnMainThread(() =>
 						UtilsInstance.InstallPackage(activity,
 							Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))),

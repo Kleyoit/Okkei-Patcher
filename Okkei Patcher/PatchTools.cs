@@ -36,7 +36,7 @@ namespace OkkeiPatcher
 				await DownloadObb(token);
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.patch_success));
+				OnStatusChanged(this, Utils.GetText(Resource.String.patch_success));
 			}
 			catch (OperationCanceledException)
 			{
@@ -60,7 +60,7 @@ namespace OkkeiPatcher
 
 			if (_saveDataBackupFromOldPatch)
 			{
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.restore_old_saves));
+				OnStatusChanged(this, Utils.GetText(Resource.String.restore_old_saves));
 
 				if (File.Exists(FilePaths[Files.BackupSavedata]))
 					await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, token)
@@ -79,14 +79,14 @@ namespace OkkeiPatcher
 				File.Delete(FilePaths[Files.ObbToReplace]);
 
 			if (!ProcessState.PatchUpdate)
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
+				OnStatusChanged(this, Utils.GetText(Resource.String.compare_obb));
 
 			if (!ProcessState.ObbUpdate && ProcessState.ScriptsUpdate ||
 			    File.Exists(FilePaths[Files.ObbToReplace]) &&
 			    await UtilsInstance.CompareMD5(Files.ObbToReplace, token).ConfigureAwait(false))
 				return;
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_obb));
+			OnStatusChanged(this, Utils.GetText(Resource.String.download_obb));
 
 			try
 			{
@@ -95,23 +95,23 @@ namespace OkkeiPatcher
 			catch (HttpRequestException)
 			{
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.http_file_download_error),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				token.Throw();
 			}
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_obb_md5));
+			OnStatusChanged(this, Utils.GetText(Resource.String.write_obb_md5));
 
 			var obbHash = await UtilsInstance.CalculateMD5(FilePaths[Files.ObbToReplace], token).ConfigureAwait(false);
 			if (obbHash != _manifest.Obb.MD5)
 			{
 				SetStatusToAborted();
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.hash_obb_mismatch),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.hash_obb_mismatch),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				token.Throw();
 			}
@@ -214,16 +214,16 @@ namespace OkkeiPatcher
 
 		private bool CheckIfCouldApplyPatch()
 		{
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.checking));
+			OnStatusChanged(this, Utils.GetText(Resource.String.checking));
 
 			var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 
 			if (isPatched && !ProcessState.PatchUpdate)
 			{
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.error_patched),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.error_patched),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				return false;
 			}
@@ -231,9 +231,9 @@ namespace OkkeiPatcher
 			if (!Utils.IsAppInstalled(ChaosChildPackageName))
 			{
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.cc_not_found),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.cc_not_found),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				return false;
 			}
@@ -241,9 +241,9 @@ namespace OkkeiPatcher
 			if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
 			{
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.no_free_space_patch),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.no_free_space_patch),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				return false;
 			}
@@ -263,17 +263,17 @@ namespace OkkeiPatcher
 
 			if (File.Exists(FilePaths[Files.OriginalSavedata]))
 			{
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_saves));
+				OnStatusChanged(this, Utils.GetText(Resource.String.compare_saves));
 
 				if (await UtilsInstance.CompareMD5(Files.OriginalSavedata, token).ConfigureAwait(false)) return;
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_saves));
+				OnStatusChanged(this, Utils.GetText(Resource.String.backup_saves));
 
 				await UtilsInstance
 					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, token)
 					.ConfigureAwait(false);
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_saves_md5));
+				OnStatusChanged(this, Utils.GetText(Resource.String.write_saves_md5));
 
 				Preferences.Set(Prefkey.savedata_md5.ToString(),
 					await UtilsInstance.CalculateMD5(FilePaths[Files.OriginalSavedata], token)
@@ -283,9 +283,9 @@ namespace OkkeiPatcher
 			}
 
 			OnMessageGenerated(this,
-				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.warning),
-					Application.Context.Resources.GetText(Resource.String.saves_not_found_patch),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+				new MessageBox.Data(Utils.GetText(Resource.String.warning),
+					Utils.GetText(Resource.String.saves_not_found_patch),
+					Utils.GetText(Resource.String.dialog_ok), null, null, null));
 		}
 
 		private static string RetrieveOriginalApkPath()
@@ -298,7 +298,7 @@ namespace OkkeiPatcher
 
 		private async Task RetrieveOriginalApk(CancellationToken token, string originalApkPath)
 		{
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.copy_apk));
+			OnStatusChanged(this, Utils.GetText(Resource.String.copy_apk));
 
 			await UtilsInstance.CopyFile(originalApkPath, OkkeiFilesPath, TempApkFileName, token).ConfigureAwait(false);
 		}
@@ -307,18 +307,18 @@ namespace OkkeiPatcher
 		{
 			if (!File.Exists(FilePaths[Files.TempApk]) || ProcessState.PatchUpdate) return;
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
+			OnStatusChanged(this, Utils.GetText(Resource.String.compare_apk));
 
 			if (File.Exists(FilePaths[Files.BackupApk]) &&
 			    await UtilsInstance.CompareMD5(Files.TempApk, token).ConfigureAwait(false))
 				return;
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.backup_apk));
+			OnStatusChanged(this, Utils.GetText(Resource.String.backup_apk));
 
 			await UtilsInstance.CopyFile(originalApkPath, OkkeiFilesPathBackup, BackupApkFileName, token)
 				.ConfigureAwait(false);
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_apk_md5));
+			OnStatusChanged(this, Utils.GetText(Resource.String.write_apk_md5));
 
 			Preferences.Set(Prefkey.backup_apk_md5.ToString(),
 				await UtilsInstance.CalculateMD5(FilePaths[Files.BackupApk], token).ConfigureAwait(false));
@@ -327,13 +327,13 @@ namespace OkkeiPatcher
 		private async Task DownloadScripts(CancellationToken token)
 		{
 			ResetProgress();
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_scripts));
+			OnStatusChanged(this, Utils.GetText(Resource.String.compare_scripts));
 
 			if (File.Exists(FilePaths[Files.Scripts]) &&
 			    await UtilsInstance.CompareMD5(Files.Scripts, token).ConfigureAwait(false))
 				return;
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.download_scripts));
+			OnStatusChanged(this, Utils.GetText(Resource.String.download_scripts));
 
 			try
 			{
@@ -343,23 +343,23 @@ namespace OkkeiPatcher
 			catch (HttpRequestException)
 			{
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.http_file_download_error),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.http_file_download_error),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				token.Throw();
 			}
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_scripts_md5));
+			OnStatusChanged(this, Utils.GetText(Resource.String.write_scripts_md5));
 
 			var scriptsHash = await UtilsInstance.CalculateMD5(FilePaths[Files.Scripts], token).ConfigureAwait(false);
 			if (scriptsHash != _manifest.Scripts.MD5)
 			{
 				SetStatusToAborted();
 				OnMessageGenerated(this,
-					new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-						Application.Context.Resources.GetText(Resource.String.hash_scripts_mismatch),
-						Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					new MessageBox.Data(Utils.GetText(Resource.String.error),
+						Utils.GetText(Resource.String.hash_scripts_mismatch),
+						Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				token.Throw();
 			}
@@ -371,7 +371,7 @@ namespace OkkeiPatcher
 		private void ExtractScripts(string extractPath)
 		{
 			ResetProgress();
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.extract_scripts));
+			OnStatusChanged(this, Utils.GetText(Resource.String.extract_scripts));
 
 			Utils.ExtractZip(FilePaths[Files.Scripts], extractPath);
 		}
@@ -383,7 +383,7 @@ namespace OkkeiPatcher
 			var filePaths = Directory.GetFiles(scriptsPath);
 			var scriptsCount = filePaths.Length;
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.replace_scripts));
+			OnStatusChanged(this, Utils.GetText(Resource.String.replace_scripts));
 
 			apkZipFile.BeginUpdate();
 
@@ -398,10 +398,10 @@ namespace OkkeiPatcher
 
 		private async Task SignApk(CancellationToken token)
 		{
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.sign_apk));
+			OnStatusChanged(this, Utils.GetText(Resource.String.sign_apk));
 			SetIndeterminateProgress();
 
-			_signingCertificate ??= UtilsInstance.GetSigningCertificate();
+			_signingCertificate ??= Utils.GetSigningCertificate();
 
 			var apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
 			var signedApkStream = new FileStream(FilePaths[Files.SignedApk], FileMode.OpenOrCreate);
@@ -412,7 +412,7 @@ namespace OkkeiPatcher
 			apkToSign.Dispose();
 			signedApkStream.Dispose();
 
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_patched_apk_md5));
+			OnStatusChanged(this, Utils.GetText(Resource.String.write_patched_apk_md5));
 
 			Preferences.Set(Prefkey.signed_apk_md5.ToString(),
 				await UtilsInstance.CalculateMD5(FilePaths[Files.SignedApk], token).ConfigureAwait(false));
@@ -428,19 +428,19 @@ namespace OkkeiPatcher
 
 			if (File.Exists(FilePaths[Files.ObbToBackup]))
 			{
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_obb));
+				OnStatusChanged(this, Utils.GetText(Resource.String.compare_obb));
 
 				if (File.Exists(FilePaths[Files.BackupObb]) &&
 				    await UtilsInstance.CompareMD5(Files.ObbToBackup, token).ConfigureAwait(false))
 					return;
 
 				OnStatusChanged(this,
-					Application.Context.Resources.GetText(Resource.String.backup_obb));
+					Utils.GetText(Resource.String.backup_obb));
 
 				await UtilsInstance.CopyFile(FilePaths[Files.ObbToBackup], OkkeiFilesPathBackup, ObbFileName, token)
 					.ConfigureAwait(false);
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.write_obb_md5));
+				OnStatusChanged(this, Utils.GetText(Resource.String.write_obb_md5));
 
 				Preferences.Set(Prefkey.backup_obb_md5.ToString(),
 					await UtilsInstance.CalculateMD5(FilePaths[Files.BackupObb], token).ConfigureAwait(false));
@@ -449,9 +449,9 @@ namespace OkkeiPatcher
 			}
 
 			OnMessageGenerated(this,
-				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-					Application.Context.Resources.GetText(Resource.String.obb_not_found_patch),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null,
+				new MessageBox.Data(Utils.GetText(Resource.String.error),
+					Utils.GetText(Resource.String.obb_not_found_patch),
+					Utils.GetText(Resource.String.dialog_ok), null, null,
 					null));
 			NotifyAboutError();
 			token.Throw();
@@ -460,9 +460,9 @@ namespace OkkeiPatcher
 		private void UninstallOriginalPackage(Activity activity)
 		{
 			OnMessageGenerated(this,
-				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-					Application.Context.Resources.GetText(Resource.String.uninstall_prompt_patch),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+				new MessageBox.Data(Utils.GetText(Resource.String.attention),
+					Utils.GetText(Resource.String.uninstall_prompt_patch),
+					Utils.GetText(Resource.String.dialog_ok), null,
 					() => Utils.UninstallPackage(activity, ChaosChildPackageName), null));
 		}
 
@@ -479,7 +479,7 @@ namespace OkkeiPatcher
 		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
-			
+
 			var apkMd5 = string.Empty;
 
 			if (!IsRunning) return;
@@ -487,31 +487,31 @@ namespace OkkeiPatcher
 			if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
 				apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
 			var path = FilePaths[Files.SignedApk];
-			var message = Application.Context.Resources.GetText(Resource.String.install_prompt_patch);
+			var message = Utils.GetText(Resource.String.install_prompt_patch);
 
 			try
 			{
 				if (!File.Exists(path))
 				{
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
-							Application.Context.Resources.GetText(Resource.String.apk_not_found_patch),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+						new MessageBox.Data(Utils.GetText(Resource.String.error),
+							Utils.GetText(Resource.String.apk_not_found_patch),
+							Utils.GetText(Resource.String.dialog_ok), null, null, null));
 					NotifyAboutError();
 					token.Throw();
 				}
 
-				OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.compare_apk));
+				OnStatusChanged(this, Utils.GetText(Resource.String.compare_apk));
 
 				var apkFileMd5 = await UtilsInstance.CalculateMD5(path, token).ConfigureAwait(false);
 
 				if (apkMd5 == apkFileMd5)
 				{
 					SetIndeterminateProgress();
-					OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.installing));
+					OnStatusChanged(this, Utils.GetText(Resource.String.installing));
 					OnMessageGenerated(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.attention),
-							message, Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+						new MessageBox.Data(Utils.GetText(Resource.String.attention),
+							message, Utils.GetText(Resource.String.dialog_ok), null,
 							() => MainThread.BeginInvokeOnMainThread(() =>
 								UtilsInstance.InstallPackage(activity,
 									Android.Net.Uri.FromFile(new Java.IO.File(path)))), null));
@@ -521,9 +521,9 @@ namespace OkkeiPatcher
 				File.Delete(path);
 
 				OnMessageGenerated(this, new MessageBox.Data(
-					Application.Context.Resources.GetText(Resource.String.error),
-					Application.Context.Resources.GetText(Resource.String.not_trustworthy_apk_patch),
-					Application.Context.Resources.GetText(Resource.String.dialog_ok), null, null, null));
+					Utils.GetText(Resource.String.error),
+					Utils.GetText(Resource.String.not_trustworthy_apk_patch),
+					Utils.GetText(Resource.String.dialog_ok), null, null, null));
 				NotifyAboutError();
 				token.Throw();
 			}

@@ -613,7 +613,7 @@ namespace OkkeiPatcher
 		{
 			var view = (View) sender;
 			Snackbar.Make(view,
-					Java.Lang.String.Format(Resources.GetString(Resource.String.fab_version), AppInfo.VersionString),
+					Java.Lang.String.Format(Resources.GetText(Resource.String.fab_version), AppInfo.VersionString),
 					BaseTransientBottomBar.LengthLong)
 				.SetAction("Action", (View.IOnClickListener) null).Show();
 		}

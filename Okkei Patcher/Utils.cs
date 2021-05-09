@@ -266,11 +266,11 @@ namespace OkkeiPatcher
 				if (response.StatusCode != HttpStatusCode.OK)
 				{
 					MessageGenerated?.Invoke(this,
-						new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.error),
+						new MessageBox.Data(GetText(Resource.String.error),
 							Java.Lang.String.Format(
-								Application.Context.Resources.GetText(Resource.String.http_file_access_error),
+								GetText(Resource.String.http_file_access_error),
 								response.StatusCode.ToString()),
-							Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+							GetText(Resource.String.dialog_ok), null,
 							null, null));
 					ErrorOccurred?.Invoke(this, EventArgs.Empty);
 					return;
@@ -318,8 +318,7 @@ namespace OkkeiPatcher
 
 		public static bool IsBackupAvailable()
 		{
-			return File.Exists(FilePaths[Files.BackupApk]) &&
-			       File.Exists(FilePaths[Files.BackupObb]);
+			return File.Exists(FilePaths[Files.BackupApk]) && File.Exists(FilePaths[Files.BackupObb]);
 		}
 
 		public static void ClearOkkeiFiles()
@@ -370,7 +369,7 @@ namespace OkkeiPatcher
 			fastZip.ExtractZip(zipPath, extractPath, fileFilter);
 		}
 
-		public X509Certificate2 GetSigningCertificate()
+		public static X509Certificate2 GetSigningCertificate()
 		{
 			var assets = Application.Context.Assets;
 			var testkeyFile = assets?.Open(CertFileName);
@@ -379,6 +378,11 @@ namespace OkkeiPatcher
 			testkeyFile?.Close();
 			testkeyFile?.Dispose();
 			return testkey;
+		}
+
+		public static string GetText(int id)
+		{
+			return Application.Context.Resources.GetText(id);
 		}
 	}
 }

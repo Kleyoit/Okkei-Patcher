@@ -102,7 +102,7 @@ namespace OkkeiPatcher
 
 		protected void SetStatusToAborted()
 		{
-			OnStatusChanged(this, Application.Context.Resources.GetText(Resource.String.aborted));
+			OnStatusChanged(this, Utils.GetText(Resource.String.aborted));
 		}
 
 		protected void NotifyAboutError()
@@ -116,9 +116,9 @@ namespace OkkeiPatcher
 			var bugReport = Utils.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
 			MessageGenerated?.Invoke(this,
-				new MessageBox.Data(Application.Context.Resources.GetText(Resource.String.exception),
-					Application.Context.Resources.GetText(Resource.String.exception_notice),
-					Application.Context.Resources.GetText(Resource.String.dialog_exit), null,
+				new MessageBox.Data(Utils.GetText(Resource.String.exception),
+					Utils.GetText(Resource.String.exception_notice),
+					Utils.GetText(Resource.String.dialog_exit), null,
 					() => Environment.Exit(0), null));
 		}
 
@@ -129,9 +129,9 @@ namespace OkkeiPatcher
 			ResetProgress();
 			SetStatusToAborted();
 			OnMessageGenerated(this, new MessageBox.Data(
-				Application.Context.Resources.GetText(Resource.String.error),
-				Application.Context.Resources.GetText(Resource.String.uninstall_error),
-				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+				Utils.GetText(Resource.String.error),
+				Utils.GetText(Resource.String.uninstall_error),
+				Utils.GetText(Resource.String.dialog_ok), null,
 				null, null));
 			IsRunning = false;
 			return false;
@@ -150,11 +150,11 @@ namespace OkkeiPatcher
 		public void NotifyInstallFailed()
 		{
 			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
-			StatusChanged?.Invoke(this, Application.Context.Resources.GetText(Resource.String.aborted));
+			StatusChanged?.Invoke(this, Utils.GetText(Resource.String.aborted));
 			MessageGenerated?.Invoke(this, new MessageBox.Data(
-				Application.Context.Resources.GetText(Resource.String.error),
-				Application.Context.Resources.GetText(Resource.String.install_error),
-				Application.Context.Resources.GetText(Resource.String.dialog_ok), null,
+				Utils.GetText(Resource.String.error),
+				Utils.GetText(Resource.String.install_error),
+				Utils.GetText(Resource.String.dialog_ok), null,
 				null, null));
 			IsRunning = false;
 		}
