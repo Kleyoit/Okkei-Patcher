@@ -266,7 +266,7 @@ namespace OkkeiPatcher
 				NotifyAboutError();
 				ResetProgress();
 			}
-			catch (HttpRequestException)
+			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
 				SetStatusToAborted();
 

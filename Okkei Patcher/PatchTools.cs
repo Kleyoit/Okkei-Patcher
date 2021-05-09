@@ -92,7 +92,7 @@ namespace OkkeiPatcher
 			{
 				await UtilsInstance.DownloadFile(_manifest.Obb.URL, ObbPath, ObbFileName, token).ConfigureAwait(false);
 			}
-			catch (HttpRequestException)
+			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
 				OnMessageGenerated(this,
 					new MessageBox.Data(Utils.GetText(Resource.String.error),
@@ -340,7 +340,7 @@ namespace OkkeiPatcher
 				await UtilsInstance.DownloadFile(_manifest.Scripts.URL, OkkeiFilesPath, ScriptsFileName, token)
 					.ConfigureAwait(false);
 			}
-			catch (HttpRequestException)
+			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
 				OnMessageGenerated(this,
 					new MessageBox.Data(Utils.GetText(Resource.String.error),

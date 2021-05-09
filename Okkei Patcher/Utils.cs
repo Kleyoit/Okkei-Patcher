@@ -141,8 +141,7 @@ namespace OkkeiPatcher
 				var session = packageInstaller.OpenSession(sessionId);
 
 				AddApkToInstallSession(apkUri, session);
-
-				// Create an install status receiver
+				
 				var intent = new Intent(activity, activity.Class);
 				intent.SetAction(ActionPackageInstalled);
 
@@ -154,8 +153,7 @@ namespace OkkeiPatcher
 				packageInstaller.RegisterSessionCallback(observer);
 
 				var statusReceiver = pendingIntent?.IntentSender;
-
-				// Commit the session (this will start the installation workflow)
+				
 				session.Commit(statusReceiver);
 			}
 			else
@@ -243,6 +241,8 @@ namespace OkkeiPatcher
 			return Task.CompletedTask;
 		}
 
+		/// <exception cref="System.IO.IOException"></exception>
+		/// <exception cref="HttpRequestException"></exception>
 		public async Task DownloadFile(string URL, string outFilePath, string outFileName,
 			CancellationToken token)
 		{
@@ -301,7 +301,15 @@ namespace OkkeiPatcher
 		public static string GetBugReportText(Exception ex)
 		{
 			return
-				$"-------------------------\nVersion Code: {AppInfo.BuildString}\nVersion Name: {AppInfo.VersionString}\n-------------------------\nDevice Info\n-------------------------\n{GetDeviceInfo()}\n-------------------------\nException Stack Trace\n-------------------------\n{(ex != null ? ex.Message : "None")}\n\n{(ex != null ? ex.StackTrace : "None")}";
+				"-------------------------\n" +
+				$"Version Code: {AppInfo.BuildString}\n" +
+				$"Version Name: {AppInfo.VersionString}\n" +
+				"-------------------------\nDevice Info\n-------------------------\n" +
+				$"{GetDeviceInfo()}\n" +
+				"-------------------------\nException Stack Trace\n-------------------------\n" +
+				$"{(ex != null ? ex.GetType().FullName : "None")}\n" +
+				$"{(ex != null ? ex.Message : "None")}\n\n" +
+				$"{(ex != null ? ex.StackTrace : "None")}";
 		}
 
 		public static string GetDeviceInfo()
