@@ -36,7 +36,7 @@ namespace OkkeiPatcher
 			var buffer = new byte[bufferLength];
 			int length;
 
-			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
+			ResetProgress();
 
 			var progressMax = (int) Math.Ceiling((double) stream.Length / bufferLength);
 			var progress = 0;
@@ -48,7 +48,7 @@ namespace OkkeiPatcher
 					md5.TransformBlock(buffer, 0, bufferLength, buffer, 0);
 				else
 					md5.TransformFinalBlock(buffer, 0, length);
-				ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, progressMax, false));
+				UpdateProgress(progress, progressMax, false);
 			}
 
 			token.ThrowIfCancellationRequested();
@@ -141,7 +141,7 @@ namespace OkkeiPatcher
 				var session = packageInstaller.OpenSession(sessionId);
 
 				AddApkToInstallSession(apkUri, session);
-				
+
 				var intent = new Intent(activity, activity.Class);
 				intent.SetAction(ActionPackageInstalled);
 
@@ -153,7 +153,7 @@ namespace OkkeiPatcher
 				packageInstaller.RegisterSessionCallback(observer);
 
 				var statusReceiver = pendingIntent?.IntentSender;
-				
+
 				session.Commit(statusReceiver);
 			}
 			else
@@ -185,11 +185,15 @@ namespace OkkeiPatcher
 
 		public Task CopyFile(string inFilePath, string outFilePath, string outFileName, CancellationToken token)
 		{
+			if (inFilePath == null) throw new ArgumentNullException(nameof(inFilePath));
+			if (outFilePath == null) throw new ArgumentNullException(nameof(outFilePath));
+			if (outFileName == null) throw new ArgumentNullException(nameof(outFileName));
+
 			const int bufferLength = 0x14000;
 			var buffer = new byte[bufferLength];
 			int length;
 
-			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
+			ResetProgress();
 
 			Directory.CreateDirectory(outFilePath);
 			var outPath = Path.Combine(outFilePath, outFileName);
@@ -209,7 +213,7 @@ namespace OkkeiPatcher
 				{
 					output.Write(buffer, 0, length);
 					++progress;
-					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, progressMax, false));
+					UpdateProgress(progress, progressMax, false);
 				}
 
 				inputStream.Dispose();
@@ -224,7 +228,7 @@ namespace OkkeiPatcher
 				{
 					output.Write(buffer, 0, length);
 					++progress;
-					ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, progressMax, false));
+					UpdateProgress(progress, progressMax, false);
 				}
 
 				inputFile.Dispose();
@@ -243,9 +247,14 @@ namespace OkkeiPatcher
 
 		/// <exception cref="System.IO.IOException"></exception>
 		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
 		public async Task DownloadFile(string URL, string outFilePath, string outFileName,
 			CancellationToken token)
 		{
+			if (URL == null) throw new ArgumentNullException(nameof(URL));
+			if (outFilePath == null) throw new ArgumentNullException(nameof(outFilePath));
+			if (outFileName == null) throw new ArgumentNullException(nameof(outFileName));
+
 			Directory.CreateDirectory(outFilePath);
 			var outPath = Path.Combine(outFilePath, outFileName);
 			if (File.Exists(outPath)) File.Delete(outPath);
@@ -282,8 +291,7 @@ namespace OkkeiPatcher
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
 				{
 					output.Write(buffer, 0, length);
-					ProgressChanged?.Invoke(this,
-						new ProgressChangedEventArgs((int) output.Length, contentLength, false));
+					UpdateProgress((int) output.Length, contentLength, false);
 				}
 			}
 			finally
@@ -391,6 +399,16 @@ namespace OkkeiPatcher
 		public static string GetText(int id)
 		{
 			return Application.Context.Resources.GetText(id);
+		}
+
+		private void ResetProgress()
+		{
+			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
+		}
+
+		private void UpdateProgress(int progress, int max, bool isIndeterminate)
+		{
+			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(progress, max, isIndeterminate));
 		}
 	}
 }

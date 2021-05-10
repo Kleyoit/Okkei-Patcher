@@ -83,10 +83,8 @@ namespace OkkeiPatcher
 			if (Build.VERSION.SdkInt < BuildVersionCodes.O || PackageManager.CanRequestPackageInstalls())
 				return true;
 
-			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-				Resources.GetText(Resource.String.unknown_sources_notice),
-				Resources.GetText(Resource.String.dialog_ok),
-				() =>
+			MessageBox.Show(this, Resource.String.attention, Resource.String.unknown_sources_notice,
+				Resource.String.dialog_ok, () =>
 				{
 					var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
 						Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
@@ -97,8 +95,7 @@ namespace OkkeiPatcher
 
 		private void ShowManifestPrompt()
 		{
-			MessageBox.Show(this, Resources.GetText(Resource.String.attention),
-				Resources.GetText(Resource.String.manifest_prompt), Resources.GetText(Resource.String.dialog_ok),
+			MessageBox.Show(this, Resource.String.attention, Resource.String.manifest_prompt, Resource.String.dialog_ok,
 				() => Task.Run(RetrieveManifest));
 		}
 
@@ -164,10 +161,8 @@ namespace OkkeiPatcher
 					if (Build.VERSION.SdkInt < BuildVersionCodes.O) break;
 					if (!PackageManager.CanRequestPackageInstalls())
 					{
-						MessageBox.Show(this, Resources.GetText(Resource.String.error),
-							Resources.GetText(Resource.String.no_install_permission),
-							Resources.GetText(Resource.String.dialog_exit),
-							() => System.Environment.Exit(0));
+						MessageBox.Show(this, Resource.String.error, Resource.String.no_install_permission,
+							Resource.String.dialog_exit, () => System.Environment.Exit(0));
 						break;
 					}
 
@@ -177,10 +172,8 @@ namespace OkkeiPatcher
 					if (Build.VERSION.SdkInt < BuildVersionCodes.M) break;
 					if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 					{
-						MessageBox.Show(this, Resources.GetText(Resource.String.error),
-							Resources.GetText(Resource.String.no_storage_permission),
-							Resources.GetText(Resource.String.dialog_exit),
-							() => System.Environment.Exit(0));
+						MessageBox.Show(this, Resource.String.error, Resource.String.no_storage_permission,
+							Resource.String.dialog_exit, () => System.Environment.Exit(0));
 						break;
 					}
 
@@ -286,10 +279,10 @@ namespace OkkeiPatcher
 					return;
 				}
 
-				MessageBox.Show(this, Resources.GetText(Resource.String.error),
-					Resources.GetText(Resource.String.no_storage_permission_settings),
-					Resources.GetText(Resource.String.dialog_ok),
-					Resources.GetText(Resource.String.dialog_exit),
+				MessageBox.Show(this, Resource.String.error,
+					Resource.String.no_storage_permission_settings,
+					Resource.String.dialog_ok,
+					Resource.String.dialog_exit,
 					() =>
 					{
 						var intent = new Intent(Android.Provider.Settings.ActionApplicationDetailsSettings,
@@ -318,10 +311,10 @@ namespace OkkeiPatcher
 			{
 				if (ShouldShowRequestPermissionRationale(permissions[0]))
 				{
-					MessageBox.Show(this, Resources.GetText(Resource.String.error),
-						Resources.GetText(Resource.String.no_storage_permission_rationale),
-						Resources.GetText(Resource.String.dialog_ok),
-						Resources.GetText(Resource.String.dialog_exit),
+					MessageBox.Show(this, Resource.String.error,
+						Resource.String.no_storage_permission_rationale,
+						Resource.String.dialog_ok,
+						Resource.String.dialog_exit,
 						() => RequestPermissions(permissions, (int) RequestCodes.StoragePermissionRequestCode),
 						() => System.Environment.Exit(0));
 					return;
@@ -329,10 +322,8 @@ namespace OkkeiPatcher
 
 				Preferences.Set(Prefkey.extstorage_permission_denied.ToString(), true);
 
-				MessageBox.Show(this, Resources.GetText(Resource.String.error),
-					Resources.GetText(Resource.String.no_storage_permission),
-					Resources.GetText(Resource.String.dialog_exit),
-					() => System.Environment.Exit(0));
+				MessageBox.Show(this, Resource.String.error, Resource.String.no_storage_permission,
+					Resource.String.dialog_exit, () => System.Environment.Exit(0));
 
 				return;
 			}
@@ -475,16 +466,13 @@ namespace OkkeiPatcher
 			if ((!PatchTools.IsValueCreated || !PatchTools.Value.IsRunning) &&
 			    (!ManifestTools.IsValueCreated || !ManifestTools.Value.IsRunning))
 			{
-				MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-					Resources.GetText(Resource.String.long_process_warning),
-					Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
-					ShowDownloadSizeWarning, null);
+				MessageBox.Show(this, Resource.String.warning, Resource.String.long_process_warning,
+					Resource.String.dialog_ok, Resource.String.dialog_cancel, ShowDownloadSizeWarning, null);
 				return;
 			}
 
-			MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-				Resources.GetText(Resource.String.abort_warning), Resources.GetText(Resource.String.dialog_ok),
-				Resources.GetText(Resource.String.dialog_cancel), AbortPatch, null);
+			MessageBox.Show(this, Resource.String.warning, Resource.String.abort_warning, Resource.String.dialog_ok,
+				Resource.String.dialog_cancel, AbortPatch, null);
 		}
 
 		private void ShowDownloadSizeWarning()
@@ -533,16 +521,13 @@ namespace OkkeiPatcher
 			    _cancelTokenSource.IsCancellationRequested) return;
 			if (!UnpatchTools.IsValueCreated || !UnpatchTools.Value.IsRunning)
 			{
-				MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-					Resources.GetText(Resource.String.long_process_warning),
-					Resources.GetText(Resource.String.dialog_ok), Resources.GetText(Resource.String.dialog_cancel),
-					StartUnpatch, null);
+				MessageBox.Show(this, Resource.String.warning, Resource.String.long_process_warning,
+					Resource.String.dialog_ok, Resource.String.dialog_cancel, StartUnpatch, null);
 				return;
 			}
 
-			MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-				Resources.GetText(Resource.String.abort_warning), Resources.GetText(Resource.String.dialog_ok),
-				Resources.GetText(Resource.String.dialog_cancel), AbortUnpatch, null);
+			MessageBox.Show(this, Resource.String.warning, Resource.String.abort_warning, Resource.String.dialog_ok,
+				Resource.String.dialog_cancel, AbortUnpatch, null);
 		}
 
 		private void StartUnpatch()
@@ -581,9 +566,8 @@ namespace OkkeiPatcher
 			if (PatchTools.IsValueCreated && PatchTools.Value.IsRunning ||
 			    UnpatchTools.IsValueCreated && UnpatchTools.Value.IsRunning)
 				return;
-			MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-				Resources.GetText(Resource.String.clear_data_warning), Resources.GetText(Resource.String.dialog_ok),
-				Resources.GetText(Resource.String.dialog_cancel), ClearData, null);
+			MessageBox.Show(this, Resource.String.warning, Resource.String.clear_data_warning,
+				Resource.String.dialog_ok, Resource.String.dialog_cancel, ClearData, null);
 		}
 
 		private void ClearData()

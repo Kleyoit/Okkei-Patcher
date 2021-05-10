@@ -85,27 +85,79 @@ namespace OkkeiPatcher
 			NotifyInstallFailed();
 		}
 
-		protected void ResetProgress()
+		protected virtual void ResetProgress()
 		{
 			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, false));
 		}
 
-		protected void SetIndeterminateProgress()
+		protected virtual void SetIndeterminateProgress()
 		{
 			OnProgressChanged(this, new ProgressChangedEventArgs(0, 100, true));
 		}
 
-		protected void ClearStatus()
+		protected virtual void UpdateProgress(int progress, int max, bool isIndeterminate)
+		{
+			OnProgressChanged(this, new ProgressChangedEventArgs(progress, max, isIndeterminate));
+		}
+
+		protected virtual void DisplayMessage(int titleId, int messageId, int positiveButtonTextId,
+			int negativeButtonTextId,
+			Action positiveAction,
+			Action negativeAction)
+		{
+			var title = Utils.GetText(titleId);
+			var message = Utils.GetText(messageId);
+			var positiveButtonText = Utils.GetText(positiveButtonTextId);
+			var negativeButtonText = Utils.GetText(negativeButtonTextId);
+			OnMessageGenerated(this,
+				new MessageBox.Data(title, message, positiveButtonText, negativeButtonText, positiveAction,
+					negativeAction));
+		}
+
+		protected virtual void DisplayMessage(int titleId, int messageId, int buttonTextId, Action action)
+		{
+			var title = Utils.GetText(titleId);
+			var message = Utils.GetText(messageId);
+			var buttonText = Utils.GetText(buttonTextId);
+			OnMessageGenerated(this, new MessageBox.Data(title, message, buttonText, null, action, null));
+		}
+
+		protected virtual void DisplayMessage(string title, string message, string buttonText, Action action)
+		{
+			OnMessageGenerated(this, new MessageBox.Data(title, message, buttonText, null, action, null));
+		}
+
+		protected virtual void DisplayMessage(string title, string message, string positiveButtonText,
+			string negativeButtonText,
+			Action positiveAction,
+			Action negativeAction)
+		{
+			OnMessageGenerated(this,
+				new MessageBox.Data(title, message, positiveButtonText, negativeButtonText, positiveAction,
+					negativeAction));
+		}
+
+		protected virtual void UpdateStatus(int id)
+		{
+			OnStatusChanged(this, Utils.GetText(id));
+		}
+
+		protected virtual void UpdateStatus(string status)
+		{
+			OnStatusChanged(this, status);
+		}
+
+		protected virtual void ClearStatus()
 		{
 			OnStatusChanged(this, string.Empty);
 		}
 
-		protected void SetStatusToAborted()
+		protected virtual void SetStatusToAborted()
 		{
 			OnStatusChanged(this, Utils.GetText(Resource.String.aborted));
 		}
 
-		protected void NotifyAboutError()
+		protected virtual void NotifyAboutError()
 		{
 			OnErrorOccurred(this, EventArgs.Empty);
 		}
@@ -115,11 +167,8 @@ namespace OkkeiPatcher
 			IsRunning = true;
 			var bugReport = Utils.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
-			MessageGenerated?.Invoke(this,
-				new MessageBox.Data(Utils.GetText(Resource.String.exception),
-					Utils.GetText(Resource.String.exception_notice),
-					Utils.GetText(Resource.String.dialog_exit), null,
-					() => Environment.Exit(0), null));
+			DisplayMessage(Resource.String.exception, Resource.String.exception_notice, Resource.String.dialog_exit,
+				() => Environment.Exit(0));
 		}
 
 		protected bool CheckUninstallSuccess()
@@ -128,11 +177,7 @@ namespace OkkeiPatcher
 
 			ResetProgress();
 			SetStatusToAborted();
-			OnMessageGenerated(this, new MessageBox.Data(
-				Utils.GetText(Resource.String.error),
-				Utils.GetText(Resource.String.uninstall_error),
-				Utils.GetText(Resource.String.dialog_ok), null,
-				null, null));
+			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok, null);
 			IsRunning = false;
 			return false;
 		}
@@ -149,13 +194,9 @@ namespace OkkeiPatcher
 
 		public void NotifyInstallFailed()
 		{
-			ProgressChanged?.Invoke(this, new ProgressChangedEventArgs(0, 100, false));
-			StatusChanged?.Invoke(this, Utils.GetText(Resource.String.aborted));
-			MessageGenerated?.Invoke(this, new MessageBox.Data(
-				Utils.GetText(Resource.String.error),
-				Utils.GetText(Resource.String.install_error),
-				Utils.GetText(Resource.String.dialog_ok), null,
-				null, null));
+			ResetProgress();
+			SetStatusToAborted();
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
 			IsRunning = false;
 		}
 
