@@ -14,7 +14,7 @@ namespace OkkeiPatcher
 		{
 		}
 
-		protected override async Task OnInstallSuccessProtected(CancellationToken token)
+		protected override async Task InternalOnInstallSuccess(CancellationToken token)
 		{
 			if (!IsRunning) return;
 
@@ -101,10 +101,10 @@ namespace OkkeiPatcher
 
 		public void Unpatch(Activity activity, ProcessState processState, CancellationToken token)
 		{
-			Task.Run(() => UnpatchPrivate(activity, processState, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUnpatch(activity, processState, token).OnException(WriteBugReport));
 		}
 
-		private async Task UnpatchPrivate(Activity activity, ProcessState processState, CancellationToken token)
+		private async Task InternalUnpatch(Activity activity, ProcessState processState, CancellationToken token)
 		{
 			IsRunning = true;
 			ProcessState = processState;
@@ -200,7 +200,7 @@ namespace OkkeiPatcher
 				});
 		}
 
-		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
+		protected override async Task InternalOnUninstallResult(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
 

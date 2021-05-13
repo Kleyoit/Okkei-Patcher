@@ -22,7 +22,7 @@ namespace OkkeiPatcher
 		{
 		}
 
-		protected override async Task OnInstallSuccessProtected(CancellationToken token)
+		protected override async Task InternalOnInstallSuccess(CancellationToken token)
 		{
 			if (!IsRunning) return;
 
@@ -118,10 +118,10 @@ namespace OkkeiPatcher
 
 		public void Patch(Activity activity, ProcessState processState, OkkeiManifest manifest, CancellationToken token)
 		{
-			Task.Run(() => PatchPrivate(activity, processState, manifest, token).OnException(WriteBugReport));
+			Task.Run(() => InternalPatch(activity, processState, manifest, token).OnException(WriteBugReport));
 		}
 
-		private async Task PatchPrivate(Activity activity, ProcessState processState, OkkeiManifest manifest,
+		private async Task InternalPatch(Activity activity, ProcessState processState, OkkeiManifest manifest,
 			CancellationToken token)
 		{
 			IsRunning = true;
@@ -442,7 +442,7 @@ namespace OkkeiPatcher
 
 		private async Task InstallUpdatedApk(Activity activity, CancellationToken token)
 		{
-			await OnUninstallResultProtected(activity, token).ConfigureAwait(false);
+			await InternalOnUninstallResult(activity, token).ConfigureAwait(false);
 		}
 
 		private void FinishPatch(CancellationToken token)
@@ -450,7 +450,7 @@ namespace OkkeiPatcher
 			OnInstallSuccess(token);
 		}
 
-		protected override async Task OnUninstallResultProtected(Activity activity, CancellationToken token)
+		protected override async Task InternalOnUninstallResult(Activity activity, CancellationToken token)
 		{
 			if (!CheckUninstallSuccess()) return;
 

@@ -184,12 +184,12 @@ namespace OkkeiPatcher
 
 		public void OnUninstallResult(Activity activity, CancellationToken token)
 		{
-			Task.Run(() => OnUninstallResultProtected(activity, token).OnException(WriteBugReport));
+			Task.Run(() => InternalOnUninstallResult(activity, token).OnException(WriteBugReport));
 		}
 
 		public void OnInstallSuccess(CancellationToken token)
 		{
-			Task.Run(() => OnInstallSuccessProtected(token).OnException(WriteBugReport));
+			Task.Run(() => InternalOnInstallSuccess(token).OnException(WriteBugReport));
 		}
 
 		public void NotifyInstallFailed()
@@ -200,8 +200,8 @@ namespace OkkeiPatcher
 			IsRunning = false;
 		}
 
-		protected abstract Task OnUninstallResultProtected(Activity activity, CancellationToken token);
+		protected abstract Task InternalOnUninstallResult(Activity activity, CancellationToken token);
 
-		protected abstract Task OnInstallSuccessProtected(CancellationToken token);
+		protected abstract Task InternalOnInstallSuccess(CancellationToken token);
 	}
 }

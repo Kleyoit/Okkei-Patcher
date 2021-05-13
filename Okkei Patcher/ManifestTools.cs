@@ -121,10 +121,10 @@ namespace OkkeiPatcher
 
 		public async Task<bool> RetrieveManifest(CancellationToken token)
 		{
-			return await RetrieveManifestPrivate(token).OnException(WriteBugReport);
+			return await InternalRetrieveManifest(token).OnException(WriteBugReport);
 		}
 
-		private async Task<bool> RetrieveManifestPrivate(CancellationToken token)
+		private async Task<bool> InternalRetrieveManifest(CancellationToken token)
 		{
 			IsRunning = true;
 			UpdateStatus(Resource.String.manifest_download);
@@ -226,10 +226,10 @@ namespace OkkeiPatcher
 
 		public void UpdateApp(Activity activity, CancellationToken token)
 		{
-			Task.Run(() => UpdateAppPrivate(activity, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUpdateApp(activity, token).OnException(WriteBugReport));
 		}
 
-		private async Task UpdateAppPrivate(Activity activity, CancellationToken token)
+		private async Task InternalUpdateApp(Activity activity, CancellationToken token)
 		{
 			IsRunning = true;
 			UpdateStatus(Resource.String.update_app_download);
@@ -294,7 +294,7 @@ namespace OkkeiPatcher
 					UtilsInstance.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))));
 		}
 
-		protected override Task OnInstallSuccessProtected(CancellationToken token)
+		protected override Task InternalOnInstallSuccess(CancellationToken token)
 		{
 			if (!IsRunning) return Task.CompletedTask;
 			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
@@ -304,7 +304,7 @@ namespace OkkeiPatcher
 			return Task.CompletedTask;
 		}
 
-		protected override Task OnUninstallResultProtected(Activity activity, CancellationToken token)
+		protected override Task InternalOnUninstallResult(Activity activity, CancellationToken token)
 		{
 			throw new NotImplementedException("This should not be called.");
 		}
