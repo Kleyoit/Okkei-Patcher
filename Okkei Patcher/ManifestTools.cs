@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
+using Android.Util;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
 
@@ -13,6 +14,8 @@ namespace OkkeiPatcher
 {
 	internal class ManifestTools : ToolsBase
 	{
+		private const string Tag = nameof(ManifestTools);
+
 		public ManifestTools(Utils utils) : base(utils)
 		{
 		}
@@ -306,7 +309,8 @@ namespace OkkeiPatcher
 
 		protected override Task InternalOnUninstallResult(Activity activity, CancellationToken token)
 		{
-			throw new NotImplementedException("This should not be called.");
+			Log.Debug(Tag, "InternalOnUninstallResult");
+			return Task.CompletedTask;
 		}
 	}
 }

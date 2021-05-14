@@ -329,7 +329,12 @@ namespace OkkeiPatcher
 			var release = Build.VERSION.Release;
 			var sdkInt = Build.VERSION.SdkInt;
 			return
-				$"manufacturer:       {manufacturer}\nmodel:              {model}\nproduct:            {product}\nincremental:        {incremental}\nrelease:            {release}\nsdkInt:             {sdkInt}";
+				$"manufacturer:       {manufacturer}\n" +
+				$"model:              {model}\n" +
+				$"product:            {product}\n" +
+				$"incremental:        {incremental}\n" +
+				$"release:            {release}\n" +
+				$"sdkInt:             {sdkInt}";
 		}
 
 		public static bool IsBackupAvailable()
