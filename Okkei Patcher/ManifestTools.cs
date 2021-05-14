@@ -309,7 +309,7 @@ namespace OkkeiPatcher
 
 		protected override Task InternalOnUninstallResult(Activity activity, CancellationToken token)
 		{
-			Log.Debug(Tag, "InternalOnUninstallResult");
+			Log.Debug(Tag, nameof(InternalOnUninstallResult));
 			return Task.CompletedTask;
 		}
 	}
