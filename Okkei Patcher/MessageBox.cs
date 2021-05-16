@@ -48,9 +48,9 @@ namespace OkkeiPatcher
 			builder.SetMessage(message);
 			builder.SetCancelable(false);
 
-			builder.SetPositiveButton(positiveButtonText, (sender, e) => { positiveAction?.Invoke(); });
+			builder.SetPositiveButton(positiveButtonText, (sender, e) => positiveAction?.Invoke());
 			if (negativeButtonText != null)
-				builder.SetNegativeButton(negativeButtonText, (sender, e) => { negativeAction?.Invoke(); });
+				builder.SetNegativeButton(negativeButtonText, (sender, e) => negativeAction?.Invoke());
 
 			builder.Create()?.Show();
 		}
