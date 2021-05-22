@@ -7,13 +7,13 @@ using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
-using static OkkeiPatcher.GlobalData;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Patcher
 {
-	internal class UnpatchTools : ToolsBase
+	internal class UnpatchTools : ToolsBase, IInstallHandler, IUninstallHandler
 	{
-		protected override async Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress,
+		private async Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
@@ -206,7 +206,42 @@ namespace OkkeiPatcher.Patcher
 				});
 		}
 
-		protected override async Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
+		protected virtual void PackageInstallerOnInstallFailed(object sender, EventArgs e)
+		{
+			if (!(sender is PackageInstaller installer)) return;
+			installer.InstallFailed -= PackageInstallerOnInstallFailed;
+			NotifyInstallFailed();
+		}
+
+		private bool CheckUninstallSuccess(IProgress<ProgressInfo> progress)
+		{
+			if (!PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) || ProcessState.ScriptsUpdate) return true;
+
+			progress.Reset();
+			SetStatusToAborted();
+			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok, null);
+			IsRunning = false;
+			return false;
+		}
+
+		public void NotifyInstallFailed()
+		{
+			SetStatusToAborted();
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			IsRunning = false;
+		}
+
+		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnUninstallResult(activity, progress, token).OnException(WriteBugReport));
+		}
+
+		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnInstallSuccess(progress, token).OnException(WriteBugReport));
+		}
+
+		private async Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			if (!CheckUninstallSuccess(progress)) return;

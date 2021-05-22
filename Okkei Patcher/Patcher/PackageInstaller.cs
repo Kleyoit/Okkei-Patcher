@@ -5,6 +5,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using OkkeiPatcher.Extensions;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using Xamarin.Essentials;
 

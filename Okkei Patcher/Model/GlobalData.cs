@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace OkkeiPatcher
+namespace OkkeiPatcher.Model
 {
 	internal static class GlobalData
 	{

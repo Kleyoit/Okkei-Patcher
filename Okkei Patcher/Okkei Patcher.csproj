@@ -82,6 +82,8 @@
   <ItemGroup>
     <Compile Include="Extensions\CancellationTokenExtensions.cs" />
     <Compile Include="Model\DTO\MessageData.cs" />
+    <Compile Include="Patcher\IInstallHandler.cs" />
+    <Compile Include="Patcher\IUninstallHandler.cs" />
     <Compile Include="Utils\CertificateUtils.cs" />
     <Compile Include="Utils\DebugUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />

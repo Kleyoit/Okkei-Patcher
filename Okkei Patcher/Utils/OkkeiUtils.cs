@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using Android.App;
-using static OkkeiPatcher.GlobalData;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {

@@ -6,21 +6,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
-using Android.Util;
 using OkkeiPatcher.Exceptions;
 using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
-using static OkkeiPatcher.GlobalData;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Patcher
 {
-	internal class ManifestTools : ToolsBase
+	internal class ManifestTools : ToolsBase, IInstallHandler
 	{
-		private const string Tag = nameof(ManifestTools);
-
 		public OkkeiManifest Manifest { get; private set; }
 
 		public bool IsAppUpdateAvailable
@@ -316,20 +313,32 @@ namespace OkkeiPatcher.Patcher
 					installer.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))));
 		}
 
-		protected override Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
+		protected virtual void PackageInstallerOnInstallFailed(object sender, EventArgs e)
+		{
+			if (!(sender is PackageInstaller installer)) return;
+			installer.InstallFailed -= PackageInstallerOnInstallFailed;
+			NotifyInstallFailed();
+		}
+
+		public void NotifyInstallFailed()
+		{
+			SetStatusToAborted();
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			IsRunning = false;
+		}
+
+		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnInstallSuccess(progress, token).OnException(WriteBugReport));
+		}
+
+		private Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!IsRunning) return Task.CompletedTask;
 			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
 			progress.Reset();
 			ClearStatus();
 			IsRunning = false;
-			return Task.CompletedTask;
-		}
-
-		protected override Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
-			CancellationToken token)
-		{
-			Log.Debug(Tag, nameof(InternalOnUninstallResult));
 			return Task.CompletedTask;
 		}
 	}

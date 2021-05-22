@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {
@@ -23,7 +24,7 @@ namespace OkkeiPatcher.Utils
 		{
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
-			activity.StartActivityForResult(uninstallIntent, (int) GlobalData.RequestCodes.UninstallCode);
+			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Android.App;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {
@@ -19,9 +20,9 @@ namespace OkkeiPatcher.Utils
 		public static X509Certificate2 GetSigningCertificate()
 		{
 			var assets = Application.Context.Assets;
-			var testkeyFile = assets?.Open(GlobalData.CertFileName);
+			var testkeyFile = assets?.Open(CertFileName);
 			var testkeySize = 2797;
-			var testkey = new X509Certificate2(ReadCertificate(testkeyFile, testkeySize), GlobalData.CertPassword);
+			var testkey = new X509Certificate2(ReadCertificate(testkeyFile, testkeySize), CertPassword);
 			testkeyFile?.Close();
 			testkeyFile?.Dispose();
 			return testkey;

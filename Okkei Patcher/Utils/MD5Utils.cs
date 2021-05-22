@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
 using Xamarin.Essentials;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {
@@ -46,7 +47,7 @@ namespace OkkeiPatcher.Utils
 		///     returns true if checksums are equal, false otherwise. See predefined values in
 		///     <see cref="GlobalData.FileToCompareWith" />.
 		/// </summary>
-		public static async Task<bool> CompareMD5(GlobalData.Files file, IProgress<ProgressInfo> progress,
+		public static async Task<bool> CompareMD5(Files file, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			var result = false;
@@ -56,18 +57,18 @@ namespace OkkeiPatcher.Utils
 
 			switch (file)
 			{
-				case GlobalData.Files.OriginalSavedata:
-					if (File.Exists(GlobalData.FileToCompareWith[file]))
-						secondMd5 = await CalculateMD5(GlobalData.FileToCompareWith[file], progress, token)
+				case Files.OriginalSavedata:
+					if (File.Exists(FileToCompareWith[file]))
+						secondMd5 = await CalculateMD5(FileToCompareWith[file], progress, token)
 							.ConfigureAwait(false);
 					break;
 				default:
-					secondMd5 = Preferences.Get(GlobalData.FileToCompareWith[file], string.Empty);
+					secondMd5 = Preferences.Get(FileToCompareWith[file], string.Empty);
 					break;
 			}
 
-			if (File.Exists(GlobalData.FilePaths[file]) && secondMd5 != string.Empty)
-				firstMd5 = await CalculateMD5(GlobalData.FilePaths[file], progress, token).ConfigureAwait(false);
+			if (File.Exists(FilePaths[file]) && secondMd5 != string.Empty)
+				firstMd5 = await CalculateMD5(FilePaths[file], progress, token).ConfigureAwait(false);
 
 			if (firstMd5 == secondMd5 && firstMd5 != string.Empty && secondMd5 != string.Empty) result = true;
 

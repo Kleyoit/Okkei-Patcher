@@ -1,17 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using Android.App;
-using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
-using static OkkeiPatcher.GlobalData;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Patcher
 {
-	internal abstract class ToolsBase : INotifyPropertyChanged
+	internal class ToolsBase : INotifyPropertyChanged
 	{
 		private bool _isRunningField;
 		protected ProcessState ProcessState;
@@ -114,13 +110,6 @@ namespace OkkeiPatcher.Patcher
 			OnErrorOccurred(this, EventArgs.Empty);
 		}
 
-		protected virtual void PackageInstallerOnInstallFailed(object sender, EventArgs e)
-		{
-			if (!(sender is PackageInstaller installer)) return;
-			installer.InstallFailed -= PackageInstallerOnInstallFailed;
-			NotifyInstallFailed();
-		}
-
 		protected void WriteBugReport(Exception ex)
 		{
 			IsRunning = true;
@@ -129,38 +118,5 @@ namespace OkkeiPatcher.Patcher
 			DisplayMessage(Resource.String.exception, Resource.String.exception_notice, Resource.String.dialog_exit,
 				() => Environment.Exit(0));
 		}
-
-		protected bool CheckUninstallSuccess(IProgress<ProgressInfo> progress)
-		{
-			if (!PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) || ProcessState.ScriptsUpdate) return true;
-
-			progress.Reset();
-			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok, null);
-			IsRunning = false;
-			return false;
-		}
-
-		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnUninstallResult(activity, progress, token).OnException(WriteBugReport));
-		}
-
-		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnInstallSuccess(progress, token).OnException(WriteBugReport));
-		}
-
-		public void NotifyInstallFailed()
-		{
-			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
-			IsRunning = false;
-		}
-
-		protected abstract Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
-			CancellationToken token);
-
-		protected abstract Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token);
 	}
 }

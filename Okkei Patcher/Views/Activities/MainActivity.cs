@@ -19,7 +19,7 @@ using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Patcher;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
-using static OkkeiPatcher.GlobalData;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Views.Activities
 {
@@ -41,8 +41,9 @@ namespace OkkeiPatcher.Views.Activities
 
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
 		private Progress<ProgressInfo> _progress;
+		private IInstallHandler _installHandler;
+		private IUninstallHandler _uninstallHandler;
 		private bool _backPressed;
-		private ToolsBase _currentToolsObject;
 		private int _lastBackPressedTimestamp;
 		private bool _patchToolsEventsSubscribed;
 		private bool _unpatchToolsEventsSubscribed;
@@ -98,7 +99,7 @@ namespace OkkeiPatcher.Views.Activities
 
 		private async Task RetrieveManifest()
 		{
-			_currentToolsObject = ManifestTools.Value;
+			_installHandler = ManifestTools.Value;
 
 			ManifestTools.Value.StatusChanged += OnStatusChanged;
 			ManifestTools.Value.MessageGenerated += OnMessageGenerated;
@@ -178,16 +179,16 @@ namespace OkkeiPatcher.Views.Activities
 					if (RequestInstallPackagesPermission()) ShowManifestPrompt();
 					break;
 				case (int) RequestCodes.UninstallCode:
-					_currentToolsObject.OnUninstallResult(this, _progress, _cancelTokenSource.Token);
+					_uninstallHandler?.OnUninstallResult(this, _progress, _cancelTokenSource.Token);
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
 					{
-						_currentToolsObject.OnInstallSuccess(_progress, _cancelTokenSource.Token);
+						_installHandler?.OnInstallSuccess(_progress, _cancelTokenSource.Token);
 						break;
 					}
 
-					_currentToolsObject.NotifyInstallFailed();
+					_installHandler?.NotifyInstallFailed();
 					break;
 			}
 		}
@@ -207,7 +208,7 @@ namespace OkkeiPatcher.Views.Activities
 					StartActivity(confirmIntent);
 					break;
 				case (int) PackageInstallStatus.Success:
-					_currentToolsObject.OnInstallSuccess(_progress, _cancelTokenSource.Token);
+					_installHandler?.OnInstallSuccess(_progress, _cancelTokenSource.Token);
 					break;
 			}
 		}
@@ -478,7 +479,8 @@ namespace OkkeiPatcher.Views.Activities
 
 		private void StartPatch()
 		{
-			_currentToolsObject = PatchTools.Value;
+			_installHandler = PatchTools.Value;
+			_uninstallHandler = PatchTools.Value;
 
 			if (!_patchToolsEventsSubscribed)
 			{
@@ -525,7 +527,8 @@ namespace OkkeiPatcher.Views.Activities
 
 		private void StartUnpatch()
 		{
-			_currentToolsObject = UnpatchTools.Value;
+			_installHandler = UnpatchTools.Value;
+			_uninstallHandler = UnpatchTools.Value;
 
 			if (!_unpatchToolsEventsSubscribed)
 			{
