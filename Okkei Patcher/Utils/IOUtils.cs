@@ -1,0 +1,135 @@
+﻿using System;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Java.IO;
+using OkkeiPatcher.Exceptions;
+using OkkeiPatcher.Extensions;
+using OkkeiPatcher.Model.DTO;
+using File = System.IO.File;
+
+namespace OkkeiPatcher.Utils
+{
+	internal static class IOUtils
+	{
+		private static readonly Lazy<HttpClient> Client = new Lazy<HttpClient>(() => new HttpClient());
+
+		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName,
+			IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			if (inFilePath == null) throw new ArgumentNullException(nameof(inFilePath));
+			if (outFilePath == null) throw new ArgumentNullException(nameof(outFilePath));
+			if (outFileName == null) throw new ArgumentNullException(nameof(outFileName));
+
+			const int bufferLength = 0x14000;
+			var buffer = new byte[bufferLength];
+			int length;
+
+			progress.Reset();
+
+			Directory.CreateDirectory(outFilePath);
+			var outPath = Path.Combine(outFilePath, outFileName);
+			if (File.Exists(outPath)) File.Delete(outPath);
+
+			var output = new FileStream(outPath, FileMode.OpenOrCreate);
+
+			int progressMax;
+			var currentProgress = 0;
+
+			if (inFilePath.StartsWith(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath))
+			{
+				var inputStream = new FileStream(inFilePath, FileMode.Open);
+				progressMax = (int) inputStream.Length / bufferLength;
+
+				while ((length = inputStream.Read(buffer)) > 0 && !token.IsCancellationRequested)
+				{
+					output.Write(buffer, 0, length);
+					++currentProgress;
+					progress.Report(currentProgress, progressMax);
+				}
+
+				inputStream.Dispose();
+			}
+			else
+			{
+				var inputFile = new Java.IO.File(inFilePath);
+				InputStream javaInputStream = new FileInputStream(inputFile);
+				progressMax = (int) inputFile.Length() / bufferLength;
+
+				while ((length = javaInputStream.Read(buffer)) > 0 && !token.IsCancellationRequested)
+				{
+					output.Write(buffer, 0, length);
+					++currentProgress;
+					progress.Report(currentProgress, progressMax);
+				}
+
+				inputFile.Dispose();
+				javaInputStream.Dispose();
+			}
+
+			output.Dispose();
+
+			var outFile = Path.Combine(outFilePath, outFileName);
+			if (token.IsCancellationRequested && File.Exists(outFile)) File.Delete(outFile);
+
+			token.ThrowIfCancellationRequested();
+
+			return Task.CompletedTask;
+		}
+
+		/// <exception cref="System.IO.IOException"></exception>
+		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="HttpStatusCodeException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
+		public static async Task DownloadFile(string URL, string outFilePath, string outFileName,
+			IProgress<ProgressInfo> progress,
+			CancellationToken token)
+		{
+			if (URL == null) throw new ArgumentNullException(nameof(URL));
+			if (outFilePath == null) throw new ArgumentNullException(nameof(outFilePath));
+			if (outFileName == null) throw new ArgumentNullException(nameof(outFileName));
+
+			Directory.CreateDirectory(outFilePath);
+			var outPath = Path.Combine(outFilePath, outFileName);
+			if (File.Exists(outPath)) File.Delete(outPath);
+			var output = new FileStream(outPath, FileMode.OpenOrCreate);
+
+			const int bufferLength = 0x14000;
+			var buffer = new byte[bufferLength];
+
+			Stream download = null;
+
+			try
+			{
+				int length;
+				var response = await Client.Value.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead)
+					.ConfigureAwait(false);
+				var contentLength = -1;
+
+				if (response.StatusCode != HttpStatusCode.OK)
+					throw new HttpStatusCodeException(response.StatusCode);
+
+				contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
+				download = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
+				{
+					output.Write(buffer, 0, length);
+					progress.Report((int) output.Length, contentLength);
+				}
+			}
+			finally
+			{
+				//await Task.Delay(1);    // Xamarin debugger bug workaround
+				download?.Dispose();
+				output.Dispose();
+				var downloadedFile = Path.Combine(outFilePath, outFileName);
+				if (token.IsCancellationRequested && File.Exists(downloadedFile))
+					File.Delete(downloadedFile);
+				token.ThrowIfCancellationRequested();
+			}
+		}
+	}
+}

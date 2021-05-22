@@ -1,8 +1,8 @@
-﻿namespace OkkeiPatcher
+﻿namespace OkkeiPatcher.Model.DTO
 {
-	public readonly struct ProgressChangedEventArgs
+	public readonly struct ProgressInfo
 	{
-		public ProgressChangedEventArgs(int progress, int max, bool isIndeterminate)
+		public ProgressInfo(int progress, int max, bool isIndeterminate)
 		{
 			Max = max;
 			Progress = progress;

@@ -1,17 +1,17 @@
 ﻿using System;
-using Android.Content.PM;
 
-namespace OkkeiPatcher
+namespace OkkeiPatcher.Patcher
 {
-	internal class PackageInstallObserver : PackageInstaller.SessionCallback
+	internal class PackageInstallObserver : Android.Content.PM.PackageInstaller.SessionCallback
 	{
-		public PackageInstallObserver(PackageInstaller packageInstaller)
+		public PackageInstallObserver(Android.Content.PM.PackageInstaller packageInstaller)
 		{
 			PackageInstaller = packageInstaller;
 		}
 
-		private PackageInstaller PackageInstaller { get; }
+		private Android.Content.PM.PackageInstaller PackageInstaller { get; }
 
+		public event EventHandler<float> ProgressChanged;
 		public event EventHandler InstallFailed;
 
 		public override void OnActiveChanged(int sessionId, bool active)
@@ -35,6 +35,7 @@ namespace OkkeiPatcher
 
 		public override void OnProgressChanged(int sessionId, float progress)
 		{
+			ProgressChanged?.Invoke(this, progress);
 		}
 	}
 }

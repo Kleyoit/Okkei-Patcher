@@ -7,18 +7,19 @@ using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
 using Android.Util;
+using OkkeiPatcher.Exceptions;
+using OkkeiPatcher.Extensions;
+using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Manifest;
+using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
 
-namespace OkkeiPatcher
+namespace OkkeiPatcher.Patcher
 {
 	internal class ManifestTools : ToolsBase
 	{
 		private const string Tag = nameof(ManifestTools);
-
-		public ManifestTools(Utils utils) : base(utils)
-		{
-		}
 
 		public OkkeiManifest Manifest { get; private set; }
 
@@ -122,19 +123,19 @@ namespace OkkeiPatcher
 				manifest.Obb.Size != 0;
 		}
 
-		public async Task<bool> RetrieveManifest(CancellationToken token)
+		public async Task<bool> RetrieveManifest(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			return await InternalRetrieveManifest(token).OnException(WriteBugReport);
+			return await InternalRetrieveManifest(progress, token).OnException(WriteBugReport);
 		}
 
-		private async Task<bool> InternalRetrieveManifest(CancellationToken token)
+		private async Task<bool> InternalRetrieveManifest(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			IsRunning = true;
 			UpdateStatus(Resource.String.manifest_download);
 
 			try
 			{
-				if (!await DownloadManifest(token))
+				if (!await DownloadManifest(progress, token))
 				{
 					SetStatusToAborted();
 					DisplayMessage(Resource.String.error, Resource.String.manifest_corrupted,
@@ -145,6 +146,14 @@ namespace OkkeiPatcher
 
 				UpdateStatus(Resource.String.manifest_download_completed);
 				return true;
+			}
+			catch (HttpStatusCodeException ex)
+			{
+				SetStatusToAborted();
+				DisplayMessage(OkkeiUtils.GetText(Resource.String.error),
+					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error),
+						ex.StatusCode.ToString()), OkkeiUtils.GetText(Resource.String.dialog_ok), null);
+				return false;
 			}
 			catch
 			{
@@ -164,24 +173,24 @@ namespace OkkeiPatcher
 			}
 			finally
 			{
-				ResetProgress();
+				progress.Reset();
 				IsRunning = false;
 			}
 		}
 
-		private async Task<bool> DownloadManifest(CancellationToken token)
+		private async Task<bool> DownloadManifest(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (File.Exists(ManifestPath))
 			{
-				await UtilsInstance.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, token)
+				await IOUtils.CopyFile(ManifestPath, PrivateStorage, ManifestBackupFileName, progress, token)
 					.ConfigureAwait(false);
 				File.Delete(ManifestPath);
 			}
 
-			await UtilsInstance.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, token)
+			await IOUtils.DownloadFile(ManifestUrl, PrivateStorage, ManifestFileName, progress, token)
 				.ConfigureAwait(false);
 
-			SetIndeterminateProgress();
+			progress.MakeIndeterminate();
 
 			OkkeiManifest manifest;
 			try
@@ -227,22 +236,23 @@ namespace OkkeiPatcher
 			return true;
 		}
 
-		public void UpdateApp(Activity activity, CancellationToken token)
+		public void UpdateApp(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			Task.Run(() => InternalUpdateApp(activity, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUpdateApp(activity, progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalUpdateApp(Activity activity, CancellationToken token)
+		private async Task InternalUpdateApp(Activity activity, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
 			IsRunning = true;
 			UpdateStatus(Resource.String.update_app_download);
 
 			try
 			{
-				await DownloadAppUpdate(token);
+				await DownloadAppUpdate(progress, token);
 
 				UpdateStatus(Resource.String.compare_apk);
-				var updateHash = await UtilsInstance.CalculateMD5(AppUpdatePath, token).ConfigureAwait(false);
+				var updateHash = await MD5Utils.CalculateMD5(AppUpdatePath, progress, token).ConfigureAwait(false);
 
 				if (updateHash != Manifest.OkkeiPatcher.MD5)
 				{
@@ -250,13 +260,13 @@ namespace OkkeiPatcher
 					DisplayMessage(Resource.String.error, Resource.String.update_app_corrupted,
 						Resource.String.dialog_ok, null);
 					NotifyAboutError();
-					ResetProgress();
+					progress.Reset();
 					return;
 				}
 
 				UpdateStatus(Resource.String.installing);
-				SetIndeterminateProgress();
-				InstallAppUpdate(activity);
+				progress.MakeIndeterminate();
+				InstallAppUpdate(activity, progress);
 			}
 			catch (System.OperationCanceledException)
 			{
@@ -266,7 +276,14 @@ namespace OkkeiPatcher
 					null);
 
 				NotifyAboutError();
-				ResetProgress();
+				progress.Reset();
+			}
+			catch (HttpStatusCodeException ex)
+			{
+				SetStatusToAborted();
+				DisplayMessage(OkkeiUtils.GetText(Resource.String.error),
+					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error),
+						ex.StatusCode.ToString()), OkkeiUtils.GetText(Resource.String.dialog_ok), null);
 			}
 			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
@@ -276,7 +293,7 @@ namespace OkkeiPatcher
 					Resource.String.dialog_ok, null);
 
 				NotifyAboutError();
-				ResetProgress();
+				progress.Reset();
 			}
 			finally
 			{
@@ -284,30 +301,33 @@ namespace OkkeiPatcher
 			}
 		}
 
-		private async Task DownloadAppUpdate(CancellationToken token)
+		private async Task DownloadAppUpdate(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			await UtilsInstance.DownloadFile(Manifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName, token)
+			await IOUtils.DownloadFile(Manifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName, progress, token)
 				.ConfigureAwait(false);
 		}
 
-		private void InstallAppUpdate(Activity activity)
+		private void InstallAppUpdate(Activity activity, IProgress<ProgressInfo> progress)
 		{
+			var installer = new PackageInstaller(progress);
+			installer.InstallFailed += PackageInstallerOnInstallFailed;
 			DisplayMessage(Resource.String.attention, Resource.String.update_app_attention, Resource.String.dialog_ok,
 				() => MainThread.BeginInvokeOnMainThread(() =>
-					UtilsInstance.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))));
+					installer.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))));
 		}
 
-		protected override Task InternalOnInstallSuccess(CancellationToken token)
+		protected override Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!IsRunning) return Task.CompletedTask;
 			//if (System.IO.File.Exists(AppUpdatePath)) System.IO.File.Delete(AppUpdatePath);
-			ResetProgress();
+			progress.Reset();
 			ClearStatus();
 			IsRunning = false;
 			return Task.CompletedTask;
 		}
 
-		protected override Task InternalOnUninstallResult(Activity activity, CancellationToken token)
+		protected override Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
 			Log.Debug(Tag, nameof(InternalOnUninstallResult));
 			return Task.CompletedTask;

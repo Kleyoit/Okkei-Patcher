@@ -26,7 +26,7 @@
   <string name="long_process_warning">Данный процесс может занять длительное время. Если Вы отмените его или закроете Okkei Patcher, данные установки CHAOS;CHILD и/или данные Okkei Patcher могут быть повреждены. Вы уверены, что хотите начать процесс?</string>
   <string name="clear_data_warning">Вы собираетесь очистить ВСЕ данные Okkei Patcher, включая резервную копию предыдущей установки CHAOS;CHILD. Используйте эту опцию ТОЛЬКО при переустановке CHAOS;CHILD из-за повреждения данных. Данная операция не может быть отменена. Вы уверены, что хотите очистить все данные?</string>
   <string name="abort_warning">Вы уверены, что хотите остановить процесс? Данные установки CHAOS;CHILD и/или данные Okkei Patcher могут быть повреждены.</string>
-  <string name="download_size_warning">Будет загружено %1$s МБ данных. Убедитесь, что у Вас есть стабильное подключение к сети. Мы рекомендуем пользоваться Wi-Fi, а не мобильным интернетом.</string>
+  <string name="download_size_warning">Будет загружено {0} МБ данных. Убедитесь, что у Вас есть стабильное подключение к сети. Мы рекомендуем пользоваться Wi-Fi, а не мобильным интернетом.</string>
   <string name="install_prompt_patch">Сейчас последует запрос на установку пропатченного CHAOS;CHILD. Пожалуйста, подтвердите установку.</string>
   <string name="install_prompt_unpatch">Сейчас последует запрос на установку оригинального немодифицированного CHAOS;CHILD. Пожалуйста, подтвердите установку.</string>
   <string name="uninstall_prompt_patch">Сейчас последует запрос на удаление немодифицированного CHAOS;CHILD. Пожалуйста, подтвердите удаление.</string>
@@ -71,10 +71,10 @@
   <string name="not_trustworthy_apk_unpatch">Возможно, APK для установки не был создан с помощью Okkei Patcher. Процесс восстановления отменён.</string>
   <string name="apk_not_found_patch">APK для установки не найден. Пожалуйста, начните процесс локализации заново.</string>
   <string name="apk_not_found_unpatch">APK для установки не найден. Процесс восстановления отменён.</string>
-  <string name="http_file_access_error">Не удалось получить доступ к файлу для загрузки. Свяжитесь с разработчиком приложения.&#10;Описание ошибки: %1$s</string>
+  <string name="http_file_access_error">Не удалось получить доступ к файлу для загрузки. Свяжитесь с разработчиком приложения.\nОписание ошибки: {0}</string>
   <string name="http_file_download_error">Во время загрузки файла произошла ошибка. Проверьте Ваше интернет-соединение и попробуйте заново.</string>
   <string name="exception_notice">Отправьте файл \"bugreport.log\" из директории OkkeiPatcher разработчику приложения.</string>
-  <string name="fab_version">Версия %1$s by solru</string>
+  <string name="fab_version">Версия {0} by solru</string>
   <string name="manifest_prompt">Для работы Okkei Patcher необходимо подключение к сети, чтобы загрузить данные о патче и обновлениях. Прежде чем продолжить, нажав на кнопку OK, убедитесь, что у Вас есть стабильное интернет-соединение.</string>
   <string name="manifest_download">Загрузка манифеста...</string>
   <string name="manifest_download_completed">Манифест загружен.</string>
@@ -84,11 +84,11 @@
   <string name="hash_obb_mismatch">Загруженный OBB повреждён. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="hash_scripts_mismatch">Загруженные скрипты повреждены. Пожалуйста, попробуйте перезапустить процесс патча.</string>
   <string name="update_header">Обновление</string>
-  <string name="update_app_available">Доступна новая версия Okkei Patcher!\nТекущая версия: %1$s\nРазмер обновления: %2$s МБ\nСписок изменений:\n%3$s</string>
+  <string name="update_app_available">Доступна новая версия Okkei Patcher!\nТекущая версия: {0}\nРазмер обновления: {1} МБ\nСписок изменений:\n{2}</string>
   <string name="update_app_download">Загрузка обновления...</string>
   <string name="update_app_aborted">Обновление Okkei Patcher было отменено.</string>
   <string name="update_app_corrupted">Обновление Okkei Patcher повреждено. Попробуйте заново позже.</string>
   <string name="update_app_attention">Сейчас последует запрос на установку обновления Okkei Patcher. Пожалуйста, подтвердите установку. Обратите внимание, что после установки Okkei Patcher будет закрыт, и Вам придётся перезапустить его вручную.</string>
-  <string name="update_patch_available">Доступно обновление патча! Нажмите кнопку ПАТЧ, чтобы загрузить и применить обновление.\nРазмер файлов для загрузки: %1$s МБ</string>
+  <string name="update_patch_available">Доступно обновление патча! Нажмите кнопку ПАТЧ, чтобы загрузить и применить обновление.\nРазмер файлов для загрузки: {0} МБ</string>
   <string name="back_button_pressed">Нажмите кнопку/используйте жест Назад снова, чтобы выйти</string>
 </resources>

@@ -1,4 +1,4 @@
-﻿namespace OkkeiPatcher
+﻿namespace OkkeiPatcher.Model.DTO
 {
 	internal readonly struct ProcessState
 	{

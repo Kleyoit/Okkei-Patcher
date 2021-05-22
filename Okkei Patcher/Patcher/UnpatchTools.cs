@@ -3,28 +3,28 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
+using OkkeiPatcher.Extensions;
+using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
 
-namespace OkkeiPatcher
+namespace OkkeiPatcher.Patcher
 {
 	internal class UnpatchTools : ToolsBase
 	{
-		public UnpatchTools(Utils utils) : base(utils)
-		{
-		}
-
-		protected override async Task InternalOnInstallSuccess(CancellationToken token)
+		protected override async Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
 			if (!IsRunning) return;
 
 			try
 			{
-				ResetProgress();
+				progress.Reset();
 
-				await RestoreObb(token);
-				await RestoreSavedata(token);
-				await RecoverPreviousSavedataBackup(token);
+				await RestoreObb(progress, token);
+				await RestoreSavedata(progress, token);
+				await RecoverPreviousSavedataBackup(progress, token);
 				ClearBackup();
 
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
@@ -40,12 +40,12 @@ namespace OkkeiPatcher
 			}
 			finally
 			{
-				ResetProgress();
+				progress.Reset();
 				IsRunning = false;
 			}
 		}
 
-		private async Task RestoreObb(CancellationToken token)
+		private async Task RestoreObb(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			UpdateStatus(Resource.String.restore_obb);
 
@@ -57,10 +57,11 @@ namespace OkkeiPatcher
 				token.Throw();
 			}
 
-			await UtilsInstance.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, token).ConfigureAwait(false);
+			await IOUtils.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, progress, token)
+				.ConfigureAwait(false);
 		}
 
-		private async Task RestoreSavedata(CancellationToken token)
+		private async Task RestoreSavedata(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!ProcessState.ProcessSavedata) return;
 
@@ -68,7 +69,7 @@ namespace OkkeiPatcher
 			{
 				UpdateStatus(Resource.String.restore_saves);
 
-				await UtilsInstance.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, token)
+				await IOUtils.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, progress, token)
 					.ConfigureAwait(false);
 				return;
 			}
@@ -77,7 +78,7 @@ namespace OkkeiPatcher
 				null);
 		}
 
-		private async Task RecoverPreviousSavedataBackup(CancellationToken token)
+		private async Task RecoverPreviousSavedataBackup(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!File.Exists(FilePaths[Files.BackupSavedata])) return;
 
@@ -89,7 +90,8 @@ namespace OkkeiPatcher
 
 				UpdateStatus(Resource.String.write_saves_md5);
 				Preferences.Set(Prefkey.savedata_md5.ToString(),
-					await UtilsInstance.CalculateMD5(FilePaths[Files.BackupSavedata], token).ConfigureAwait(false));
+					await MD5Utils.CalculateMD5(FilePaths[Files.BackupSavedata], progress, token)
+						.ConfigureAwait(false));
 			}
 		}
 
@@ -99,12 +101,14 @@ namespace OkkeiPatcher
 			if (File.Exists(FilePaths[Files.BackupObb])) File.Delete(FilePaths[Files.BackupObb]);
 		}
 
-		public void Unpatch(Activity activity, ProcessState processState, CancellationToken token)
+		public void Unpatch(Activity activity, ProcessState processState, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
-			Task.Run(() => InternalUnpatch(activity, processState, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUnpatch(activity, processState, progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalUnpatch(Activity activity, ProcessState processState, CancellationToken token)
+		private async Task InternalUnpatch(Activity activity, ProcessState processState,
+			IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			IsRunning = true;
 			ProcessState = processState;
@@ -113,23 +117,23 @@ namespace OkkeiPatcher
 			{
 				if (!CheckIfCouldUnpatch()) token.Throw();
 
-				await BackupSavedata(token);
+				await BackupSavedata(progress, token);
 
 				ClearStatus();
-				SetIndeterminateProgress();
+				progress.MakeIndeterminate();
 
-				if (Utils.IsAppInstalled(ChaosChildPackageName))
+				if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName))
 				{
 					UninstallPatchedPackage(activity);
 					return;
 				}
 
-				InstallBackupApk(activity);
+				InstallBackupApk(activity, progress);
 			}
 			catch (OperationCanceledException)
 			{
 				SetStatusToAborted();
-				ResetProgress();
+				progress.Reset();
 				IsRunning = false;
 			}
 		}
@@ -145,7 +149,7 @@ namespace OkkeiPatcher
 				return false;
 			}
 
-			if (!Utils.IsBackupAvailable())
+			if (!OkkeiUtils.IsBackupAvailable())
 			{
 				DisplayMessage(Resource.String.error, Resource.String.backup_not_found, Resource.String.dialog_ok,
 					null);
@@ -164,7 +168,7 @@ namespace OkkeiPatcher
 			return true;
 		}
 
-		private async Task BackupSavedata(CancellationToken token)
+		private async Task BackupSavedata(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!ProcessState.ProcessSavedata) return;
 
@@ -172,8 +176,9 @@ namespace OkkeiPatcher
 			{
 				UpdateStatus(Resource.String.backup_saves);
 
-				await UtilsInstance
-					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, token)
+				await IOUtils
+					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, progress,
+						token)
 					.ConfigureAwait(false);
 				return;
 			}
@@ -185,24 +190,26 @@ namespace OkkeiPatcher
 		private void UninstallPatchedPackage(Activity activity)
 		{
 			DisplayMessage(Resource.String.attention, Resource.String.uninstall_prompt_unpatch,
-				Resource.String.dialog_ok, () => Utils.UninstallPackage(activity, ChaosChildPackageName));
+				Resource.String.dialog_ok, () => PackageManagerUtils.UninstallPackage(activity, ChaosChildPackageName));
 		}
 
-		private void InstallBackupApk(Activity activity)
+		private void InstallBackupApk(Activity activity, IProgress<ProgressInfo> progress)
 		{
 			UpdateStatus(Resource.String.installing);
-
+			var installer = new PackageInstaller(progress);
+			installer.InstallFailed += PackageInstallerOnInstallFailed;
 			DisplayMessage(Resource.String.attention, Resource.String.install_prompt_unpatch, Resource.String.dialog_ok,
 				() =>
 				{
-					MainThread.BeginInvokeOnMainThread(() => UtilsInstance.InstallPackage(activity,
+					MainThread.BeginInvokeOnMainThread(() => installer.InstallPackage(activity,
 						Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
 				});
 		}
 
-		protected override async Task InternalOnUninstallResult(Activity activity, CancellationToken token)
+		protected override async Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
-			if (!CheckUninstallSuccess()) return;
+			if (!CheckUninstallSuccess(progress)) return;
 
 			var apkMd5 = string.Empty;
 
@@ -224,16 +231,18 @@ namespace OkkeiPatcher
 
 				UpdateStatus(Resource.String.compare_apk);
 
-				var apkFileMd5 = await UtilsInstance.CalculateMD5(path, token).ConfigureAwait(false);
+				var apkFileMd5 = await MD5Utils.CalculateMD5(path, progress, token).ConfigureAwait(false);
 
 				if (apkMd5 == apkFileMd5)
 				{
-					SetIndeterminateProgress();
+					progress.MakeIndeterminate();
+					var installer = new PackageInstaller(progress);
+					installer.InstallFailed += PackageInstallerOnInstallFailed;
 					UpdateStatus(Resource.String.installing);
 					DisplayMessage(Resource.String.attention, Resource.String.install_prompt_unpatch,
 						Resource.String.dialog_ok,
 						() => MainThread.BeginInvokeOnMainThread(() =>
-							UtilsInstance.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))));
+							installer.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))));
 					return;
 				}
 
@@ -247,7 +256,7 @@ namespace OkkeiPatcher
 			catch (OperationCanceledException)
 			{
 				SetStatusToAborted();
-				ResetProgress();
+				progress.Reset();
 				IsRunning = false;
 			}
 		}

@@ -27,7 +27,7 @@
   <string name="long_process_warning">This process can take quite a long time. If you abort it or close Okkei Patcher your CHAOS;CHILD installation and/or Okkei Patcher data may be damaged. Are you sure you want to start the process?</string>
   <string name="clear_data_warning">You\'re about to clear ALL Okkei Patcher data including backup of your old CHAOS;CHILD installation. Use this ONLY when reinstalling CHAOS;CHILD because of data damage. This operation cannot be undone. Are you sure you want to clear all data?</string>
   <string name="abort_warning">Are you sure you want to abort the process? Your CHAOS;CHILD installation and/or Okkei Patcher data may be damaged.</string>
-  <string name="download_size_warning">You\'re about to download %1$s MB of data. Ensure that you have stable internet connection. We recommend to use Wi-Fi instead of mobile data.</string>
+  <string name="download_size_warning">You\'re about to download {0} MB of data. Ensure that you have stable internet connection. We recommend to use Wi-Fi instead of mobile data.</string>
   <string name="install_prompt_patch">You will now be prompted to install patched CHAOS;CHILD. Please confirm the installation.</string>
   <string name="install_prompt_unpatch">You will now be prompted to install original unmodified CHAOS;CHILD. Please confirm the installation.</string>
   <string name="uninstall_prompt_patch">You will now be prompted to uninstall unmodified CHAOS;CHILD. Please confirm the uninstallation.</string>
@@ -72,10 +72,10 @@
   <string name="not_trustworthy_apk_unpatch">APK to be installed might be not created by Okkei Patcher. Okkei Patcher will now abort restoring process.</string>
   <string name="apk_not_found_patch">APK to be installed was not found. Please restart patching process.</string>
   <string name="apk_not_found_unpatch">APK to be installed was not found. Okkei Patcher will now abort restoring process.</string>
-  <string name="http_file_access_error">Failed to access a file to download. Contact the creator of this application.&#10;Error description: %1$s</string>
+  <string name="http_file_access_error">Failed to access a file to download. Contact the creator of this application.\nError description: {0}</string>
   <string name="http_file_download_error">An error occurred while downloading file. Check your internet connection and try again.</string>
   <string name="exception_notice">Send \"bugreport.log\" file located in OkkeiPatcher directory to the creator of this application.</string>
-  <string name="fab_version">Version %1$s by solru</string>
+  <string name="fab_version">Version {0} by solru</string>
   <string name="manifest_prompt">For proper work Okkei Patcher needs an internet connection to download data about patch and updates. Before you proceed by clicking OK ensure that you have stable internet connection.</string>
   <string name="manifest_download">Downloading manifest...</string>
   <string name="manifest_download_completed">Manifest downloaded.</string>
@@ -85,11 +85,11 @@
   <string name="hash_obb_mismatch">Downloaded OBB is corrupted. Please try restarting patch process again.</string>
   <string name="hash_scripts_mismatch">Downloaded scripts are corrupted. Please try restarting patch process again.</string>
   <string name="update_header">Update</string>
-  <string name="update_app_available">A new version of Okkei Patcher is available!\nCurrent version: %1$s\nDownload size: %2$s MB\nChangelog:\n%3$s</string>
+  <string name="update_app_available">A new version of Okkei Patcher is available!\nCurrent version: {0}\nDownload size: {1} MB\nChangelog:\n{2}</string>
   <string name="update_app_download">Downloading update...</string>
   <string name="update_app_aborted">Okkei Patcher update was canceled.</string>
   <string name="update_app_corrupted">Okkei Patcher update is corrupted. Try again later.</string>
   <string name="update_app_attention">You will now be prompted to install updated Okkei Patcher. Please confirm the installation. Note that after that Okkei Patcher will be closed and you\'ll have to relaunch it manually.</string>
-  <string name="update_patch_available">Patch update is available! Click PATCH button to download and apply the update.\nDownload size: %1$s MB</string>
+  <string name="update_patch_available">Patch update is available! Click PATCH button to download and apply the update.\nDownload size: {0} MB</string>
   <string name="back_button_pressed">Press back button/use the gesture again to exit</string>
 </resources>

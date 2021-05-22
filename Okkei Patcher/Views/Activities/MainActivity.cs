@@ -15,25 +15,21 @@ using Android.Widget;
 using AndroidX.AppCompat.App;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Snackbar;
+using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Patcher;
+using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
 using static OkkeiPatcher.GlobalData;
 
-namespace OkkeiPatcher
+namespace OkkeiPatcher.Views.Activities
 {
 	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", ScreenOrientation = ScreenOrientation.Portrait,
 		MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
-		private static readonly Lazy<Utils> UtilsInstance = new Lazy<Utils>(() => new Utils());
-
-		private static readonly Lazy<PatchTools> PatchTools =
-			new Lazy<PatchTools>(() => new PatchTools(UtilsInstance.Value));
-
-		private static readonly Lazy<UnpatchTools> UnpatchTools =
-			new Lazy<UnpatchTools>(() => new UnpatchTools(UtilsInstance.Value));
-
-		private static readonly Lazy<ManifestTools> ManifestTools =
-			new Lazy<ManifestTools>(() => new ManifestTools(UtilsInstance.Value));
+		private static readonly Lazy<PatchTools> PatchTools = new Lazy<PatchTools>(() => new PatchTools());
+		private static readonly Lazy<UnpatchTools> UnpatchTools = new Lazy<UnpatchTools>(() => new UnpatchTools());
+		private static readonly Lazy<ManifestTools> ManifestTools = new Lazy<ManifestTools>(() => new ManifestTools());
 
 		private FloatingActionButton _infoButton;
 		private Button _patchButton;
@@ -43,8 +39,9 @@ namespace OkkeiPatcher
 		private TextView _statusText;
 		private ProgressBar _progressBar;
 
-		private bool _backPressed;
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
+		private Progress<ProgressInfo> _progress;
+		private bool _backPressed;
 		private ToolsBase _currentToolsObject;
 		private int _lastBackPressedTimestamp;
 		private bool _patchToolsEventsSubscribed;
@@ -104,12 +101,11 @@ namespace OkkeiPatcher
 			_currentToolsObject = ManifestTools.Value;
 
 			ManifestTools.Value.StatusChanged += OnStatusChanged;
-			ManifestTools.Value.ProgressChanged += OnProgressChanged;
 			ManifestTools.Value.MessageGenerated += OnMessageGenerated;
 			ManifestTools.Value.ErrorOccurred += OnErrorOccurred_ManifestTools;
 			ManifestTools.Value.PropertyChanged += OnPropertyChanged_ManifestTools;
 
-			if (!await ManifestTools.Value.RetrieveManifest(_cancelTokenSource.Token)) return;
+			if (!await ManifestTools.Value.RetrieveManifest(_progress, _cancelTokenSource.Token)) return;
 
 			CheckForUpdates();
 		}
@@ -131,7 +127,7 @@ namespace OkkeiPatcher
 			{
 				_patchButton.Enabled = true;
 				MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
-					Java.Lang.String.Format(Resources.GetText(Resource.String.update_patch_available),
+					string.Format(Resources.GetText(Resource.String.update_patch_available),
 						ManifestTools.Value.PatchSizeInMB.ToString()),
 					Resources.GetText(Resource.String.dialog_ok), CheckForAppUpdates);
 			});
@@ -146,11 +142,11 @@ namespace OkkeiPatcher
 		private void ShowAppUpdatePrompt()
 		{
 			MessageBox.Show(this, Resources.GetText(Resource.String.update_header),
-				Java.Lang.String.Format(Resources.GetText(Resource.String.update_app_available), AppInfo.VersionString,
+				string.Format(Resources.GetText(Resource.String.update_app_available), AppInfo.VersionString,
 					ManifestTools.Value.AppUpdateSizeInMB.ToString(CultureInfo.CurrentCulture),
 					ManifestTools.Value.Manifest.OkkeiPatcher.Changelog),
 				Resources.GetText(Resource.String.dialog_update), Resources.GetText(Resource.String.dialog_cancel),
-				() => ManifestTools.Value.UpdateApp(this, _cancelTokenSource.Token), null);
+				() => ManifestTools.Value.UpdateApp(this, _progress, _cancelTokenSource.Token), null);
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
@@ -182,12 +178,12 @@ namespace OkkeiPatcher
 					if (RequestInstallPackagesPermission()) ShowManifestPrompt();
 					break;
 				case (int) RequestCodes.UninstallCode:
-					_currentToolsObject.OnUninstallResult(this, _cancelTokenSource.Token);
+					_currentToolsObject.OnUninstallResult(this, _progress, _cancelTokenSource.Token);
 					break;
 				case (int) RequestCodes.KitKatInstallCode:
 					if (resultCode == Result.Ok)
 					{
-						_currentToolsObject.OnInstallSuccess(_cancelTokenSource.Token);
+						_currentToolsObject.OnInstallSuccess(_progress, _cancelTokenSource.Token);
 						break;
 					}
 
@@ -200,7 +196,7 @@ namespace OkkeiPatcher
 		{
 			if (!ActionPackageInstalled.Equals(intent.Action)) return;
 			var extras = intent.Extras;
-			var status = extras?.GetInt(PackageInstaller.ExtraStatus);
+			var status = extras?.GetInt(Android.Content.PM.PackageInstaller.ExtraStatus);
 			//var message = extras?.GetString(PackageInstaller.ExtraStatusMessage);
 
 			switch (status)
@@ -211,7 +207,7 @@ namespace OkkeiPatcher
 					StartActivity(confirmIntent);
 					break;
 				case (int) PackageInstallStatus.Success:
-					_currentToolsObject.OnInstallSuccess(_cancelTokenSource.Token);
+					_currentToolsObject.OnInstallSuccess(_progress, _cancelTokenSource.Token);
 					break;
 			}
 		}
@@ -221,9 +217,9 @@ namespace OkkeiPatcher
 			base.OnCreate(savedInstanceState);
 			SetContentView(Resource.Layout.activity_main);
 
-			// Don't turn screen off
 			Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
 
+			_progress = new Progress<ProgressInfo>(OnProgressChanged);
 			InitViewFields();
 			SubscribeToViewsEvents();
 
@@ -247,7 +243,7 @@ namespace OkkeiPatcher
 				_unpatchButton.Enabled = true;
 				if (Build.VERSION.SdkInt < BuildVersionCodes.M ||
 				    CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted)
-					_unpatchButton.Enabled = Utils.IsBackupAvailable();
+					_unpatchButton.Enabled = OkkeiUtils.IsBackupAvailable();
 				return;
 			}
 
@@ -331,7 +327,7 @@ namespace OkkeiPatcher
 			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
 
-			_unpatchButton.Enabled = Utils.IsBackupAvailable();
+			_unpatchButton.Enabled = OkkeiUtils.IsBackupAvailable();
 
 			if (RequestInstallPackagesPermission()) ShowManifestPrompt();
 		}
@@ -367,7 +363,7 @@ namespace OkkeiPatcher
 					_clearDataButton.Enabled = true;
 					if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) return;
 					_patchButton.Enabled = false;
-					_unpatchButton.Enabled = Utils.IsBackupAvailable();
+					_unpatchButton.Enabled = OkkeiUtils.IsBackupAvailable();
 
 					return;
 				}
@@ -397,7 +393,7 @@ namespace OkkeiPatcher
 						return;
 					}
 
-					_unpatchButton.Enabled = Utils.IsBackupAvailable();
+					_unpatchButton.Enabled = OkkeiUtils.IsBackupAvailable();
 					return;
 				}
 
@@ -420,7 +416,7 @@ namespace OkkeiPatcher
 					_patchButton.Enabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false) ||
 					                       ManifestTools.Value.IsPatchUpdateAvailable;
 					_patchButton.Text = Resources.GetText(Resource.String.patch);
-					_unpatchButton.Enabled = Utils.IsBackupAvailable();
+					_unpatchButton.Enabled = OkkeiUtils.IsBackupAvailable();
 					_clearDataButton.Enabled = true;
 					return;
 				}
@@ -437,19 +433,16 @@ namespace OkkeiPatcher
 			MainThread.BeginInvokeOnMainThread(() => _statusText.Text = e);
 		}
 
-		private void OnMessageGenerated(object sender, MessageBox.Data e)
+		private void OnMessageGenerated(object sender, MessageData e)
 		{
 			MainThread.BeginInvokeOnMainThread(() => MessageBox.Show(this, e));
 		}
 
-		private void OnProgressChanged(object sender, ProgressChangedEventArgs e)
+		private void OnProgressChanged(ProgressInfo e)
 		{
-			MainThread.BeginInvokeOnMainThread(() =>
-			{
-				if (_progressBar.Indeterminate != e.IsIndeterminate) _progressBar.Indeterminate = e.IsIndeterminate;
-				if (_progressBar.Max != e.Max) _progressBar.Max = e.Max;
-				_progressBar.Progress = e.Progress;
-			});
+			_progressBar.Indeterminate = e.IsIndeterminate;
+			_progressBar.Max = e.Max;
+			if (!_progressBar.Indeterminate) _progressBar.Progress = e.Progress;
 		}
 
 		private void CheckBox_CheckedChange(object sender, CompoundButton.CheckedChangeEventArgs e)
@@ -478,7 +471,7 @@ namespace OkkeiPatcher
 		private void ShowDownloadSizeWarning()
 		{
 			MessageBox.Show(this, Resources.GetText(Resource.String.warning),
-				Java.Lang.String.Format(Resources.GetText(Resource.String.download_size_warning),
+				string.Format(Resources.GetText(Resource.String.download_size_warning),
 					ManifestTools.Value.PatchSizeInMB), Resources.GetText(Resource.String.dialog_ok),
 				Resources.GetText(Resource.String.dialog_cancel), StartPatch, null);
 		}
@@ -490,14 +483,14 @@ namespace OkkeiPatcher
 			if (!_patchToolsEventsSubscribed)
 			{
 				PatchTools.Value.StatusChanged += OnStatusChanged;
-				PatchTools.Value.ProgressChanged += OnProgressChanged;
 				PatchTools.Value.MessageGenerated += OnMessageGenerated;
 				PatchTools.Value.PropertyChanged += OnPropertyChanged_PatchTools;
 				PatchTools.Value.ErrorOccurred += OnErrorOccurred_PatchTools;
 				_patchToolsEventsSubscribed = true;
 			}
 
-			PatchTools.Value.Patch(this, CreateProcessState(), ManifestTools.Value.Manifest, _cancelTokenSource.Token);
+			PatchTools.Value.Patch(this, CreateProcessState(), ManifestTools.Value.Manifest, _progress,
+				_cancelTokenSource.Token);
 		}
 
 		private void AbortPatch()
@@ -537,14 +530,13 @@ namespace OkkeiPatcher
 			if (!_unpatchToolsEventsSubscribed)
 			{
 				UnpatchTools.Value.StatusChanged += OnStatusChanged;
-				UnpatchTools.Value.ProgressChanged += OnProgressChanged;
 				UnpatchTools.Value.MessageGenerated += OnMessageGenerated;
 				UnpatchTools.Value.PropertyChanged += OnPropertyChanged_UnpatchTools;
 				UnpatchTools.Value.ErrorOccurred += OnErrorOccurred_UnpatchTools;
 				_unpatchToolsEventsSubscribed = true;
 			}
 
-			UnpatchTools.Value.Unpatch(this, CreateProcessState(), _cancelTokenSource.Token);
+			UnpatchTools.Value.Unpatch(this, CreateProcessState(), _progress, _cancelTokenSource.Token);
 		}
 
 		private void AbortUnpatch()
@@ -576,7 +568,7 @@ namespace OkkeiPatcher
 			Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 
-			Utils.ClearOkkeiFiles();
+			OkkeiUtils.ClearOkkeiFiles();
 
 			_savedataCheckBox.Checked = true;
 			_patchButton.Enabled = true;
@@ -597,7 +589,7 @@ namespace OkkeiPatcher
 		{
 			var view = (View) sender;
 			Snackbar.Make(view,
-					Java.Lang.String.Format(Resources.GetText(Resource.String.fab_version), AppInfo.VersionString),
+					string.Format(Resources.GetText(Resource.String.fab_version), AppInfo.VersionString),
 					BaseTransientBottomBar.LengthLong)
 				.SetAction("Action", (View.IOnClickListener) null).Show();
 		}
