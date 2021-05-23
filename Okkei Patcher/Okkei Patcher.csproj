@@ -82,6 +82,18 @@
   <ItemGroup>
     <Compile Include="Extensions\CancellationTokenExtensions.cs" />
     <Compile Include="Model\DTO\MessageData.cs" />
+    <Compile Include="Model\Files\BackupApk.cs" />
+    <Compile Include="Model\Files\BackupObb.cs" />
+    <Compile Include="Model\Files\BackupSavedata.cs" />
+    <Compile Include="Model\Files\Files.cs" />
+    <Compile Include="Model\Files\VerifiableFile.cs" />
+    <Compile Include="Model\Files\ObbToBackup.cs" />
+    <Compile Include="Model\Files\ObbToReplace.cs" />
+    <Compile Include="Model\Files\OriginalSavedata.cs" />
+    <Compile Include="Model\Files\Scripts.cs" />
+    <Compile Include="Model\Files\SignedApk.cs" />
+    <Compile Include="Model\Files\TempApk.cs" />
+    <Compile Include="Model\Files\TempSavedata.cs" />
     <Compile Include="Patcher\IInstallHandler.cs" />
     <Compile Include="Patcher\IUninstallHandler.cs" />
     <Compile Include="Utils\CertificateUtils.cs" />

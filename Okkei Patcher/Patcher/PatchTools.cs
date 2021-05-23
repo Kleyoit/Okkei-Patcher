@@ -9,10 +9,10 @@ using ICSharpCode.SharpZipLib.Zip;
 using OkkeiPatcher.Exceptions;
 using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
-using static SignApk.SignApk;
 using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Patcher
@@ -23,8 +23,24 @@ namespace OkkeiPatcher.Patcher
 		private bool _saveDataBackupFromOldPatch;
 		private X509Certificate2 _signingCertificate;
 
-		private async Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress,
-			CancellationToken token)
+		public void NotifyInstallFailed()
+		{
+			SetStatusToAborted();
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			IsRunning = false;
+		}
+
+		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
+		}
+
+		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnUninstallResultAsync(activity, progress, token).OnException(WriteBugReport));
+		}
+
+		private async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!IsRunning) return;
 
@@ -32,19 +48,18 @@ namespace OkkeiPatcher.Patcher
 			{
 				progress.Reset();
 
-				if (File.Exists(FilePaths[Files.SignedApk])) File.Delete(FilePaths[Files.SignedApk]);
+				Files.SignedApk.DeleteIfExists();
 
-				await RestoreSavedataBackup(progress, token);
-				await DownloadObb(progress, token);
+				await RestoreSavedataBackupAsync(progress, token);
+				await DownloadObbAsync(progress, token);
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), true);
 
 				UpdateStatus(Resource.String.patch_success);
 			}
 			catch (OperationCanceledException)
 			{
-				if (_saveDataBackupFromOldPatch && ProcessState.ProcessSavedata && !ProcessState.PatchUpdate &&
-				    File.Exists(FilePaths[Files.BackupSavedata]))
-					File.Delete(FilePaths[Files.BackupSavedata]);
+				if (_saveDataBackupFromOldPatch && ProcessState.ProcessSavedata && !ProcessState.PatchUpdate)
+					Files.BackupSavedata.DeleteIfExists();
 
 				SetStatusToAborted();
 			}
@@ -55,45 +70,40 @@ namespace OkkeiPatcher.Patcher
 			}
 		}
 
-		private async Task RestoreSavedataBackup(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task RestoreSavedataBackupAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			if (!ProcessState.ProcessSavedata || ProcessState.PatchUpdate ||
-			    !File.Exists(FilePaths[Files.SAVEDATA_BACKUP])) return;
+			if (!ProcessState.ProcessSavedata || ProcessState.PatchUpdate || !Files.TempSavedata.Exists) return;
 
 			if (_saveDataBackupFromOldPatch)
 			{
 				UpdateStatus(Resource.String.restore_old_saves);
 
-				if (File.Exists(FilePaths[Files.BackupSavedata]))
-					await IOUtils.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, progress,
-							token)
+				if (Files.BackupSavedata.Exists)
+					await Files.BackupSavedata.CopyToAsync(Files.OriginalSavedata, progress, token)
 						.ConfigureAwait(false);
 			}
 
-			if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
-			File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
+			Files.BackupSavedata.DeleteIfExists();
+			Files.TempSavedata.MoveTo(Files.BackupSavedata);
 		}
 
-		private async Task DownloadObb(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task DownloadObbAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			progress.Reset();
 
-			if (ProcessState.ObbUpdate && File.Exists(FilePaths[Files.ObbToReplace]))
-				File.Delete(FilePaths[Files.ObbToReplace]);
+			if (ProcessState.ObbUpdate) Files.ObbToReplace.DeleteIfExists();
 
-			if (!ProcessState.PatchUpdate)
-				UpdateStatus(Resource.String.compare_obb);
+			if (!ProcessState.PatchUpdate) UpdateStatus(Resource.String.compare_obb);
 
 			if (!ProcessState.ObbUpdate && ProcessState.ScriptsUpdate ||
-			    File.Exists(FilePaths[Files.ObbToReplace]) &&
-			    await MD5Utils.CompareMD5(Files.ObbToReplace, progress, token).ConfigureAwait(false))
+			    await Files.ObbToReplace.VerifyAsync(progress, token).ConfigureAwait(false))
 				return;
 
 			UpdateStatus(Resource.String.download_obb);
 
 			try
 			{
-				await IOUtils.DownloadFile(_manifest.Obb.URL, ObbPath, ObbFileName, progress, token)
+				await IOUtils.DownloadFileAsync(_manifest.Obb.URL, Files.ObbToReplace, progress, token)
 					.ConfigureAwait(false);
 			}
 			catch (HttpStatusCodeException ex)
@@ -114,7 +124,7 @@ namespace OkkeiPatcher.Patcher
 
 			UpdateStatus(Resource.String.write_obb_md5);
 
-			var obbHash = await MD5Utils.CalculateMD5(FilePaths[Files.ObbToReplace], progress, token)
+			var obbHash = await MD5Utils.ComputeMD5Async(Files.ObbToReplace, progress, token)
 				.ConfigureAwait(false);
 			if (obbHash != _manifest.Obb.MD5)
 			{
@@ -133,10 +143,10 @@ namespace OkkeiPatcher.Patcher
 			IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			Task.Run(() =>
-				InternalPatch(activity, processState, manifest, progress, token).OnException(WriteBugReport));
+				InternalPatchAsync(activity, processState, manifest, progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalPatch(Activity activity, ProcessState processState, OkkeiManifest manifest,
+		private async Task InternalPatchAsync(Activity activity, ProcessState processState, OkkeiManifest manifest,
 			IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
@@ -151,24 +161,24 @@ namespace OkkeiPatcher.Patcher
 
 				if (!CheckIfCouldApplyPatch()) token.Throw();
 
-				await BackupSavedata(progress, token);
+				await BackupSavedataAsync(progress, token);
 
 				// If patching for the first time or updating scripts and if there is no patched or backup APK
 				if ((!ProcessState.ObbUpdate || ProcessState.ScriptsUpdate) &&
-				    (!File.Exists(FilePaths[Files.SignedApk]) || !File.Exists(FilePaths[Files.BackupApk])))
+				    (!Files.SignedApk.Exists || !Files.BackupApk.Exists))
 				{
 					var originalApkPath = RetrieveOriginalApkPath();
-					await RetrieveOriginalApk(originalApkPath, progress, token);
-					await BackupApk(originalApkPath, progress, token);
+					await RetrieveOriginalApkAsync(originalApkPath, progress, token);
+					await BackupApkAsync(originalApkPath, progress, token);
 
 					if (ProcessState.ScriptsUpdate || !ProcessState.ObbUpdate)
 					{
-						await DownloadScripts(progress, token);
+						await DownloadScriptsAsync(progress, token);
 
 						var extractedScriptsPath = Path.Combine(OkkeiFilesPath, "scripts");
 						ExtractScripts(extractedScriptsPath, progress);
 
-						var apkZipFile = new ZipFile(FilePaths[Files.TempApk]);
+						var apkZipFile = new ZipFile(Files.TempApk.FullPath);
 						ReplaceScripts(extractedScriptsPath, apkZipFile, progress);
 
 						progress.MakeIndeterminate();
@@ -179,21 +189,21 @@ namespace OkkeiPatcher.Patcher
 
 						if (token.IsCancellationRequested)
 						{
-							if (File.Exists(FilePaths[Files.TempApk])) File.Delete(FilePaths[Files.TempApk]);
+							Files.TempApk.DeleteIfExists();
 							token.Throw();
 						}
 
-						await SignApk(progress, token);
+						await SignApkAsync(progress, token);
 
 						if (token.IsCancellationRequested)
 						{
-							if (File.Exists(FilePaths[Files.SignedApk])) File.Delete(FilePaths[Files.SignedApk]);
+							Files.SignedApk.DeleteIfExists();
 							token.Throw();
 						}
 					}
 				}
 
-				await BackupObb(progress, token);
+				await BackupObbAsync(progress, token);
 
 				ClearStatus();
 				progress.MakeIndeterminate();
@@ -206,7 +216,7 @@ namespace OkkeiPatcher.Patcher
 
 				if (ProcessState.ScriptsUpdate)
 				{
-					await InstallUpdatedApk(activity, progress, token);
+					await InstallUpdatedApkAsync(activity, progress, token);
 					return;
 				}
 
@@ -220,7 +230,7 @@ namespace OkkeiPatcher.Patcher
 			}
 			finally
 			{
-				if (File.Exists(FilePaths[Files.Scripts])) File.Delete(FilePaths[Files.Scripts]);
+				Files.Scripts.DeleteIfExists();
 			}
 		}
 
@@ -255,33 +265,30 @@ namespace OkkeiPatcher.Patcher
 			return true;
 		}
 
-		private async Task BackupSavedata(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task BackupSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!ProcessState.ProcessSavedata || ProcessState.PatchUpdate) return;
 
 			progress.Reset();
 
-			_saveDataBackupFromOldPatch = File.Exists(FilePaths[Files.BackupSavedata]) &&
-			                              await MD5Utils.CompareMD5(Files.BackupSavedata, progress, token)
-				                              .ConfigureAwait(false);
+			_saveDataBackupFromOldPatch = await Files.BackupSavedata.VerifyAsync(progress, token)
+				.ConfigureAwait(false);
 
-			if (File.Exists(FilePaths[Files.OriginalSavedata]))
+			if (Files.OriginalSavedata.Exists)
 			{
 				UpdateStatus(Resource.String.compare_saves);
 
-				if (await MD5Utils.CompareMD5(Files.OriginalSavedata, progress, token).ConfigureAwait(false)) return;
+				if (await Files.OriginalSavedata.VerifyAsync(progress, token).ConfigureAwait(false)) return;
 
 				UpdateStatus(Resource.String.backup_saves);
 
-				await IOUtils
-					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, progress,
-						token)
+				await Files.OriginalSavedata.CopyToAsync(Files.TempSavedata, progress, token)
 					.ConfigureAwait(false);
 
 				UpdateStatus(Resource.String.write_saves_md5);
 
 				Preferences.Set(Prefkey.savedata_md5.ToString(),
-					await MD5Utils.CalculateMD5(FilePaths[Files.OriginalSavedata], progress, token)
+					await MD5Utils.ComputeMD5Async(Files.OriginalSavedata, progress, token)
 						.ConfigureAwait(false));
 
 				return;
@@ -299,50 +306,49 @@ namespace OkkeiPatcher.Patcher
 				?.PublicSourceDir;
 		}
 
-		private async Task RetrieveOriginalApk(string originalApkPath, IProgress<ProgressInfo> progress,
+		private async Task RetrieveOriginalApkAsync(string originalApkPath, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			UpdateStatus(Resource.String.copy_apk);
 
-			await IOUtils.CopyFile(originalApkPath, OkkeiFilesPath, TempApkFileName, progress, token)
+			await IOUtils.CopyFileAsync(originalApkPath, Files.TempApk, progress, token)
 				.ConfigureAwait(false);
 		}
 
-		private async Task BackupApk(string originalApkPath, IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task BackupApkAsync(string originalApkPath, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
-			if (!File.Exists(FilePaths[Files.TempApk]) || ProcessState.PatchUpdate) return;
+			if (!Files.TempApk.Exists || ProcessState.PatchUpdate) return;
 
 			UpdateStatus(Resource.String.compare_apk);
 
-			if (File.Exists(FilePaths[Files.BackupApk]) &&
-			    await MD5Utils.CompareMD5(Files.TempApk, progress, token).ConfigureAwait(false))
+			if (Files.BackupApk.Exists &&
+			    await Files.TempApk.VerifyAsync(progress, token).ConfigureAwait(false))
 				return;
 
 			UpdateStatus(Resource.String.backup_apk);
 
-			await IOUtils.CopyFile(originalApkPath, OkkeiFilesPathBackup, BackupApkFileName, progress, token)
+			await IOUtils.CopyFileAsync(originalApkPath, Files.BackupApk, progress, token)
 				.ConfigureAwait(false);
 
 			UpdateStatus(Resource.String.write_apk_md5);
 
 			Preferences.Set(Prefkey.backup_apk_md5.ToString(),
-				await MD5Utils.CalculateMD5(FilePaths[Files.BackupApk], progress, token).ConfigureAwait(false));
+				await MD5Utils.ComputeMD5Async(Files.BackupApk, progress, token).ConfigureAwait(false));
 		}
 
-		private async Task DownloadScripts(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task DownloadScriptsAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			progress.Reset();
 			UpdateStatus(Resource.String.compare_scripts);
 
-			if (File.Exists(FilePaths[Files.Scripts]) &&
-			    await MD5Utils.CompareMD5(Files.Scripts, progress, token).ConfigureAwait(false))
-				return;
+			if (await Files.Scripts.VerifyAsync(progress, token).ConfigureAwait(false)) return;
 
 			UpdateStatus(Resource.String.download_scripts);
 
 			try
 			{
-				await IOUtils.DownloadFile(_manifest.Scripts.URL, OkkeiFilesPath, ScriptsFileName, progress, token)
+				await IOUtils.DownloadFileAsync(_manifest.Scripts.URL, Files.Scripts, progress, token)
 					.ConfigureAwait(false);
 			}
 			catch (HttpStatusCodeException ex)
@@ -362,7 +368,7 @@ namespace OkkeiPatcher.Patcher
 
 			UpdateStatus(Resource.String.write_scripts_md5);
 
-			var scriptsHash = await MD5Utils.CalculateMD5(FilePaths[Files.Scripts], progress, token)
+			var scriptsHash = await MD5Utils.ComputeMD5Async(Files.Scripts, progress, token)
 				.ConfigureAwait(false);
 			if (scriptsHash != _manifest.Scripts.MD5)
 			{
@@ -382,7 +388,7 @@ namespace OkkeiPatcher.Patcher
 			progress.Reset();
 			UpdateStatus(Resource.String.extract_scripts);
 
-			ZipUtils.ExtractZip(FilePaths[Files.Scripts], extractPath);
+			ZipUtils.ExtractZip(Files.Scripts.FullPath, extractPath);
 		}
 
 		private void ReplaceScripts(string scriptsPath, ZipFile apkZipFile, IProgress<ProgressInfo> progress)
@@ -405,18 +411,18 @@ namespace OkkeiPatcher.Patcher
 			}
 		}
 
-		private async Task SignApk(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task SignApkAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			UpdateStatus(Resource.String.sign_apk);
 			progress.MakeIndeterminate();
 
 			_signingCertificate ??= CertificateUtils.GetSigningCertificate();
 
-			var apkToSign = new FileStream(FilePaths[Files.TempApk], FileMode.Open);
-			var signedApkStream = new FileStream(FilePaths[Files.SignedApk], FileMode.OpenOrCreate);
+			var apkToSign = new FileStream(Files.TempApk.FullPath, FileMode.Open);
+			var signedApkStream = new FileStream(Files.SignedApk.FullPath, FileMode.OpenOrCreate);
 			const bool signWholeFile = false;
 
-			SignPackage(apkToSign, _signingCertificate, signedApkStream, signWholeFile);
+			SignApk.SignApk.SignPackage(apkToSign, _signingCertificate, signedApkStream, signWholeFile);
 
 			apkToSign.Dispose();
 			signedApkStream.Dispose();
@@ -424,34 +430,34 @@ namespace OkkeiPatcher.Patcher
 			UpdateStatus(Resource.String.write_patched_apk_md5);
 
 			Preferences.Set(Prefkey.signed_apk_md5.ToString(),
-				await MD5Utils.CalculateMD5(FilePaths[Files.SignedApk], progress, token).ConfigureAwait(false));
+				await MD5Utils.ComputeMD5Async(Files.SignedApk, progress, token).ConfigureAwait(false));
 
-			if (File.Exists(FilePaths[Files.TempApk])) File.Delete(FilePaths[Files.TempApk]);
+			Files.TempApk.DeleteIfExists();
 		}
 
-		private async Task BackupObb(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task BackupObbAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (ProcessState.PatchUpdate) return;
 
 			progress.Reset();
 
-			if (File.Exists(FilePaths[Files.ObbToBackup]))
+			if (Files.ObbToBackup.Exists)
 			{
 				UpdateStatus(Resource.String.compare_obb);
 
-				if (File.Exists(FilePaths[Files.BackupObb]) &&
-				    await MD5Utils.CompareMD5(Files.ObbToBackup, progress, token).ConfigureAwait(false))
+				if (Files.BackupObb.Exists &&
+				    await Files.ObbToBackup.VerifyAsync(progress, token).ConfigureAwait(false))
 					return;
 
 				UpdateStatus(Resource.String.backup_obb);
 
-				await IOUtils.CopyFile(FilePaths[Files.ObbToBackup], OkkeiFilesPathBackup, ObbFileName, progress, token)
+				await Files.ObbToBackup.CopyToAsync(Files.BackupObb, progress, token)
 					.ConfigureAwait(false);
 
 				UpdateStatus(Resource.String.write_obb_md5);
 
 				Preferences.Set(Prefkey.backup_obb_md5.ToString(),
-					await MD5Utils.CalculateMD5(FilePaths[Files.BackupObb], progress, token).ConfigureAwait(false));
+					await MD5Utils.ComputeMD5Async(Files.BackupObb, progress, token).ConfigureAwait(false));
 
 				return;
 			}
@@ -467,10 +473,10 @@ namespace OkkeiPatcher.Patcher
 				() => PackageManagerUtils.UninstallPackage(activity, ChaosChildPackageName));
 		}
 
-		private async Task InstallUpdatedApk(Activity activity, IProgress<ProgressInfo> progress,
+		private async Task InstallUpdatedApkAsync(Activity activity, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			await InternalOnUninstallResult(activity, progress, token).ConfigureAwait(false);
+			await InternalOnUninstallResultAsync(activity, progress, token).ConfigureAwait(false);
 		}
 
 		private void FinishPatch(IProgress<ProgressInfo> progress, CancellationToken token)
@@ -496,39 +502,14 @@ namespace OkkeiPatcher.Patcher
 			return false;
 		}
 
-		public void NotifyInstallFailed()
-		{
-			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
-			IsRunning = false;
-		}
-
-		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnUninstallResult(activity, progress, token).OnException(WriteBugReport));
-		}
-
-		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnInstallSuccess(progress, token).OnException(WriteBugReport));
-		}
-
-		private async Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
+		private async Task InternalOnUninstallResultAsync(Activity activity, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			if (!CheckUninstallSuccess(progress)) return;
-
-			var apkMd5 = string.Empty;
-
-			if (!IsRunning) return;
-
-			if (Preferences.ContainsKey(Prefkey.signed_apk_md5.ToString()))
-				apkMd5 = Preferences.Get(Prefkey.signed_apk_md5.ToString(), string.Empty);
-			var path = FilePaths[Files.SignedApk];
+			if (!IsRunning || !CheckUninstallSuccess(progress)) return;
 
 			try
 			{
-				if (!File.Exists(path))
+				if (!Files.SignedApk.Exists)
 				{
 					DisplayMessage(Resource.String.error, Resource.String.apk_not_found_patch,
 						Resource.String.dialog_ok, null);
@@ -538,9 +519,7 @@ namespace OkkeiPatcher.Patcher
 
 				UpdateStatus(Resource.String.compare_apk);
 
-				var apkFileMd5 = await MD5Utils.CalculateMD5(path, progress, token).ConfigureAwait(false);
-
-				if (apkMd5 == apkFileMd5)
+				if (await Files.SignedApk.VerifyAsync(progress, token))
 				{
 					progress.MakeIndeterminate();
 					var installer = new PackageInstaller(progress);
@@ -549,11 +528,12 @@ namespace OkkeiPatcher.Patcher
 					DisplayMessage(Resource.String.attention, Resource.String.install_prompt_patch,
 						Resource.String.dialog_ok,
 						() => MainThread.BeginInvokeOnMainThread(() =>
-							installer.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))));
+							installer.InstallPackage(activity,
+								Android.Net.Uri.FromFile(new Java.IO.File(Files.SignedApk.FullPath)))));
 					return;
 				}
 
-				File.Delete(path);
+				Files.SignedApk.DeleteIfExists();
 
 				DisplayMessage(Resource.String.error, Resource.String.not_trustworthy_apk_patch,
 					Resource.String.dialog_ok, null);

@@ -1,6 +1,6 @@
 ﻿using System;
-using Android.App;
 using System.Threading;
+using Android.App;
 using OkkeiPatcher.Model.DTO;
 
 namespace OkkeiPatcher.Patcher

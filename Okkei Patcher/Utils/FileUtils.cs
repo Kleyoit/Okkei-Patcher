@@ -24,5 +24,10 @@ namespace OkkeiPatcher.Utils
 			RecursiveClearFiles(folderPath);
 			Directory.Delete(folderPath);
 		}
+
+		public static void DeleteIfExists(string filePath)
+		{
+			if (File.Exists(filePath)) File.Delete(filePath);
+		}
 	}
 }

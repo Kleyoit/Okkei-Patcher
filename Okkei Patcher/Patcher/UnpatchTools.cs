@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
@@ -13,7 +13,24 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class UnpatchTools : ToolsBase, IInstallHandler, IUninstallHandler
 	{
-		private async Task InternalOnInstallSuccess(IProgress<ProgressInfo> progress,
+		public void NotifyInstallFailed()
+		{
+			SetStatusToAborted();
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			IsRunning = false;
+		}
+
+		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
+		}
+
+		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			Task.Run(() => InternalOnUninstallResultAsync(activity, progress, token).OnException(WriteBugReport));
+		}
+
+		private async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
@@ -22,9 +39,9 @@ namespace OkkeiPatcher.Patcher
 			{
 				progress.Reset();
 
-				await RestoreObb(progress, token);
-				await RestoreSavedata(progress, token);
-				await RecoverPreviousSavedataBackup(progress, token);
+				await RestoreObbAsync(progress, token);
+				await RestoreSavedataAsync(progress, token);
+				await RecoverPreviousSavedataBackupAsync(progress, token);
 				ClearBackup();
 
 				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
@@ -33,8 +50,8 @@ namespace OkkeiPatcher.Patcher
 			}
 			catch (OperationCanceledException)
 			{
-				if (File.Exists(FilePaths[Files.BackupSavedata])) File.Delete(FilePaths[Files.BackupSavedata]);
-				if (File.Exists(FilePaths[Files.OriginalSavedata])) File.Delete(FilePaths[Files.OriginalSavedata]);
+				Files.BackupSavedata.DeleteIfExists();
+				Files.OriginalSavedata.DeleteIfExists();
 
 				SetStatusToAborted();
 			}
@@ -45,11 +62,11 @@ namespace OkkeiPatcher.Patcher
 			}
 		}
 
-		private async Task RestoreObb(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task RestoreObbAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			UpdateStatus(Resource.String.restore_obb);
 
-			if (!File.Exists(FilePaths[Files.BackupObb]))
+			if (!Files.BackupObb.Exists)
 			{
 				DisplayMessage(Resource.String.error, Resource.String.obb_not_found_unpatch, Resource.String.dialog_ok,
 					null);
@@ -57,19 +74,19 @@ namespace OkkeiPatcher.Patcher
 				token.Throw();
 			}
 
-			await IOUtils.CopyFile(FilePaths[Files.BackupObb], ObbPath, ObbFileName, progress, token)
+			await Files.BackupObb.CopyToAsync(Files.ObbToReplace, progress, token)
 				.ConfigureAwait(false);
 		}
 
-		private async Task RestoreSavedata(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task RestoreSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!ProcessState.ProcessSavedata) return;
 
-			if (File.Exists(FilePaths[Files.BackupSavedata]))
+			if (Files.BackupSavedata.Exists)
 			{
 				UpdateStatus(Resource.String.restore_saves);
 
-				await IOUtils.CopyFile(FilePaths[Files.BackupSavedata], SavedataPath, SavedataFileName, progress, token)
+				await Files.BackupSavedata.CopyToAsync(Files.OriginalSavedata, progress, token)
 					.ConfigureAwait(false);
 				return;
 			}
@@ -78,36 +95,36 @@ namespace OkkeiPatcher.Patcher
 				null);
 		}
 
-		private async Task RecoverPreviousSavedataBackup(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task RecoverPreviousSavedataBackupAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			if (!File.Exists(FilePaths[Files.BackupSavedata])) return;
+			if (!Files.BackupSavedata.Exists) return;
 
-			File.Delete(FilePaths[Files.BackupSavedata]);
+			Files.BackupSavedata.DeleteIfExists();
 
-			if (File.Exists(FilePaths[Files.SAVEDATA_BACKUP]))
+			if (Files.TempSavedata.Exists)
 			{
-				File.Move(FilePaths[Files.SAVEDATA_BACKUP], FilePaths[Files.BackupSavedata]);
+				Files.TempSavedata.MoveTo(Files.BackupSavedata);
 
 				UpdateStatus(Resource.String.write_saves_md5);
 				Preferences.Set(Prefkey.savedata_md5.ToString(),
-					await MD5Utils.CalculateMD5(FilePaths[Files.BackupSavedata], progress, token)
+					await MD5Utils.ComputeMD5Async(Files.BackupSavedata, progress, token)
 						.ConfigureAwait(false));
 			}
 		}
 
 		private static void ClearBackup()
 		{
-			if (File.Exists(FilePaths[Files.BackupApk])) File.Delete(FilePaths[Files.BackupApk]);
-			if (File.Exists(FilePaths[Files.BackupObb])) File.Delete(FilePaths[Files.BackupObb]);
+			Files.BackupApk.DeleteIfExists();
+			Files.BackupObb.DeleteIfExists();
 		}
 
 		public void Unpatch(Activity activity, ProcessState processState, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			Task.Run(() => InternalUnpatch(activity, processState, progress, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUnpatchAsync(activity, processState, progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalUnpatch(Activity activity, ProcessState processState,
+		private async Task InternalUnpatchAsync(Activity activity, ProcessState processState,
 			IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			IsRunning = true;
@@ -117,7 +134,7 @@ namespace OkkeiPatcher.Patcher
 			{
 				if (!CheckIfCouldUnpatch()) token.Throw();
 
-				await BackupSavedata(progress, token);
+				await BackupSavedataAsync(progress, token);
 
 				ClearStatus();
 				progress.MakeIndeterminate();
@@ -168,17 +185,15 @@ namespace OkkeiPatcher.Patcher
 			return true;
 		}
 
-		private async Task BackupSavedata(IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task BackupSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!ProcessState.ProcessSavedata) return;
 
-			if (File.Exists(FilePaths[Files.OriginalSavedata]))
+			if (Files.OriginalSavedata.Exists)
 			{
 				UpdateStatus(Resource.String.backup_saves);
 
-				await IOUtils
-					.CopyFile(FilePaths[Files.OriginalSavedata], OkkeiFilesPathBackup, SavedataBackupFileName, progress,
-						token)
+				await Files.OriginalSavedata.CopyToAsync(Files.TempSavedata, progress, token)
 					.ConfigureAwait(false);
 				return;
 			}
@@ -202,7 +217,7 @@ namespace OkkeiPatcher.Patcher
 				() =>
 				{
 					MainThread.BeginInvokeOnMainThread(() => installer.InstallPackage(activity,
-						Android.Net.Uri.FromFile(new Java.IO.File(FilePaths[Files.BackupApk]))));
+						Android.Net.Uri.FromFile(new Java.IO.File(Files.BackupApk.FullPath))));
 				});
 		}
 
@@ -224,39 +239,14 @@ namespace OkkeiPatcher.Patcher
 			return false;
 		}
 
-		public void NotifyInstallFailed()
-		{
-			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
-			IsRunning = false;
-		}
-
-		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnUninstallResult(activity, progress, token).OnException(WriteBugReport));
-		}
-
-		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnInstallSuccess(progress, token).OnException(WriteBugReport));
-		}
-
-		private async Task InternalOnUninstallResult(Activity activity, IProgress<ProgressInfo> progress,
+		private async Task InternalOnUninstallResultAsync(Activity activity, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			if (!CheckUninstallSuccess(progress)) return;
-
-			var apkMd5 = string.Empty;
-
-			if (!IsRunning) return;
-
-			if (Preferences.ContainsKey(Prefkey.backup_apk_md5.ToString()))
-				apkMd5 = Preferences.Get(Prefkey.backup_apk_md5.ToString(), string.Empty);
-			var path = FilePaths[Files.BackupApk];
+			if (!IsRunning || !CheckUninstallSuccess(progress)) return;
 
 			try
 			{
-				if (!File.Exists(path))
+				if (!Files.BackupApk.Exists)
 				{
 					DisplayMessage(Resource.String.error, Resource.String.apk_not_found_unpatch,
 						Resource.String.dialog_ok, null);
@@ -266,9 +256,7 @@ namespace OkkeiPatcher.Patcher
 
 				UpdateStatus(Resource.String.compare_apk);
 
-				var apkFileMd5 = await MD5Utils.CalculateMD5(path, progress, token).ConfigureAwait(false);
-
-				if (apkMd5 == apkFileMd5)
+				if (await Files.BackupApk.VerifyAsync(progress, token))
 				{
 					progress.MakeIndeterminate();
 					var installer = new PackageInstaller(progress);
@@ -277,11 +265,12 @@ namespace OkkeiPatcher.Patcher
 					DisplayMessage(Resource.String.attention, Resource.String.install_prompt_unpatch,
 						Resource.String.dialog_ok,
 						() => MainThread.BeginInvokeOnMainThread(() =>
-							installer.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(path)))));
+							installer.InstallPackage(activity,
+								Android.Net.Uri.FromFile(new Java.IO.File(Files.BackupApk.FullPath)))));
 					return;
 				}
 
-				File.Delete(path);
+				Files.BackupApk.DeleteIfExists();
 
 				DisplayMessage(Resource.String.error, Resource.String.not_trustworthy_apk_unpatch,
 					Resource.String.dialog_ok, null);

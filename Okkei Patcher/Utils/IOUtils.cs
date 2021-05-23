@@ -8,6 +8,7 @@ using Java.IO;
 using OkkeiPatcher.Exceptions;
 using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Files;
 using File = System.IO.File;
 
 namespace OkkeiPatcher.Utils
@@ -16,7 +17,26 @@ namespace OkkeiPatcher.Utils
 	{
 		private static readonly Lazy<HttpClient> Client = new Lazy<HttpClient>(() => new HttpClient());
 
-		public static Task CopyFile(string inFilePath, string outFilePath, string outFileName,
+		public static Task CopyFileAsync(VerifiableFile inFile, VerifiableFile outFile,
+			IProgress<ProgressInfo> progress,
+			CancellationToken token)
+		{
+			return CopyFileAsync(inFile.FullPath, outFile.Directory, outFile.FileName, progress, token);
+		}
+
+		public static Task CopyFileAsync(string inFilePath, VerifiableFile outFile, IProgress<ProgressInfo> progress,
+			CancellationToken token)
+		{
+			return CopyFileAsync(inFilePath, outFile.Directory, outFile.FileName, progress, token);
+		}
+
+		public static Task CopyFileAsync(VerifiableFile inFile, string outFilePath, string outFileName,
+			IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			return CopyFileAsync(inFile.FullPath, outFilePath, outFileName, progress, token);
+		}
+
+		public static Task CopyFileAsync(string inFilePath, string outFilePath, string outFileName,
 			IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (inFilePath == null) throw new ArgumentNullException(nameof(inFilePath));
@@ -79,11 +99,17 @@ namespace OkkeiPatcher.Utils
 			return Task.CompletedTask;
 		}
 
+		public static async Task DownloadFileAsync(string URL, VerifiableFile outFile, IProgress<ProgressInfo> progress,
+			CancellationToken token)
+		{
+			await DownloadFileAsync(URL, outFile.Directory, outFile.FileName, progress, token);
+		}
+
 		/// <exception cref="System.IO.IOException"></exception>
 		/// <exception cref="HttpRequestException"></exception>
 		/// <exception cref="HttpStatusCodeException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
-		public static async Task DownloadFile(string URL, string outFilePath, string outFileName,
+		public static async Task DownloadFileAsync(string URL, string outFilePath, string outFileName,
 			IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{

@@ -5,9 +5,9 @@ using Android.Content;
 using Android.Content.PM;
 using Android.OS;
 using OkkeiPatcher.Extensions;
-using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using Xamarin.Essentials;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Patcher
 {
@@ -60,10 +60,10 @@ namespace OkkeiPatcher.Patcher
 				AddApkToInstallSession(apkUri, session);
 
 				var intent = new Intent(activity, activity.Class);
-				intent.SetAction(GlobalData.ActionPackageInstalled);
+				intent.SetAction(ActionPackageInstalled);
 
 				var pendingIntent = PendingIntent.GetActivity(activity,
-					(int) GlobalData.RequestCodes.PendingIntentInstallCode,
+					(int) RequestCodes.PendingIntentInstallCode,
 					intent, PendingIntentFlags.UpdateCurrent);
 
 				var observer = new PackageInstallObserver(packageInstaller);
@@ -85,7 +85,7 @@ namespace OkkeiPatcher.Patcher
 				intent.PutExtra(Intent.ExtraNotUnknownSource, false);
 				intent.PutExtra(Intent.ExtraReturnResult, true);
 				intent.PutExtra(Intent.ExtraInstallerPackageName, AppInfo.PackageName);
-				activity.StartActivityForResult(intent, (int) GlobalData.RequestCodes.KitKatInstallCode);
+				activity.StartActivityForResult(intent, (int) RequestCodes.KitKatInstallCode);
 			}
 		}
 

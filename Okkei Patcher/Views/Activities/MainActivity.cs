@@ -106,7 +106,7 @@ namespace OkkeiPatcher.Views.Activities
 			ManifestTools.Value.ErrorOccurred += OnErrorOccurred_ManifestTools;
 			ManifestTools.Value.PropertyChanged += OnPropertyChanged_ManifestTools;
 
-			if (!await ManifestTools.Value.RetrieveManifest(_progress, _cancelTokenSource.Token)) return;
+			if (!await ManifestTools.Value.RetrieveManifestAsync(_progress, _cancelTokenSource.Token)) return;
 
 			CheckForUpdates();
 		}
