@@ -13,11 +13,13 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using AndroidX.AppCompat.App;
+using AndroidX.Lifecycle;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Snackbar;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Patcher;
 using OkkeiPatcher.Utils;
+using OkkeiPatcher.ViewModels;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 
@@ -27,6 +29,8 @@ namespace OkkeiPatcher.Views.Activities
 		MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
+		private MainViewModel _viewModel;
+
 		private static readonly Lazy<PatchTools> PatchTools = new Lazy<PatchTools>(() => new PatchTools());
 		private static readonly Lazy<UnpatchTools> UnpatchTools = new Lazy<UnpatchTools>(() => new UnpatchTools());
 		private static readonly Lazy<ManifestTools> ManifestTools = new Lazy<ManifestTools>(() => new ManifestTools());
@@ -228,6 +232,8 @@ namespace OkkeiPatcher.Views.Activities
 			SetButtonsState();
 			SetCheckBoxState();
 			RequestReadWriteStoragePermissions();
+
+			_viewModel = new ViewModelProvider(this).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as MainViewModel;
 		}
 
 		private static void SetApkIsPatchedPreferenceIfNotSet()

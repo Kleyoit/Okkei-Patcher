@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace OkkeiPatcher.Extensions
+namespace OkkeiPatcher.Utils.Extensions
 {
 	public static class TaskExtensions
 	{

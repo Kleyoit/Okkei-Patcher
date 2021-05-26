@@ -6,12 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
 using ICSharpCode.SharpZipLib.Zip;
-using OkkeiPatcher.Exceptions;
-using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
+using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 
-namespace OkkeiPatcher.Extensions
+namespace OkkeiPatcher.Utils.Extensions
 {
 	public static class StreamExtensions
 	{

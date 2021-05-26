@@ -80,7 +80,7 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\CancellationTokenExtensions.cs" />
+    <Compile Include="Utils\Extensions\CancellationTokenExtensions.cs" />
     <Compile Include="Model\DTO\MessageData.cs" />
     <Compile Include="Model\Files\BackupApk.cs" />
     <Compile Include="Model\Files\BackupObb.cs" />
@@ -99,16 +99,17 @@
     <Compile Include="Utils\CertificateUtils.cs" />
     <Compile Include="Utils\DebugUtils.cs" />
     <Compile Include="Utils\FileUtils.cs" />
-    <Compile Include="Exceptions\HttpStatusCodeException.cs" />
+    <Compile Include="Model\Exceptions\HttpStatusCodeException.cs" />
     <Compile Include="Utils\IOUtils.cs" />
     <Compile Include="Utils\MD5Utils.cs" />
     <Compile Include="Patcher\PackageInstaller.cs" />
     <Compile Include="Utils\PackageManagerUtils.cs" />
-    <Compile Include="Extensions\ProgressExtensions.cs" />
+    <Compile Include="Utils\Extensions\ProgressExtensions.cs" />
     <Compile Include="Model\DTO\ProcessState.cs" />
-    <Compile Include="Extensions\StreamExtensions.cs" />
-    <Compile Include="Extensions\TaskExtensions.cs" />
+    <Compile Include="Utils\Extensions\StreamExtensions.cs" />
+    <Compile Include="Utils\Extensions\TaskExtensions.cs" />
     <Compile Include="Patcher\ToolsBase.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="Views\Activities\MainActivity.cs" />
     <Compile Include="Patcher\ManifestTools.cs" />
     <Compile Include="Utils\MessageBox.cs" />
@@ -204,7 +205,9 @@
       <Name>Xamarin.Essentials</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Views\Fragments\" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Android\Xamarin.Android.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
     Other similar extension points exist, see Microsoft.Common.targets.

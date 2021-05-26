@@ -2,10 +2,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Android.App;
-using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Utils;
+using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 

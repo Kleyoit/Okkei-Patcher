@@ -5,10 +5,10 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Java.IO;
-using OkkeiPatcher.Exceptions;
-using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Files;
+using OkkeiPatcher.Utils.Extensions;
 using File = System.IO.File;
 
 namespace OkkeiPatcher.Utils

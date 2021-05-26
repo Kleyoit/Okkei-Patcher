@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 
-namespace OkkeiPatcher.Extensions
+namespace OkkeiPatcher.Utils.Extensions
 {
 	public static class CancellationTokenExtensions
 	{

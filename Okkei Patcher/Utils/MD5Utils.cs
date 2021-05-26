@@ -3,9 +3,9 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Files;
+using OkkeiPatcher.Utils.Extensions;
 
 namespace OkkeiPatcher.Utils
 {

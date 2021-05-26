@@ -4,8 +4,8 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
-using OkkeiPatcher.Extensions;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 

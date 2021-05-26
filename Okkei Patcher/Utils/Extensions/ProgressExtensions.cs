@@ -1,7 +1,7 @@
 ﻿using System;
 using OkkeiPatcher.Model.DTO;
 
-namespace OkkeiPatcher.Extensions
+namespace OkkeiPatcher.Utils.Extensions
 {
 	public static class ProgressExtensions
 	{
