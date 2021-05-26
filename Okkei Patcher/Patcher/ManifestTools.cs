@@ -4,8 +4,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.App;
-using Android.OS;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Manifest;
@@ -20,23 +18,15 @@ namespace OkkeiPatcher.Patcher
 	{
 		public OkkeiManifest Manifest { get; private set; }
 
+		public event EventHandler<InstallMessageData> InstallMessageGenerated;
+
 		public bool IsAppUpdateAvailable
 		{
 			get
 			{
 				try
 				{
-					int appVersion;
-					if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
-						appVersion = (int) Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0)
-							.LongVersionCode;
-					else
-#pragma warning disable CS0618 // Type or member is obsolete
-						appVersion = Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0)
-							.VersionCode;
-#pragma warning restore CS0618 // Type or member is obsolete
-
-					return Manifest.OkkeiPatcher.Version > appVersion;
+					return Manifest.OkkeiPatcher.Version > PackageManagerUtils.GetVersionCode();
 				}
 				catch (Exception ex)
 				{
@@ -100,7 +90,7 @@ namespace OkkeiPatcher.Patcher
 		public void NotifyInstallFailed()
 		{
 			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok);
 			IsRunning = false;
 		}
 
@@ -152,9 +142,8 @@ namespace OkkeiPatcher.Patcher
 				if (!await DownloadManifestAsync(progress, token))
 				{
 					SetStatusToAborted();
-					DisplayMessage(Resource.String.error, Resource.String.manifest_corrupted,
-						Resource.String.dialog_exit, () => System.Environment.Exit(0));
-					NotifyAboutError();
+					DisplayFatalErrorMessage(Resource.String.error, Resource.String.manifest_corrupted,
+						Resource.String.dialog_exit);
 					return false;
 				}
 
@@ -176,9 +165,8 @@ namespace OkkeiPatcher.Patcher
 				if (!RestoreManifestBackup())
 				{
 					SetStatusToAborted();
-					DisplayMessage(Resource.String.error, Resource.String.manifest_download_failed,
-						Resource.String.dialog_exit, () => System.Environment.Exit(0));
-					NotifyAboutError();
+					DisplayFatalErrorMessage(Resource.String.error, Resource.String.manifest_download_failed,
+						Resource.String.dialog_exit);
 					return false;
 				}
 
@@ -250,12 +238,12 @@ namespace OkkeiPatcher.Patcher
 			return true;
 		}
 
-		public void UpdateApp(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
+		public void UpdateApp(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			Task.Run(() => InternalUpdateAppAsync(activity, progress, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUpdateAppAsync(progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalUpdateAppAsync(Activity activity, IProgress<ProgressInfo> progress,
+		private async Task InternalUpdateAppAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			IsRunning = true;
@@ -271,25 +259,21 @@ namespace OkkeiPatcher.Patcher
 				if (updateHash != Manifest.OkkeiPatcher.MD5)
 				{
 					SetStatusToAborted();
-					DisplayMessage(Resource.String.error, Resource.String.update_app_corrupted,
-						Resource.String.dialog_ok, null);
-					NotifyAboutError();
+					DisplayErrorMessage(Resource.String.error, Resource.String.update_app_corrupted,
+						Resource.String.dialog_ok);
 					progress.Reset();
 					return;
 				}
 
 				UpdateStatus(Resource.String.installing);
 				progress.MakeIndeterminate();
-				InstallAppUpdate(activity, progress);
+				InstallAppUpdate();
 			}
-			catch (System.OperationCanceledException)
+			catch (OperationCanceledException)
 			{
 				SetStatusToAborted();
-
-				DisplayMessage(Resource.String.error, Resource.String.update_app_aborted, Resource.String.dialog_ok,
-					null);
-
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.update_app_aborted,
+					Resource.String.dialog_ok);
 				progress.Reset();
 			}
 			catch (HttpStatusCodeException ex)
@@ -302,11 +286,8 @@ namespace OkkeiPatcher.Patcher
 			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
 				SetStatusToAborted();
-
-				DisplayMessage(Resource.String.error, Resource.String.http_file_download_error,
-					Resource.String.dialog_ok, null);
-
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.http_file_download_error,
+					Resource.String.dialog_ok);
 				progress.Reset();
 			}
 			finally
@@ -322,20 +303,16 @@ namespace OkkeiPatcher.Patcher
 				.ConfigureAwait(false);
 		}
 
-		private void InstallAppUpdate(Activity activity, IProgress<ProgressInfo> progress)
+		private void InstallAppUpdate()
 		{
-			var installer = new PackageInstaller(progress);
-			installer.InstallFailed += PackageInstallerOnInstallFailed;
-			DisplayMessage(Resource.String.attention, Resource.String.update_app_attention, Resource.String.dialog_ok,
-				() => MainThread.BeginInvokeOnMainThread(() =>
-					installer.InstallPackage(activity, Android.Net.Uri.FromFile(new Java.IO.File(AppUpdatePath)))));
+			DisplayInstallMessage(Resource.String.attention, Resource.String.update_app_attention,
+				Resource.String.dialog_ok, AppUpdatePath);
 		}
 
-		protected virtual void PackageInstallerOnInstallFailed(object sender, EventArgs e)
+		private void DisplayInstallMessage(int titleId, int messageId, int positiveButtonTextId, string filePath)
 		{
-			if (!(sender is PackageInstaller installer)) return;
-			installer.InstallFailed -= PackageInstallerOnInstallFailed;
-			NotifyInstallFailed();
+			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, positiveButtonTextId, filePath);
+			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}
 }

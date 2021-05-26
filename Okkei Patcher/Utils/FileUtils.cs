@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {
@@ -28,6 +29,11 @@ namespace OkkeiPatcher.Utils
 		public static void DeleteIfExists(string filePath)
 		{
 			if (File.Exists(filePath)) File.Delete(filePath);
+		}
+
+		public static bool IsEnoughSpace()
+		{
+			return Android.OS.Environment.ExternalStorageDirectory.UsableSpace >= TwoGb;
 		}
 	}
 }

@@ -12,7 +12,7 @@ namespace OkkeiPatcher.Utils
 		{
 			if (certStream == null) throw new ArgumentNullException(nameof(certStream));
 			var data = new byte[size];
-			size = certStream.Read(data, 0, size);
+			certStream.Read(data, 0, size);
 			certStream.Close();
 			return data;
 		}

@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.App;
 using ICSharpCode.SharpZipLib.Zip;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Exceptions;
@@ -23,10 +22,13 @@ namespace OkkeiPatcher.Patcher
 		private bool _saveDataBackupFromOldPatch;
 		private X509Certificate2 _signingCertificate;
 
+		public event EventHandler<InstallMessageData> InstallMessageGenerated;
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
+
 		public void NotifyInstallFailed()
 		{
 			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok);
 			IsRunning = false;
 		}
 
@@ -35,9 +37,9 @@ namespace OkkeiPatcher.Patcher
 			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
 		}
 
-		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
+		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			Task.Run(() => InternalOnUninstallResultAsync(activity, progress, token).OnException(WriteBugReport));
+			Task.Run(() => InternalOnUninstallResultAsync(progress, token).OnException(WriteBugReport));
 		}
 
 		private async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress, CancellationToken token)
@@ -108,17 +110,15 @@ namespace OkkeiPatcher.Patcher
 			}
 			catch (HttpStatusCodeException ex)
 			{
-				DisplayMessage(OkkeiUtils.GetText(Resource.String.error),
-					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error),
-						ex.StatusCode.ToString()), OkkeiUtils.GetText(Resource.String.dialog_ok), null);
-				NotifyAboutError();
+				DisplayErrorMessage(OkkeiUtils.GetText(Resource.String.error),
+					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error), ex.StatusCode.ToString()),
+					OkkeiUtils.GetText(Resource.String.dialog_ok));
 				token.Throw();
 			}
 			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
-				DisplayMessage(Resource.String.error, Resource.String.http_file_download_error,
-					Resource.String.dialog_ok, null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.http_file_download_error,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 
@@ -129,9 +129,8 @@ namespace OkkeiPatcher.Patcher
 			if (obbHash != _manifest.Obb.MD5)
 			{
 				SetStatusToAborted();
-				DisplayMessage(Resource.String.error, Resource.String.hash_obb_mismatch, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.hash_obb_mismatch,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 
@@ -139,15 +138,13 @@ namespace OkkeiPatcher.Patcher
 			Preferences.Set(Prefkey.obb_version.ToString(), _manifest.Obb.Version);
 		}
 
-		public void Patch(Activity activity, ProcessState processState, OkkeiManifest manifest,
-			IProgress<ProgressInfo> progress, CancellationToken token)
+		public void Patch(ProcessState processState, OkkeiManifest manifest, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
-			Task.Run(() =>
-				InternalPatchAsync(activity, processState, manifest, progress, token).OnException(WriteBugReport));
+			Task.Run(() => InternalPatchAsync(processState, manifest, progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalPatchAsync(Activity activity, ProcessState processState, OkkeiManifest manifest,
-			IProgress<ProgressInfo> progress,
+		private async Task InternalPatchAsync(ProcessState processState, OkkeiManifest manifest, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			IsRunning = true;
@@ -210,13 +207,13 @@ namespace OkkeiPatcher.Patcher
 
 				if (!ProcessState.PatchUpdate)
 				{
-					UninstallOriginalPackage(activity);
+					UninstallOriginalPackage();
 					return;
 				}
 
 				if (ProcessState.ScriptsUpdate)
 				{
-					await InstallUpdatedApkAsync(activity, progress, token);
+					await InstallUpdatedApkAsync(progress, token);
 					return;
 				}
 
@@ -242,27 +239,21 @@ namespace OkkeiPatcher.Patcher
 
 			if (isPatched && !ProcessState.PatchUpdate)
 			{
-				DisplayMessage(Resource.String.error, Resource.String.error_patched, Resource.String.dialog_ok, null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.error_patched, Resource.String.dialog_ok);
 				return false;
 			}
 
 			if (!PackageManagerUtils.IsAppInstalled(ChaosChildPackageName))
 			{
-				DisplayMessage(Resource.String.error, Resource.String.cc_not_found, Resource.String.dialog_ok, null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.cc_not_found, Resource.String.dialog_ok);
 				return false;
 			}
 
-			if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
-			{
-				DisplayMessage(Resource.String.error, Resource.String.no_free_space_patch, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
-				return false;
-			}
+			if (FileUtils.IsEnoughSpace()) return true;
 
-			return true;
+			DisplayErrorMessage(Resource.String.error, Resource.String.no_free_space_patch, Resource.String.dialog_ok);
+			return false;
+
 		}
 
 		private async Task BackupSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)
@@ -294,16 +285,12 @@ namespace OkkeiPatcher.Patcher
 				return;
 			}
 
-			DisplayMessage(Resource.String.warning, Resource.String.saves_not_found_patch, Resource.String.dialog_ok,
-				null);
+			DisplayMessage(Resource.String.warning, Resource.String.saves_not_found_patch, Resource.String.dialog_ok);
 		}
 
 		private static string RetrieveOriginalApkPath()
 		{
-			return Application.Context.PackageManager
-				?.GetPackageInfo(ChaosChildPackageName, 0)
-				?.ApplicationInfo
-				?.PublicSourceDir;
+			return PackageManagerUtils.GetPackagePublicSourceDir(ChaosChildPackageName);
 		}
 
 		private async Task RetrieveOriginalApkAsync(string originalApkPath, IProgress<ProgressInfo> progress,
@@ -354,15 +341,14 @@ namespace OkkeiPatcher.Patcher
 			catch (HttpStatusCodeException ex)
 			{
 				SetStatusToAborted();
-				DisplayMessage(OkkeiUtils.GetText(Resource.String.error),
-					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error),
-						ex.StatusCode.ToString()), OkkeiUtils.GetText(Resource.String.dialog_ok), null);
+				DisplayErrorMessage(OkkeiUtils.GetText(Resource.String.error),
+					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error), ex.StatusCode.ToString()),
+					OkkeiUtils.GetText(Resource.String.dialog_ok));
 			}
 			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
-				DisplayMessage(Resource.String.error, Resource.String.http_file_download_error,
-					Resource.String.dialog_ok, null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.http_file_download_error,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 
@@ -373,9 +359,8 @@ namespace OkkeiPatcher.Patcher
 			if (scriptsHash != _manifest.Scripts.MD5)
 			{
 				SetStatusToAborted();
-				DisplayMessage(Resource.String.error, Resource.String.hash_scripts_mismatch, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.hash_scripts_mismatch,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 
@@ -462,33 +447,25 @@ namespace OkkeiPatcher.Patcher
 				return;
 			}
 
-			DisplayMessage(Resource.String.error, Resource.String.obb_not_found_patch, Resource.String.dialog_ok, null);
-			NotifyAboutError();
+			DisplayErrorMessage(Resource.String.error, Resource.String.obb_not_found_patch, Resource.String.dialog_ok);
 			token.Throw();
 		}
 
-		private void UninstallOriginalPackage(Activity activity)
+		private void UninstallOriginalPackage()
 		{
-			DisplayMessage(Resource.String.attention, Resource.String.uninstall_prompt_patch, Resource.String.dialog_ok,
-				() => PackageManagerUtils.UninstallPackage(activity, ChaosChildPackageName));
+			DisplayUninstallMessage(Resource.String.attention, Resource.String.uninstall_prompt_patch,
+				Resource.String.dialog_ok, ChaosChildPackageName);
 		}
 
-		private async Task InstallUpdatedApkAsync(Activity activity, IProgress<ProgressInfo> progress,
+		private async Task InstallUpdatedApkAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			await InternalOnUninstallResultAsync(activity, progress, token).ConfigureAwait(false);
+			await InternalOnUninstallResultAsync(progress, token).ConfigureAwait(false);
 		}
 
 		private void FinishPatch(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			OnInstallSuccess(progress, token);
-		}
-
-		protected virtual void PackageInstallerOnInstallFailed(object sender, EventArgs e)
-		{
-			if (!(sender is PackageInstaller installer)) return;
-			installer.InstallFailed -= PackageInstallerOnInstallFailed;
-			NotifyInstallFailed();
 		}
 
 		private bool CheckUninstallSuccess(IProgress<ProgressInfo> progress)
@@ -497,13 +474,12 @@ namespace OkkeiPatcher.Patcher
 
 			progress.Reset();
 			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok, null);
+			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok);
 			IsRunning = false;
 			return false;
 		}
 
-		private async Task InternalOnUninstallResultAsync(Activity activity, IProgress<ProgressInfo> progress,
-			CancellationToken token)
+		private async Task InternalOnUninstallResultAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (!IsRunning || !CheckUninstallSuccess(progress)) return;
 
@@ -511,9 +487,8 @@ namespace OkkeiPatcher.Patcher
 			{
 				if (!Files.SignedApk.Exists)
 				{
-					DisplayMessage(Resource.String.error, Resource.String.apk_not_found_patch,
-						Resource.String.dialog_ok, null);
-					NotifyAboutError();
+					DisplayErrorMessage(Resource.String.error, Resource.String.apk_not_found_patch,
+						Resource.String.dialog_ok);
 					token.Throw();
 				}
 
@@ -522,22 +497,16 @@ namespace OkkeiPatcher.Patcher
 				if (await Files.SignedApk.VerifyAsync(progress, token))
 				{
 					progress.MakeIndeterminate();
-					var installer = new PackageInstaller(progress);
-					installer.InstallFailed += PackageInstallerOnInstallFailed;
 					UpdateStatus(Resource.String.installing);
-					DisplayMessage(Resource.String.attention, Resource.String.install_prompt_patch,
-						Resource.String.dialog_ok,
-						() => MainThread.BeginInvokeOnMainThread(() =>
-							installer.InstallPackage(activity,
-								Android.Net.Uri.FromFile(new Java.IO.File(Files.SignedApk.FullPath)))));
+					DisplayInstallMessage(Resource.String.attention, Resource.String.install_prompt_patch,
+						Resource.String.dialog_ok, Files.SignedApk.FullPath);
 					return;
 				}
 
 				Files.SignedApk.DeleteIfExists();
 
-				DisplayMessage(Resource.String.error, Resource.String.not_trustworthy_apk_patch,
-					Resource.String.dialog_ok, null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.not_trustworthy_apk_patch,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 			catch (OperationCanceledException)
@@ -546,6 +515,19 @@ namespace OkkeiPatcher.Patcher
 				progress.Reset();
 				IsRunning = false;
 			}
+		}
+
+		private void DisplayUninstallMessage(int titleId, int messageId, int positiveButtonTextId, string packageName)
+		{
+			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, positiveButtonTextId,
+				packageName);
+			UninstallMessageGenerated?.Invoke(this, data);
+		}
+
+		private void DisplayInstallMessage(int titleId, int messageId, int positiveButtonTextId, string filePath)
+		{
+			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, positiveButtonTextId, filePath);
+			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}
 }

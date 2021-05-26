@@ -6,6 +6,8 @@ namespace OkkeiPatcher.Patcher
 {
 	internal interface IInstallHandler
 	{
+		public event EventHandler<InstallMessageData> InstallMessageGenerated;
+
 		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token);
 
 		public void NotifyInstallFailed();

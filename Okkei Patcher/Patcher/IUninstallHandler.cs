@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading;
-using Android.App;
 using OkkeiPatcher.Model.DTO;
 
 namespace OkkeiPatcher.Patcher
 {
 	internal interface IUninstallHandler
 	{
-		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token);
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
+
+		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token);
 	}
 }

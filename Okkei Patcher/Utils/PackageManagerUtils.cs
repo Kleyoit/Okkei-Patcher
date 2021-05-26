@@ -1,6 +1,8 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.OS;
+using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
@@ -25,6 +27,25 @@ namespace OkkeiPatcher.Utils
 			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
 			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
+		}
+
+		public static string GetPackagePublicSourceDir(string packageName)
+		{
+			return Application.Context.PackageManager
+				?.GetPackageInfo(packageName, 0)
+				?.ApplicationInfo
+				?.PublicSourceDir;
+		}
+
+		public static int GetVersionCode()
+		{
+			if (Build.VERSION.SdkInt >= BuildVersionCodes.P)
+				return (int) Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0)
+					.LongVersionCode;
+#pragma warning disable CS0618 // Type or member is obsolete
+			return Application.Context.PackageManager.GetPackageInfo(AppInfo.PackageName, 0)
+				.VersionCode;
+#pragma warning restore CS0618 // Type or member is obsolete
 		}
 	}
 }

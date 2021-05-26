@@ -99,6 +99,10 @@ namespace OkkeiPatcher.Utils
 			return Task.CompletedTask;
 		}
 
+		/// <exception cref="System.IO.IOException"></exception>
+		/// <exception cref="HttpRequestException"></exception>
+		/// <exception cref="HttpStatusCodeException"></exception>
+		/// <exception cref="ArgumentNullException"></exception>
 		public static async Task DownloadFileAsync(string URL, VerifiableFile outFile, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
@@ -132,12 +136,11 @@ namespace OkkeiPatcher.Utils
 				int length;
 				var response = await Client.Value.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead)
 					.ConfigureAwait(false);
-				var contentLength = -1;
 
 				if (response.StatusCode != HttpStatusCode.OK)
 					throw new HttpStatusCodeException(response.StatusCode);
 
-				contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
+				var contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
 				download = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)

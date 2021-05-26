@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.App;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Utils;
@@ -13,10 +12,13 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class UnpatchTools : ToolsBase, IInstallHandler, IUninstallHandler
 	{
+		public event EventHandler<InstallMessageData> InstallMessageGenerated;
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
+
 		public void NotifyInstallFailed()
 		{
 			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok, null);
+			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok);
 			IsRunning = false;
 		}
 
@@ -25,9 +27,9 @@ namespace OkkeiPatcher.Patcher
 			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
 		}
 
-		public void OnUninstallResult(Activity activity, IProgress<ProgressInfo> progress, CancellationToken token)
+		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			Task.Run(() => InternalOnUninstallResultAsync(activity, progress, token).OnException(WriteBugReport));
+			Task.Run(() => InternalOnUninstallResultAsync(progress, token).OnException(WriteBugReport));
 		}
 
 		private async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress,
@@ -68,9 +70,8 @@ namespace OkkeiPatcher.Patcher
 
 			if (!Files.BackupObb.Exists)
 			{
-				DisplayMessage(Resource.String.error, Resource.String.obb_not_found_unpatch, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.obb_not_found_unpatch,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 
@@ -91,8 +92,7 @@ namespace OkkeiPatcher.Patcher
 				return;
 			}
 
-			DisplayMessage(Resource.String.warning, Resource.String.saves_backup_not_found, Resource.String.dialog_ok,
-				null);
+			DisplayMessage(Resource.String.warning, Resource.String.saves_backup_not_found, Resource.String.dialog_ok);
 		}
 
 		private async Task RecoverPreviousSavedataBackupAsync(IProgress<ProgressInfo> progress, CancellationToken token)
@@ -118,14 +118,13 @@ namespace OkkeiPatcher.Patcher
 			Files.BackupObb.DeleteIfExists();
 		}
 
-		public void Unpatch(Activity activity, ProcessState processState, IProgress<ProgressInfo> progress,
-			CancellationToken token)
+		public void Unpatch(ProcessState processState, IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			Task.Run(() => InternalUnpatchAsync(activity, processState, progress, token).OnException(WriteBugReport));
+			Task.Run(() => InternalUnpatchAsync(processState, progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalUnpatchAsync(Activity activity, ProcessState processState,
-			IProgress<ProgressInfo> progress, CancellationToken token)
+		private async Task InternalUnpatchAsync(ProcessState processState, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
 			IsRunning = true;
 			ProcessState = processState;
@@ -141,11 +140,11 @@ namespace OkkeiPatcher.Patcher
 
 				if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName))
 				{
-					UninstallPatchedPackage(activity);
+					UninstallPatchedPackage();
 					return;
 				}
 
-				InstallBackupApk(activity, progress);
+				InstallBackupApk();
 			}
 			catch (OperationCanceledException)
 			{
@@ -160,29 +159,23 @@ namespace OkkeiPatcher.Patcher
 			var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 			if (!isPatched)
 			{
-				DisplayMessage(Resource.String.error, Resource.String.error_not_patched, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.error_not_patched,
+					Resource.String.dialog_ok);
 				return false;
 			}
 
 			if (!OkkeiUtils.IsBackupAvailable())
 			{
-				DisplayMessage(Resource.String.error, Resource.String.backup_not_found, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.backup_not_found, Resource.String.dialog_ok);
 				return false;
 			}
 
-			if (Android.OS.Environment.ExternalStorageDirectory.UsableSpace < TwoGb)
-			{
-				DisplayMessage(Resource.String.error, Resource.String.no_free_space_unpatch, Resource.String.dialog_ok,
-					null);
-				NotifyAboutError();
-				return false;
-			}
+			if (FileUtils.IsEnoughSpace()) return true;
 
-			return true;
+			DisplayErrorMessage(Resource.String.error, Resource.String.no_free_space_unpatch,
+				Resource.String.dialog_ok);
+			return false;
+
 		}
 
 		private async Task BackupSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)
@@ -198,34 +191,21 @@ namespace OkkeiPatcher.Patcher
 				return;
 			}
 
-			DisplayMessage(Resource.String.warning, Resource.String.saves_not_found_unpatch, Resource.String.dialog_ok,
-				null);
+			DisplayMessage(Resource.String.warning, Resource.String.saves_not_found_unpatch, Resource.String.dialog_ok);
 		}
 
-		private void UninstallPatchedPackage(Activity activity)
+		private void UninstallPatchedPackage()
 		{
-			DisplayMessage(Resource.String.attention, Resource.String.uninstall_prompt_unpatch,
-				Resource.String.dialog_ok, () => PackageManagerUtils.UninstallPackage(activity, ChaosChildPackageName));
+			DisplayUninstallMessage(Resource.String.attention, Resource.String.uninstall_prompt_unpatch,
+				Resource.String.dialog_ok, ChaosChildPackageName);
 		}
 
-		private void InstallBackupApk(Activity activity, IProgress<ProgressInfo> progress)
+		private void InstallBackupApk()
 		{
 			UpdateStatus(Resource.String.installing);
-			var installer = new PackageInstaller(progress);
-			installer.InstallFailed += PackageInstallerOnInstallFailed;
-			DisplayMessage(Resource.String.attention, Resource.String.install_prompt_unpatch, Resource.String.dialog_ok,
-				() =>
-				{
-					MainThread.BeginInvokeOnMainThread(() => installer.InstallPackage(activity,
-						Android.Net.Uri.FromFile(new Java.IO.File(Files.BackupApk.FullPath))));
-				});
-		}
-
-		protected virtual void PackageInstallerOnInstallFailed(object sender, EventArgs e)
-		{
-			if (!(sender is PackageInstaller installer)) return;
-			installer.InstallFailed -= PackageInstallerOnInstallFailed;
-			NotifyInstallFailed();
+			DisplayInstallMessage(Resource.String.attention, Resource.String.install_prompt_unpatch,
+				Resource.String.dialog_ok,
+				Files.BackupApk.FullPath);
 		}
 
 		private bool CheckUninstallSuccess(IProgress<ProgressInfo> progress)
@@ -234,12 +214,12 @@ namespace OkkeiPatcher.Patcher
 
 			progress.Reset();
 			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok, null);
+			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok);
 			IsRunning = false;
 			return false;
 		}
 
-		private async Task InternalOnUninstallResultAsync(Activity activity, IProgress<ProgressInfo> progress,
+		private async Task InternalOnUninstallResultAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			if (!IsRunning || !CheckUninstallSuccess(progress)) return;
@@ -248,9 +228,8 @@ namespace OkkeiPatcher.Patcher
 			{
 				if (!Files.BackupApk.Exists)
 				{
-					DisplayMessage(Resource.String.error, Resource.String.apk_not_found_unpatch,
-						Resource.String.dialog_ok, null);
-					NotifyAboutError();
+					DisplayErrorMessage(Resource.String.error, Resource.String.apk_not_found_unpatch,
+						Resource.String.dialog_ok);
 					token.Throw();
 				}
 
@@ -259,22 +238,16 @@ namespace OkkeiPatcher.Patcher
 				if (await Files.BackupApk.VerifyAsync(progress, token))
 				{
 					progress.MakeIndeterminate();
-					var installer = new PackageInstaller(progress);
-					installer.InstallFailed += PackageInstallerOnInstallFailed;
 					UpdateStatus(Resource.String.installing);
-					DisplayMessage(Resource.String.attention, Resource.String.install_prompt_unpatch,
-						Resource.String.dialog_ok,
-						() => MainThread.BeginInvokeOnMainThread(() =>
-							installer.InstallPackage(activity,
-								Android.Net.Uri.FromFile(new Java.IO.File(Files.BackupApk.FullPath)))));
+					DisplayInstallMessage(Resource.String.attention, Resource.String.install_prompt_unpatch,
+						Resource.String.dialog_ok, Files.BackupApk.FullPath);
 					return;
 				}
 
 				Files.BackupApk.DeleteIfExists();
 
-				DisplayMessage(Resource.String.error, Resource.String.not_trustworthy_apk_unpatch,
-					Resource.String.dialog_ok, null);
-				NotifyAboutError();
+				DisplayErrorMessage(Resource.String.error, Resource.String.not_trustworthy_apk_unpatch,
+					Resource.String.dialog_ok);
 				token.Throw();
 			}
 			catch (OperationCanceledException)
@@ -283,6 +256,19 @@ namespace OkkeiPatcher.Patcher
 				progress.Reset();
 				IsRunning = false;
 			}
+		}
+
+		private void DisplayUninstallMessage(int titleId, int messageId, int positiveButtonTextId, string packageName)
+		{
+			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, positiveButtonTextId,
+				packageName);
+			UninstallMessageGenerated?.Invoke(this, data);
+		}
+
+		private void DisplayInstallMessage(int titleId, int messageId, int positiveButtonTextId, string filePath)
+		{
+			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, positiveButtonTextId, filePath);
+			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}
 }

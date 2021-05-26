@@ -13,13 +13,13 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class PackageInstaller
 	{
+		public IProgress<ProgressInfo> Progress { get; }
+		public event EventHandler InstallFailed;
+
 		public PackageInstaller(IProgress<ProgressInfo> progress)
 		{
 			Progress = progress;
 		}
-
-		private IProgress<ProgressInfo> Progress { get; }
-		public event EventHandler InstallFailed;
 
 		private static void AddApkToInstallSession(Android.Net.Uri apkUri,
 			Android.Content.PM.PackageInstaller.Session session)
@@ -57,6 +57,11 @@ namespace OkkeiPatcher.Patcher
 				var sessionId = packageInstaller.CreateSession(sessionParams);
 				var session = packageInstaller.OpenSession(sessionId);
 
+				var observer = new PackageInstallObserver(packageInstaller);
+				observer.ProgressChanged += OnProgressChanged;
+				observer.InstallFailed += OnInstallFailed;
+				packageInstaller.RegisterSessionCallback(observer);
+
 				AddApkToInstallSession(apkUri, session);
 
 				var intent = new Intent(activity, activity.Class);
@@ -65,12 +70,7 @@ namespace OkkeiPatcher.Patcher
 				var pendingIntent = PendingIntent.GetActivity(activity,
 					(int) RequestCodes.PendingIntentInstallCode,
 					intent, PendingIntentFlags.UpdateCurrent);
-
-				var observer = new PackageInstallObserver(packageInstaller);
-				observer.ProgressChanged += OnProgressChanged;
-				observer.InstallFailed += OnInstallFailed;
-				packageInstaller.RegisterSessionCallback(observer);
-
+				
 				var statusReceiver = pendingIntent?.IntentSender;
 
 				session.Commit(statusReceiver);

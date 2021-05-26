@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using static OkkeiPatcher.Model.GlobalData;
@@ -9,29 +8,15 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class ToolsBase : INotifyPropertyChanged
 	{
-		private bool _isRunningField;
 		protected ProcessState ProcessState;
 
-		public bool IsRunning
-		{
-			get => _isRunningField;
-			protected set
-			{
-				if (value == _isRunningField) return;
-				_isRunningField = value;
-				NotifyPropertyChanged();
-			}
-		}
+		public bool IsRunning { get; protected set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public event EventHandler<string> StatusChanged;
 		public event EventHandler<MessageData> MessageGenerated;
+		public event EventHandler<MessageData> FatalErrorOccurred;
 		public event EventHandler ErrorOccurred;
-
-		protected virtual void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-		{
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
 
 		protected virtual void OnStatusChanged(object sender, string e)
 		{
@@ -49,40 +34,51 @@ namespace OkkeiPatcher.Patcher
 		}
 
 		protected virtual void DisplayMessage(int titleId, int messageId, int positiveButtonTextId,
-			int negativeButtonTextId,
-			Action positiveAction,
-			Action negativeAction)
+			int negativeButtonTextId)
 		{
 			var title = OkkeiUtils.GetText(titleId);
 			var message = OkkeiUtils.GetText(messageId);
 			var positiveButtonText = OkkeiUtils.GetText(positiveButtonTextId);
 			var negativeButtonText = OkkeiUtils.GetText(negativeButtonTextId);
-			OnMessageGenerated(this,
-				new MessageData(title, message, positiveButtonText, negativeButtonText, positiveAction,
-					negativeAction));
+			OnMessageGenerated(this, new MessageData(title, message, positiveButtonText, negativeButtonText));
 		}
 
-		protected virtual void DisplayMessage(int titleId, int messageId, int buttonTextId, Action action)
+		protected virtual void DisplayMessage(int titleId, int messageId, int buttonTextId)
 		{
 			var title = OkkeiUtils.GetText(titleId);
 			var message = OkkeiUtils.GetText(messageId);
 			var buttonText = OkkeiUtils.GetText(buttonTextId);
-			OnMessageGenerated(this, new MessageData(title, message, buttonText, null, action, null));
-		}
-
-		protected virtual void DisplayMessage(string title, string message, string buttonText, Action action)
-		{
-			OnMessageGenerated(this, new MessageData(title, message, buttonText, null, action, null));
+			OnMessageGenerated(this, new MessageData(title, message, buttonText, null));
 		}
 
 		protected virtual void DisplayMessage(string title, string message, string positiveButtonText,
-			string negativeButtonText,
-			Action positiveAction,
-			Action negativeAction)
+			string negativeButtonText)
 		{
-			OnMessageGenerated(this,
-				new MessageData(title, message, positiveButtonText, negativeButtonText, positiveAction,
-					negativeAction));
+			OnMessageGenerated(this, new MessageData(title, message, positiveButtonText, negativeButtonText));
+		}
+
+		protected virtual void DisplayMessage(string title, string message, string buttonText)
+		{
+			OnMessageGenerated(this, new MessageData(title, message, buttonText, null));
+		}
+
+		protected virtual void DisplayErrorMessage(int titleId, int messageId, int buttonTextId)
+		{
+			DisplayMessage(titleId, messageId, buttonTextId);
+			NotifyAboutError();
+		}
+
+		protected virtual void DisplayErrorMessage(string title, string message, string buttonText)
+		{
+			DisplayMessage(title, message, buttonText);
+			NotifyAboutError();
+		}
+
+		protected virtual void DisplayFatalErrorMessage(int titleId, int messageId, int buttonTextId)
+		{
+			var data = MessageDataUtils.CreateMessageData(titleId, messageId, buttonTextId);
+			FatalErrorOccurred?.Invoke(this, data);
+			NotifyAboutError();
 		}
 
 		protected virtual void UpdateStatus(int id)
@@ -115,8 +111,8 @@ namespace OkkeiPatcher.Patcher
 			IsRunning = true;
 			var bugReport = DebugUtils.GetBugReportText(ex);
 			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
-			DisplayMessage(Resource.String.exception, Resource.String.exception_notice, Resource.String.dialog_exit,
-				() => Environment.Exit(0));
+			DisplayFatalErrorMessage(Resource.String.exception, Resource.String.exception_notice,
+				Resource.String.dialog_exit);
 		}
 	}
 }
