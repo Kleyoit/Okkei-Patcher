@@ -18,10 +18,10 @@ namespace OkkeiPatcher.ViewModels
 		private readonly Lazy<ManifestTools> _manifestTools = new Lazy<ManifestTools>(() => new ManifestTools());
 		private readonly Progress<ProgressInfo> _progress;
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
-		private IInstallHandler _installHandler;
 		private bool _patchToolsEventsSubscribed;
-		private IUninstallHandler _uninstallHandler;
 		private bool _unpatchToolsEventsSubscribed;
+		private IInstallHandler _installHandler;
+		private IUninstallHandler _uninstallHandler;
 
 		public MainViewModel()
 		{
