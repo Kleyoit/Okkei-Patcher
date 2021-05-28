@@ -26,23 +26,24 @@ namespace OkkeiPatcher.Views.Activities
 		MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
-		private MainViewModel _viewModel;
 		private bool _backPressed;
 		private int _lastBackPressedTimestamp;
+		private MainViewModel _viewModel;
 
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
 			SetContentView(Resource.Layout.activity_main);
-			
+
 			//Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
-			
+
 			SubscribeToViewsEvents();
-			
+
 			SetUnpatchButtonState();
 			RequestReadWriteStoragePermissions();
 
-			_viewModel = new ViewModelProvider(this).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as MainViewModel;
+			_viewModel =
+				new ViewModelProvider(this).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as MainViewModel;
 
 			SubscribeToViewModel();
 			SetStateFromViewModel();
@@ -77,7 +78,7 @@ namespace OkkeiPatcher.Views.Activities
 		{
 			if (!ActionPackageInstalled.Equals(intent.Action)) return;
 			var extras = intent.Extras;
-			var status = extras?.GetInt(Android.Content.PM.PackageInstaller.ExtraStatus);
+			var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 			//var message = extras?.GetString(PackageInstaller.ExtraStatusMessage);
 
 			switch (status)
@@ -344,7 +345,7 @@ namespace OkkeiPatcher.Views.Activities
 		{
 			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false) &&
 			    (Build.VERSION.SdkInt < BuildVersionCodes.M ||
-			    CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted))
+			     CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted))
 				_viewModel.UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
 		}
 

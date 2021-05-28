@@ -18,8 +18,6 @@ namespace OkkeiPatcher.Patcher
 	{
 		public OkkeiManifest Manifest { get; private set; }
 
-		public event EventHandler<InstallMessageData> InstallMessageGenerated;
-
 		public bool IsAppUpdateAvailable
 		{
 			get
@@ -86,6 +84,8 @@ namespace OkkeiPatcher.Patcher
 		}
 
 		public double AppUpdateSizeInMB => Math.Round(Manifest.OkkeiPatcher.Size / (double) 0x100000, 2);
+
+		public event EventHandler<InstallMessageData> InstallMessageGenerated;
 
 		public void NotifyInstallFailed()
 		{

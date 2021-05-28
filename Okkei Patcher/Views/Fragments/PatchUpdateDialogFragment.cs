@@ -48,7 +48,6 @@ namespace OkkeiPatcher.Views.Fragments
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>
 				{
 					if (_viewModel.CheckForAppUpdates())
-					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
 							var updateSize = _viewModel.GetAppUpdateSize();
@@ -56,7 +55,6 @@ namespace OkkeiPatcher.Views.Fragments
 							AppUpdateDialogFragment.NewInstance(updateSize, changelog)
 								.Show(RequireActivity().SupportFragmentManager, nameof(AppUpdateDialogFragment));
 						});
-					}
 				})
 				.Create();
 		}

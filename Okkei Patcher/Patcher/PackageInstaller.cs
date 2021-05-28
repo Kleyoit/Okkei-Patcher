@@ -13,13 +13,13 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class PackageInstaller
 	{
-		public IProgress<ProgressInfo> Progress { get; }
-		public event EventHandler InstallFailed;
-
 		public PackageInstaller(IProgress<ProgressInfo> progress)
 		{
 			Progress = progress;
 		}
+
+		public IProgress<ProgressInfo> Progress { get; }
+		public event EventHandler InstallFailed;
 
 		private static void AddApkToInstallSession(Android.Net.Uri apkUri,
 			Android.Content.PM.PackageInstaller.Session session)
@@ -70,7 +70,7 @@ namespace OkkeiPatcher.Patcher
 				var pendingIntent = PendingIntent.GetActivity(activity,
 					(int) RequestCodes.PendingIntentInstallCode,
 					intent, PendingIntentFlags.UpdateCurrent);
-				
+
 				var statusReceiver = pendingIntent?.IntentSender;
 
 				session.Commit(statusReceiver);

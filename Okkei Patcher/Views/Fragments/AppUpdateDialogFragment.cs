@@ -12,8 +12,8 @@ namespace OkkeiPatcher.Views.Fragments
 	{
 		private const string UpdateSizeDoubleKey = "updateSize";
 		private const string ChangelogStringKey = "changelog";
-		private double _updateSize;
 		private string _changelog;
+		private double _updateSize;
 		private MainViewModel _viewModel;
 
 		public static AppUpdateDialogFragment NewInstance(double updateSize, string changelog)
@@ -38,7 +38,7 @@ namespace OkkeiPatcher.Views.Fragments
 
 			var args = Arguments;
 			if (args == null) return;
-			
+
 			_updateSize = args.GetDouble(UpdateSizeDoubleKey);
 			_changelog = args.GetString(ChangelogStringKey);
 		}
@@ -47,7 +47,8 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.update_header)
-				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.update_app_available), AppInfo.VersionString,
+				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.update_app_available),
+					AppInfo.VersionString,
 					_updateSize.ToString(CultureInfo.CurrentCulture), _changelog))
 				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_update, (sender, e) => _viewModel.UpdateApp())

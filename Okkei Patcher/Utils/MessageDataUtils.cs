@@ -11,7 +11,8 @@ namespace OkkeiPatcher.Utils
 			return new InstallMessageData(data, filePath);
 		}
 
-		public static UninstallMessageData CreateUninstallMessageData(int titleId, int messageId, int positiveButtonTextId,
+		public static UninstallMessageData CreateUninstallMessageData(int titleId, int messageId,
+			int positiveButtonTextId,
 			string packageName)
 		{
 			var data = CreateMessageData(titleId, messageId, positiveButtonTextId);

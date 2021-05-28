@@ -21,7 +21,8 @@ namespace OkkeiPatcher.Views.Fragments
 			args.PutString(TitleStringKey, messageData.Title);
 			args.PutString(MessageStringKey, messageData.Message);
 			args.PutString(PositiveButtonStringKey, messageData.PositiveButtonText);
-			if (messageData.NegativeButtonText != null) args.PutString(NegativeButtonStringKey, messageData.NegativeButtonText);
+			if (messageData.NegativeButtonText != null)
+				args.PutString(NegativeButtonStringKey, messageData.NegativeButtonText);
 
 			fragment.Arguments = args;
 			return fragment;

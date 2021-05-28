@@ -13,7 +13,6 @@ namespace OkkeiPatcher.Patcher
 	internal class UnpatchTools : ToolsBase, IInstallHandler, IUninstallHandler
 	{
 		public event EventHandler<InstallMessageData> InstallMessageGenerated;
-		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void NotifyInstallFailed()
 		{
@@ -26,6 +25,8 @@ namespace OkkeiPatcher.Patcher
 		{
 			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
 		}
+
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
@@ -175,7 +176,6 @@ namespace OkkeiPatcher.Patcher
 			DisplayErrorMessage(Resource.String.error, Resource.String.no_free_space_unpatch,
 				Resource.String.dialog_ok);
 			return false;
-
 		}
 
 		private async Task BackupSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)

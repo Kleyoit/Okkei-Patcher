@@ -27,7 +27,8 @@ namespace OkkeiPatcher.Model.Files
 			File.Move(FullPath, destinationFile.FullPath);
 		}
 
-		public Task CopyToAsync(VerifiableFile destinationFile, IProgress<ProgressInfo> progress, CancellationToken token)
+		public Task CopyToAsync(VerifiableFile destinationFile, IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
 			return IOUtils.CopyFileAsync(this, destinationFile, progress, token);
 		}

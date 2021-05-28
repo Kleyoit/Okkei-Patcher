@@ -11,7 +11,7 @@ namespace OkkeiPatcher.Views.Fragments
 	public class ManifestPromptDialogFragment : DialogFragment
 	{
 		private MainViewModel _viewModel;
-		
+
 		public override void OnCreate(Bundle savedInstanceState)
 		{
 			base.OnCreate(savedInstanceState);
@@ -43,7 +43,6 @@ namespace OkkeiPatcher.Views.Fragments
 					}
 
 					if (_viewModel.CheckForAppUpdates())
-					{
 						MainThread.BeginInvokeOnMainThread(() =>
 						{
 							var updateSize = _viewModel.GetAppUpdateSize();
@@ -51,7 +50,6 @@ namespace OkkeiPatcher.Views.Fragments
 							AppUpdateDialogFragment.NewInstance(updateSize, changelog)
 								.Show(RequireActivity().SupportFragmentManager, nameof(AppUpdateDialogFragment));
 						});
-					}
 				}))
 				.Create();
 		}
