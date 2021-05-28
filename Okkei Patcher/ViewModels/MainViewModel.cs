@@ -74,6 +74,9 @@ namespace OkkeiPatcher.ViewModels
 
 		private void SetButtonsState()
 		{
+			PatchText = OkkeiUtils.GetText(Resource.String.patch);
+			UnpatchText = OkkeiUtils.GetText(Resource.String.unpatch);
+
 			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
 			{
 				PatchEnabled = false;

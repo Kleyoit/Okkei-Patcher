@@ -273,72 +273,87 @@ namespace OkkeiPatcher.Views.Activities
 
 		private void UpdatePatchEnabled()
 		{
-			FindViewById<Button>(Resource.Id.patchButton).Enabled = _viewModel.PatchEnabled;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<Button>(Resource.Id.patchButton).Enabled = _viewModel.PatchEnabled);
 		}
 
 		private void UpdateUnpatchEnabled()
 		{
-			FindViewById<Button>(Resource.Id.unpatchButton).Enabled = _viewModel.UnpatchEnabled;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<Button>(Resource.Id.unpatchButton).Enabled = _viewModel.UnpatchEnabled);
 		}
 
 		private void UpdatePatchText()
 		{
-			FindViewById<Button>(Resource.Id.patchButton).Text = _viewModel.PatchText;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<Button>(Resource.Id.patchButton).Text = _viewModel.PatchText);
 		}
 
 		private void UpdateUnpatchText()
 		{
-			FindViewById<Button>(Resource.Id.unpatchButton).Text = _viewModel.UnpatchText;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<Button>(Resource.Id.unpatchButton).Text = _viewModel.UnpatchText);
 		}
 
 		private void UpdateClearDataEnabled()
 		{
-			FindViewById<Button>(Resource.Id.clearDataButton).Enabled = _viewModel.ClearDataEnabled;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<Button>(Resource.Id.clearDataButton).Enabled = _viewModel.ClearDataEnabled);
 		}
 
 		private void UpdateProcessSavedataEnabled()
 		{
-			FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Checked = _viewModel.ProcessSavedataEnabled;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Checked = _viewModel.ProcessSavedataEnabled);
 		}
 
 		private void UpdateProgressIndeterminate()
 		{
-			FindViewById<ProgressBar>(Resource.Id.progressBar).Indeterminate = _viewModel.ProgressIndeterminate;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<ProgressBar>(Resource.Id.progressBar).Indeterminate = _viewModel.ProgressIndeterminate);
 		}
 
 		private void UpdateProgress()
 		{
-			FindViewById<ProgressBar>(Resource.Id.progressBar).Progress = _viewModel.Progress;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<ProgressBar>(Resource.Id.progressBar).Progress = _viewModel.Progress);
 		}
 
 		private void UpdateProgressMax()
 		{
-			FindViewById<ProgressBar>(Resource.Id.progressBar).Max = _viewModel.ProgressMax;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<ProgressBar>(Resource.Id.progressBar).Max = _viewModel.ProgressMax);
 		}
 
 		private void UpdateStatus()
 		{
-			FindViewById<TextView>(Resource.Id.statusText).Text = _viewModel.Status;
+			MainThread.BeginInvokeOnMainThread(() =>
+				FindViewById<TextView>(Resource.Id.statusText).Text = _viewModel.Status);
 		}
 
 		private void OnMessage(object sender, MessageData e)
 		{
-			NotificationDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(NotificationDialogFragment));
+			MainThread.BeginInvokeOnMainThread(() =>
+				NotificationDialogFragment.NewInstance(e)
+					.Show(SupportFragmentManager, nameof(NotificationDialogFragment)));
 		}
 
 		private void OnInstallMessage(object sender, InstallMessageData e)
 		{
-			InstallDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(InstallDialogFragment));
+			MainThread.BeginInvokeOnMainThread(() =>
+				InstallDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(InstallDialogFragment)));
 		}
 
 		private void OnUninstallMessage(object sender, UninstallMessageData e)
 		{
-			UninstallDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(UninstallDialogFragment));
+			MainThread.BeginInvokeOnMainThread(() =>
+				UninstallDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(UninstallDialogFragment)));
 		}
 
 		private void ViewModelOnFatalErrorOccurred(object sender, MessageData e)
 		{
-			ExitAppDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(ExitAppDialogFragment));
+			MainThread.BeginInvokeOnMainThread(() =>
+				ExitAppDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(ExitAppDialogFragment)));
 		}
 
 		private void SetUnpatchButtonState()
