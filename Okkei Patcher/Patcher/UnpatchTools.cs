@@ -258,16 +258,15 @@ namespace OkkeiPatcher.Patcher
 			}
 		}
 
-		private void DisplayUninstallMessage(int titleId, int messageId, int positiveButtonTextId, string packageName)
+		private void DisplayUninstallMessage(int titleId, int messageId, int buttonTextId, string packageName)
 		{
-			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, positiveButtonTextId,
-				packageName);
+			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId, packageName);
 			UninstallMessageGenerated?.Invoke(this, data);
 		}
 
-		private void DisplayInstallMessage(int titleId, int messageId, int positiveButtonTextId, string filePath)
+		private void DisplayInstallMessage(int titleId, int messageId, int buttonTextId, string filePath)
 		{
-			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, positiveButtonTextId, filePath);
+			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
 			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}

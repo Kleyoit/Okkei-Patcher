@@ -294,13 +294,13 @@ namespace OkkeiPatcher.Views.Activities
 		private void UpdatePatchText()
 		{
 			MainThread.BeginInvokeOnMainThread(() =>
-				FindViewById<Button>(Resource.Id.patchButton).Text = _viewModel.PatchText);
+				FindViewById<Button>(Resource.Id.patchButton).SetText(_viewModel.PatchText));
 		}
 
 		private void UpdateUnpatchText()
 		{
 			MainThread.BeginInvokeOnMainThread(() =>
-				FindViewById<Button>(Resource.Id.unpatchButton).Text = _viewModel.UnpatchText);
+				FindViewById<Button>(Resource.Id.unpatchButton).SetText(_viewModel.UnpatchText));
 		}
 
 		private void UpdateClearDataEnabled()
@@ -336,7 +336,7 @@ namespace OkkeiPatcher.Views.Activities
 		private void UpdateStatus()
 		{
 			MainThread.BeginInvokeOnMainThread(() =>
-				FindViewById<TextView>(Resource.Id.statusText).Text = _viewModel.Status);
+				FindViewById<TextView>(Resource.Id.statusText).SetText(_viewModel.Status));
 		}
 
 		private void OnMessage(object sender, MessageData e)

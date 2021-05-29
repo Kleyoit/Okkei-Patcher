@@ -34,22 +34,15 @@ namespace OkkeiPatcher.Views.Fragments
 					if (_viewModel.CheckForPatchUpdates())
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
-						{
-							var patchSize = _viewModel.GetPatchSize();
-							PatchUpdateDialogFragment.NewInstance(patchSize)
-								.Show(RequireActivity().SupportFragmentManager, nameof(PatchUpdateDialogFragment));
-						});
+							new PatchUpdateDialogFragment().Show(RequireActivity().SupportFragmentManager,
+								nameof(PatchUpdateDialogFragment)));
 						return;
 					}
 
 					if (_viewModel.CheckForAppUpdates())
 						MainThread.BeginInvokeOnMainThread(() =>
-						{
-							var updateSize = _viewModel.GetAppUpdateSize();
-							var changelog = _viewModel.GetAppChangelog();
-							AppUpdateDialogFragment.NewInstance(updateSize, changelog)
-								.Show(RequireActivity().SupportFragmentManager, nameof(AppUpdateDialogFragment));
-						});
+							new AppUpdateDialogFragment().Show(RequireActivity().SupportFragmentManager,
+								nameof(AppUpdateDialogFragment)));
 				}))
 				.Create();
 		}

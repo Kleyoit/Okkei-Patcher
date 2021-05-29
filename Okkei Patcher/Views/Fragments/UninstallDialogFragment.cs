@@ -8,20 +8,19 @@ namespace OkkeiPatcher.Views.Fragments
 {
 	public class UninstallDialogFragment : DialogFragment
 	{
-		private const string TitleStringKey = "titleText";
-		private const string MessageStringKey = "messageText";
-		private const string PositiveButtonStringKey = "positiveButtonText";
+		private const string TitleIdIntKey = "titleText";
+		private const string MessageIdIntKey = "messageText";
 		private const string PackageNameStringKey = "packageName";
-		private string _title, _message, _positiveButtonText, _packageName;
+		private int _titleId, _messageId;
+		private string _packageName;
 
 		public static UninstallDialogFragment NewInstance(UninstallMessageData messageData)
 		{
 			var fragment = new UninstallDialogFragment();
 			var args = new Bundle();
 
-			args.PutString(TitleStringKey, messageData.Data.Title);
-			args.PutString(MessageStringKey, messageData.Data.Message);
-			args.PutString(PositiveButtonStringKey, messageData.Data.PositiveButtonText);
+			args.PutInt(TitleIdIntKey, messageData.Data.TitleId);
+			args.PutInt(MessageIdIntKey, messageData.Data.MessageId);
 			args.PutString(PackageNameStringKey, messageData.PackageName);
 
 			fragment.Arguments = args;
@@ -35,9 +34,8 @@ namespace OkkeiPatcher.Views.Fragments
 			var args = Arguments;
 			if (args == null) return;
 
-			_title = args.GetString(TitleStringKey);
-			_message = args.GetString(MessageStringKey);
-			_positiveButtonText = args.GetString(PositiveButtonStringKey);
+			_titleId = args.GetInt(TitleIdIntKey);
+			_messageId = args.GetInt(MessageIdIntKey);
 			_packageName = args.GetString(PackageNameStringKey);
 		}
 
@@ -45,9 +43,9 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
-				.SetTitle(_title)
-				.SetMessage(_message)
-				.SetPositiveButton(_positiveButtonText,
+				.SetTitle(_titleId)
+				.SetMessage(_messageId)
+				.SetPositiveButton(Resource.String.dialog_ok,
 					(sender, e) => PackageManagerUtils.UninstallPackage(RequireActivity(), _packageName))
 				.Create();
 		}

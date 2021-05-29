@@ -155,9 +155,8 @@ namespace OkkeiPatcher.Patcher
 			catch (HttpStatusCodeException ex)
 			{
 				SetStatusToAborted();
-				DisplayMessage(OkkeiUtils.GetText(Resource.String.error),
-					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error),
-						ex.StatusCode.ToString()), OkkeiUtils.GetText(Resource.String.dialog_ok), null);
+				DisplayMessage(Resource.String.error, Resource.String.http_file_access_error, Resource.String.dialog_ok,
+					ex.StatusCode.ToString());
 				return false;
 			}
 			catch
@@ -281,9 +280,8 @@ namespace OkkeiPatcher.Patcher
 			catch (HttpStatusCodeException ex)
 			{
 				SetStatusToAborted();
-				DisplayMessage(OkkeiUtils.GetText(Resource.String.error),
-					string.Format(OkkeiUtils.GetText(Resource.String.http_file_access_error),
-						ex.StatusCode.ToString()), OkkeiUtils.GetText(Resource.String.dialog_ok), null);
+				DisplayMessage(Resource.String.error, Resource.String.http_file_access_error, Resource.String.dialog_ok,
+					ex.StatusCode.ToString());
 			}
 			catch (Exception ex) when (ex is HttpRequestException || ex is IOException)
 			{
@@ -311,9 +309,9 @@ namespace OkkeiPatcher.Patcher
 				Resource.String.dialog_ok, AppUpdatePath);
 		}
 
-		private void DisplayInstallMessage(int titleId, int messageId, int positiveButtonTextId, string filePath)
+		private void DisplayInstallMessage(int titleId, int messageId, int buttonTextId, string filePath)
 		{
-			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, positiveButtonTextId, filePath);
+			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
 			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}

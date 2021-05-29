@@ -12,11 +12,11 @@ namespace OkkeiPatcher.Views.Fragments
 {
 	public class InstallDialogFragment : DialogFragment
 	{
-		private const string TitleStringKey = "titleText";
-		private const string MessageStringKey = "messageText";
-		private const string PositiveButtonStringKey = "positiveButtonText";
+		private const string TitleIdIntKey = "titleId";
+		private const string MessageIdIntKey = "messageId";
 		private const string FilePathStringKey = "filePath";
-		private string _title, _message, _positiveButtonText, _filePath;
+		private int _titleId, _messageId;
+		private string _filePath;
 		private MainViewModel _viewModel;
 
 		public static InstallDialogFragment NewInstance(InstallMessageData messageData)
@@ -24,9 +24,8 @@ namespace OkkeiPatcher.Views.Fragments
 			var fragment = new InstallDialogFragment();
 			var args = new Bundle();
 
-			args.PutString(TitleStringKey, messageData.Data.Title);
-			args.PutString(MessageStringKey, messageData.Data.Message);
-			args.PutString(PositiveButtonStringKey, messageData.Data.PositiveButtonText);
+			args.PutInt(TitleIdIntKey, messageData.Data.TitleId);
+			args.PutInt(MessageIdIntKey, messageData.Data.MessageId);
 			args.PutString(FilePathStringKey, messageData.FilePath);
 
 			fragment.Arguments = args;
@@ -44,9 +43,8 @@ namespace OkkeiPatcher.Views.Fragments
 			var args = Arguments;
 			if (args == null) return;
 
-			_title = args.GetString(TitleStringKey);
-			_message = args.GetString(MessageStringKey);
-			_positiveButtonText = args.GetString(PositiveButtonStringKey);
+			_titleId = args.GetInt(TitleIdIntKey);
+			_messageId = args.GetInt(MessageIdIntKey);
 			_filePath = args.GetString(FilePathStringKey);
 		}
 
@@ -58,9 +56,9 @@ namespace OkkeiPatcher.Views.Fragments
 			installer.InstallFailed += _viewModel.PackageInstallerOnInstallFailed;
 
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
-				.SetTitle(_title)
-				.SetMessage(_message)
-				.SetPositiveButton(_positiveButtonText,
+				.SetTitle(_titleId)
+				.SetMessage(_messageId)
+				.SetPositiveButton(Resource.String.dialog_ok,
 					(sender, e) => installer.InstallPackage(RequireActivity(), Uri.FromFile(new File(_filePath))))
 				.Create();
 		}

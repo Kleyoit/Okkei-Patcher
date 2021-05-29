@@ -13,12 +13,12 @@ namespace OkkeiPatcher.Patcher
 		public bool IsRunning { get; protected set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
-		public event EventHandler<string> StatusChanged;
+		public event EventHandler<int> StatusChanged;
 		public event EventHandler<MessageData> MessageGenerated;
 		public event EventHandler<MessageData> FatalErrorOccurred;
 		public event EventHandler ErrorOccurred;
 
-		protected virtual void OnStatusChanged(object sender, string e)
+		protected virtual void OnStatusChanged(object sender, int e)
 		{
 			StatusChanged?.Invoke(sender, e);
 		}
@@ -36,30 +36,25 @@ namespace OkkeiPatcher.Patcher
 		protected virtual void DisplayMessage(int titleId, int messageId, int positiveButtonTextId,
 			int negativeButtonTextId)
 		{
-			var title = OkkeiUtils.GetText(titleId);
-			var message = OkkeiUtils.GetText(messageId);
-			var positiveButtonText = OkkeiUtils.GetText(positiveButtonTextId);
-			var negativeButtonText = OkkeiUtils.GetText(negativeButtonTextId);
-			OnMessageGenerated(this, new MessageData(title, message, positiveButtonText, negativeButtonText));
+			OnMessageGenerated(this, new MessageData(titleId, messageId, positiveButtonTextId, negativeButtonTextId));
 		}
 
 		protected virtual void DisplayMessage(int titleId, int messageId, int buttonTextId)
 		{
-			var title = OkkeiUtils.GetText(titleId);
-			var message = OkkeiUtils.GetText(messageId);
-			var buttonText = OkkeiUtils.GetText(buttonTextId);
-			OnMessageGenerated(this, new MessageData(title, message, buttonText, null));
+			OnMessageGenerated(this, new MessageData(titleId, messageId, buttonTextId));
 		}
 
-		protected virtual void DisplayMessage(string title, string message, string positiveButtonText,
-			string negativeButtonText)
+		protected virtual void DisplayMessage(int titleId, int messageId, int buttonTextId,
+			string error)
 		{
-			OnMessageGenerated(this, new MessageData(title, message, positiveButtonText, negativeButtonText));
+			OnMessageGenerated(this, new MessageData(titleId, messageId, buttonTextId, 0, error));
 		}
 
-		protected virtual void DisplayMessage(string title, string message, string buttonText)
+		protected virtual void DisplayErrorMessage(int titleId, int messageId, int buttonTextId,
+			string error)
 		{
-			OnMessageGenerated(this, new MessageData(title, message, buttonText, null));
+			OnMessageGenerated(this, new MessageData(titleId, messageId, buttonTextId, 0, error));
+			NotifyAboutError();
 		}
 
 		protected virtual void DisplayErrorMessage(int titleId, int messageId, int buttonTextId)
@@ -68,37 +63,26 @@ namespace OkkeiPatcher.Patcher
 			NotifyAboutError();
 		}
 
-		protected virtual void DisplayErrorMessage(string title, string message, string buttonText)
-		{
-			DisplayMessage(title, message, buttonText);
-			NotifyAboutError();
-		}
-
 		protected virtual void DisplayFatalErrorMessage(int titleId, int messageId, int buttonTextId)
 		{
-			var data = MessageDataUtils.CreateMessageData(titleId, messageId, buttonTextId);
+			var data = new MessageData(titleId, messageId, buttonTextId);
 			FatalErrorOccurred?.Invoke(this, data);
 			NotifyAboutError();
 		}
 
 		protected virtual void UpdateStatus(int id)
 		{
-			OnStatusChanged(this, OkkeiUtils.GetText(id));
-		}
-
-		protected virtual void UpdateStatus(string status)
-		{
-			OnStatusChanged(this, status);
+			OnStatusChanged(this, id);
 		}
 
 		protected virtual void ClearStatus()
 		{
-			OnStatusChanged(this, string.Empty);
+			OnStatusChanged(this, Resource.String.empty);
 		}
 
 		protected virtual void SetStatusToAborted()
 		{
-			OnStatusChanged(this, OkkeiUtils.GetText(Resource.String.aborted));
+			OnStatusChanged(this, Resource.String.aborted);
 		}
 
 		protected virtual void NotifyAboutError()

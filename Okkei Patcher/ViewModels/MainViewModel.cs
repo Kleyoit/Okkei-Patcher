@@ -35,14 +35,14 @@ namespace OkkeiPatcher.ViewModels
 
 		public bool PatchEnabled { get; set; }
 		public bool UnpatchEnabled { get; set; }
-		public string PatchText { get; set; }
-		public string UnpatchText { get; set; }
+		public int PatchText { get; set; }
+		public int UnpatchText { get; set; }
 		public bool ClearDataEnabled { get; set; }
 		public bool ProcessSavedataEnabled { get; set; }
 		public bool ProgressIndeterminate { get; set; }
 		public int Progress { get; set; }
 		public int ProgressMax { get; set; }
-		public string Status { get; set; }
+		public int Status { get; set; }
 		public bool ManifestLoaded => _manifestTools.Value.ManifestLoaded;
 
 		[DoNotNotify]
@@ -79,8 +79,8 @@ namespace OkkeiPatcher.ViewModels
 
 		private void SetButtonsState()
 		{
-			PatchText = OkkeiUtils.GetText(Resource.String.patch);
-			UnpatchText = OkkeiUtils.GetText(Resource.String.unpatch);
+			PatchText = Resource.String.patch;
+			UnpatchText = Resource.String.unpatch;
 
 			ClearDataEnabled = true;
 
@@ -183,7 +183,7 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource.Dispose();
 				_cancelTokenSource = new CancellationTokenSource();
 
-				PatchText = OkkeiUtils.GetText(Resource.String.patch);
+				PatchText = Resource.String.patch;
 				ClearDataEnabled = true;
 				if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) return;
 				PatchEnabled = false;
@@ -194,7 +194,7 @@ namespace OkkeiPatcher.ViewModels
 
 			UnpatchEnabled = false;
 			ClearDataEnabled = false;
-			PatchText = OkkeiUtils.GetText(Resource.String.abort);
+			PatchText = Resource.String.abort;
 		}
 
 		private void OnPropertyChangedFromUnpatchTools(object sender, PropertyChangedEventArgs e)
@@ -206,7 +206,7 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource.Dispose();
 				_cancelTokenSource = new CancellationTokenSource();
 
-				UnpatchText = OkkeiUtils.GetText(Resource.String.unpatch);
+				UnpatchText = Resource.String.unpatch;
 				ClearDataEnabled = true;
 				if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
 				{
@@ -221,7 +221,7 @@ namespace OkkeiPatcher.ViewModels
 
 			PatchEnabled = false;
 			ClearDataEnabled = false;
-			UnpatchText = OkkeiUtils.GetText(Resource.String.abort);
+			UnpatchText = Resource.String.abort;
 		}
 
 		private void OnPropertyChangedFromManifestTools(object sender, PropertyChangedEventArgs e)
@@ -235,7 +235,7 @@ namespace OkkeiPatcher.ViewModels
 
 				PatchEnabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false) ||
 				               _manifestTools.Value.IsPatchUpdateAvailable;
-				PatchText = OkkeiUtils.GetText(Resource.String.patch);
+				PatchText = Resource.String.patch;
 				UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
 				ClearDataEnabled = true;
 				return;
@@ -244,7 +244,7 @@ namespace OkkeiPatcher.ViewModels
 			PatchEnabled = true;
 			UnpatchEnabled = false;
 			ClearDataEnabled = false;
-			PatchText = OkkeiUtils.GetText(Resource.String.abort);
+			PatchText = Resource.String.abort;
 		}
 
 		public void PackageInstallerOnInstallFailed(object sender, EventArgs e)
@@ -254,7 +254,7 @@ namespace OkkeiPatcher.ViewModels
 			_installHandler?.NotifyInstallFailed();
 		}
 
-		private void OnStatusChangedFromModel(object sender, string e)
+		private void OnStatusChangedFromModel(object sender, int e)
 		{
 			Status = e;
 		}
@@ -366,7 +366,7 @@ namespace OkkeiPatcher.ViewModels
 			ProcessSavedataEnabled = true;
 			PatchEnabled = true;
 			UnpatchEnabled = false;
-			Status = OkkeiUtils.GetText(Resource.String.data_cleared);
+			Status = Resource.String.data_cleared;
 		}
 
 		protected override void OnCleared()

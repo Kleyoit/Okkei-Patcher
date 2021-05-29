@@ -2,19 +2,19 @@
 {
 	public readonly struct MessageData
 	{
-		public string Title { get; }
-		public string Message { get; }
-		public string PositiveButtonText { get; }
-		public string NegativeButtonText { get; }
-
-		public static readonly MessageData Empty = new MessageData(null, null, null, null);
-
-		public MessageData(string title, string message, string positiveButtonText, string negativeButtonText)
+		public int TitleId { get; }
+		public int MessageId { get; }
+		public int PositiveButtonTextId { get; }
+		public int NegativeButtonTextId { get; }
+		public string Error { get; }
+		
+		public MessageData(int titleId, int messageId, int positiveButtonTextId, int negativeButtonTextId = 0, string error = null)
 		{
-			Title = title;
-			Message = message;
-			PositiveButtonText = positiveButtonText;
-			NegativeButtonText = negativeButtonText;
+			TitleId = titleId;
+			MessageId = messageId;
+			PositiveButtonTextId = positiveButtonTextId;
+			NegativeButtonTextId = negativeButtonTextId;
+			Error = error;
 		}
 	}
 }
