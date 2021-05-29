@@ -37,20 +37,22 @@ namespace OkkeiPatcher.Views.Activities
 
 			//Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
 
-			SubscribeToViewsEvents();
-
-			SetUnpatchButtonState();
-			RequestReadWriteStoragePermissions();
-
 			_viewModel =
 				new ViewModelProvider(this).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as MainViewModel;
 
 			SubscribeToViewModel();
 			SetStateFromViewModel();
+
+			SubscribeToViewsEvents();
+
+			SetUnpatchButtonState();
+			RequestReadWriteStoragePermissions();
 		}
 
 		protected override void OnActivityResult(int requestCode, Result resultCode, Intent data)
 		{
+			base.OnActivityResult(requestCode, resultCode, data);
+
 			switch (requestCode)
 			{
 				case (int) RequestCodes.UnknownAppSourceSettingsCode:
@@ -113,7 +115,7 @@ namespace OkkeiPatcher.Views.Activities
 				}
 
 				Preferences.Set(Prefkey.extstorage_permission_denied.ToString(), true);
-
+				
 				ExitAppDialogFragment.NewInstance(Resource.String.error, Resource.String.no_storage_permission)
 					.Show(SupportFragmentManager, nameof(ExitAppDialogFragment));
 
@@ -125,7 +127,9 @@ namespace OkkeiPatcher.Views.Activities
 
 			_viewModel.UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
 
-			if (RequestInstallPackagesPermission())
+			if (!RequestInstallPackagesPermission()) return;
+			DismissExistingManifestPrompt();
+			if (!_viewModel.ManifestLoaded)
 				new ManifestPromptDialogFragment().Show(SupportFragmentManager, nameof(ManifestPromptDialogFragment));
 		}
 
@@ -158,13 +162,15 @@ namespace OkkeiPatcher.Views.Activities
 			if (Build.VERSION.SdkInt < BuildVersionCodes.O) return;
 			if (!PackageManager.CanRequestPackageInstalls())
 			{
+				DismissExistingInstallPermissionDialog();
 				ExitAppDialogFragment.NewInstance(Resource.String.error, Resource.String.no_install_permission)
 					.Show(SupportFragmentManager, nameof(ExitAppDialogFragment));
 				return;
 			}
 
-			new ManifestPromptDialogFragment().Show(SupportFragmentManager,
-				nameof(ManifestPromptDialogFragment));
+			DismissExistingManifestPrompt();
+			if (!_viewModel.ManifestLoaded)
+				new ManifestPromptDialogFragment().Show(SupportFragmentManager, nameof(ManifestPromptDialogFragment));
 		}
 
 		private void OnRequestStoragePermissionResult()
@@ -172,6 +178,7 @@ namespace OkkeiPatcher.Views.Activities
 			if (Build.VERSION.SdkInt < BuildVersionCodes.M) return;
 			if (CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 			{
+				DismissExistingStoragePermissionDialog();
 				ExitAppDialogFragment.NewInstance(Resource.String.error, Resource.String.no_storage_permission)
 					.Show(SupportFragmentManager, nameof(ExitAppDialogFragment));
 				return;
@@ -179,27 +186,29 @@ namespace OkkeiPatcher.Views.Activities
 
 			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
-			if (RequestInstallPackagesPermission())
-				new ManifestPromptDialogFragment().Show(SupportFragmentManager,
-					nameof(ManifestPromptDialogFragment));
+
+			if (!RequestInstallPackagesPermission()) return;
+			DismissExistingManifestPrompt();
+			if (!_viewModel.ManifestLoaded)
+				new ManifestPromptDialogFragment().Show(SupportFragmentManager, nameof(ManifestPromptDialogFragment));
 		}
 
 		private void SubscribeToViewsEvents()
 		{
-			FindViewById<FloatingActionButton>(Resource.Id.infoButton).Click += InfoButton_Click;
-			FindViewById<Button>(Resource.Id.patchButton).Click += Patch_Click;
-			FindViewById<Button>(Resource.Id.unpatchButton).Click += Unpatch_Click;
-			FindViewById<Button>(Resource.Id.clearDataButton).Click += ClearData_Click;
-			FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Click += SavedataCheckBox_Click;
+			FindViewById<FloatingActionButton>(Resource.Id.infoButton).Click += OnInfoButtonClick;
+			FindViewById<Button>(Resource.Id.patchButton).Click += OnPatchClick;
+			FindViewById<Button>(Resource.Id.unpatchButton).Click += OnUnpatchClick;
+			FindViewById<Button>(Resource.Id.clearDataButton).Click += OnClearDataClick;
+			FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Click += OnSavedataCheckBoxClick;
 		}
 
 		private void UnsubscribeViewsEvents()
 		{
-			FindViewById<FloatingActionButton>(Resource.Id.infoButton).Click -= InfoButton_Click;
-			FindViewById<Button>(Resource.Id.patchButton).Click -= Patch_Click;
-			FindViewById<Button>(Resource.Id.unpatchButton).Click -= Unpatch_Click;
-			FindViewById<Button>(Resource.Id.clearDataButton).Click -= ClearData_Click;
-			FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Click -= SavedataCheckBox_Click;
+			FindViewById<FloatingActionButton>(Resource.Id.infoButton).Click -= OnInfoButtonClick;
+			FindViewById<Button>(Resource.Id.patchButton).Click -= OnPatchClick;
+			FindViewById<Button>(Resource.Id.unpatchButton).Click -= OnUnpatchClick;
+			FindViewById<Button>(Resource.Id.clearDataButton).Click -= OnClearDataClick;
+			FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Click -= OnSavedataCheckBoxClick;
 		}
 
 		private void SubscribeToViewModel()
@@ -369,6 +378,8 @@ namespace OkkeiPatcher.Views.Activities
 			if (Build.VERSION.SdkInt < BuildVersionCodes.O || PackageManager.CanRequestPackageInstalls())
 				return true;
 
+			DismissExistingInstallPermissionDialog();
+			if (_viewModel.Exiting) return false;
 			new InstallPermissionDialogFragment().Show(SupportFragmentManager, nameof(InstallPermissionDialogFragment));
 			return false;
 		}
@@ -393,16 +404,43 @@ namespace OkkeiPatcher.Views.Activities
 
 			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
-			if (RequestInstallPackagesPermission())
+
+			if (!RequestInstallPackagesPermission()) return;
+			DismissExistingManifestPrompt();
+			if (!_viewModel.ManifestLoaded)
 				new ManifestPromptDialogFragment().Show(SupportFragmentManager, nameof(ManifestPromptDialogFragment));
 		}
 
-		private void SavedataCheckBox_Click(object sender, EventArgs e)
+		private void DismissExistingInstallPermissionDialog()
+		{
+			var installPermissionFragment =
+				SupportFragmentManager.FindFragmentByTag(nameof(InstallPermissionDialogFragment)) as
+					InstallPermissionDialogFragment;
+			installPermissionFragment?.Dismiss();
+		}
+
+		private void DismissExistingStoragePermissionDialog()
+		{
+			var storagePermissionFragment =
+				SupportFragmentManager.FindFragmentByTag(nameof(StoragePermissionsSettingsDialogFragment)) as
+					StoragePermissionsSettingsDialogFragment;
+			storagePermissionFragment?.Dismiss();
+		}
+
+		private void DismissExistingManifestPrompt()
+		{
+			var manifestPromptFragment =
+				SupportFragmentManager.FindFragmentByTag(nameof(ManifestPromptDialogFragment)) as
+					ManifestPromptDialogFragment;
+			manifestPromptFragment?.Dismiss();
+		}
+
+		private void OnSavedataCheckBoxClick(object sender, EventArgs e)
 		{
 			_viewModel.ProcessSavedataEnabled = ((CheckBox) sender).Checked;
 		}
 
-		private void Patch_Click(object sender, EventArgs e)
+		private void OnPatchClick(object sender, EventArgs e)
 		{
 			if (!_viewModel.CanPatch) return;
 			if (!_viewModel.Patching)
@@ -414,7 +452,7 @@ namespace OkkeiPatcher.Views.Activities
 			new AbortDialogFragment().Show(SupportFragmentManager, nameof(AbortDialogFragment));
 		}
 
-		private void Unpatch_Click(object sender, EventArgs e)
+		private void OnUnpatchClick(object sender, EventArgs e)
 		{
 			if (!_viewModel.CanUnpatch) return;
 			if (!_viewModel.Unpatching)
@@ -426,13 +464,13 @@ namespace OkkeiPatcher.Views.Activities
 			new AbortDialogFragment().Show(SupportFragmentManager, nameof(AbortDialogFragment));
 		}
 
-		private void ClearData_Click(object sender, EventArgs e)
+		private void OnClearDataClick(object sender, EventArgs e)
 		{
 			if (_viewModel.Patching || _viewModel.Unpatching) return;
 			new ClearDataDialogFragment().Show(SupportFragmentManager, nameof(ClearDataDialogFragment));
 		}
 
-		private void InfoButton_Click(object sender, EventArgs eventArgs)
+		private void OnInfoButtonClick(object sender, EventArgs eventArgs)
 		{
 			var view = (View) sender;
 			Snackbar.Make(view,

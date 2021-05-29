@@ -50,7 +50,6 @@ namespace OkkeiPatcher.Views.Fragments
 				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.update_app_available),
 					AppInfo.VersionString,
 					_updateSize.ToString(CultureInfo.CurrentCulture), _changelog))
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_update, (sender, e) => _viewModel.UpdateApp())
 				.SetNegativeButton(Resource.String.dialog_cancel, (sender, e) => { })
 				.Create();

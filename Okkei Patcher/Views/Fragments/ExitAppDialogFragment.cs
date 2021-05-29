@@ -1,7 +1,9 @@
 ﻿using Android.App;
 using Android.OS;
+using AndroidX.Lifecycle;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
+using OkkeiPatcher.ViewModels;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 
 namespace OkkeiPatcher.Views.Fragments
@@ -11,6 +13,7 @@ namespace OkkeiPatcher.Views.Fragments
 		private const string TitleStringKey = "titleText";
 		private const string MessageStringKey = "messageText";
 		private string _title, _message;
+		private MainViewModel _viewModel;
 
 		public static ExitAppDialogFragment NewInstance(MessageData messageData)
 		{
@@ -41,6 +44,10 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			base.OnCreate(savedInstanceState);
 
+			_viewModel =
+				new ViewModelProvider(RequireActivity()).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as
+					MainViewModel;
+
 			var args = Arguments;
 			if (args == null) return;
 
@@ -50,10 +57,11 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
+			_viewModel.Exiting = true;
+			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
 				.SetTitle(_title)
 				.SetMessage(_message)
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_exit, (sender, e) => System.Environment.Exit(0))
 				.Create();
 		}

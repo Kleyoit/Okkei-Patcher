@@ -28,7 +28,6 @@ namespace OkkeiPatcher.Views.Fragments
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.warning)
 				.SetMessage(Resource.String.clear_data_warning)
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => _viewModel.ClearData())
 				.SetNegativeButton(Resource.String.dialog_cancel, (sender, args) => { })
 				.Create();

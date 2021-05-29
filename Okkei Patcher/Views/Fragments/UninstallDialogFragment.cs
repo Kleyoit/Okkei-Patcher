@@ -43,10 +43,10 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
+			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(_title)
 				.SetMessage(_message)
-				.SetCancelable(false)
 				.SetPositiveButton(_positiveButtonText,
 					(sender, e) => PackageManagerUtils.UninstallPackage(RequireActivity(), _packageName))
 				.Create();

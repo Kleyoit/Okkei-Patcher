@@ -17,6 +17,7 @@ namespace OkkeiPatcher.Patcher
 	internal class ManifestTools : ToolsBase, IInstallHandler
 	{
 		public OkkeiManifest Manifest { get; private set; }
+		public bool ManifestLoaded { get; private set; }
 
 		public bool IsAppUpdateAvailable
 		{
@@ -148,6 +149,7 @@ namespace OkkeiPatcher.Patcher
 				}
 
 				UpdateStatus(Resource.String.manifest_download_completed);
+				ManifestLoaded = true;
 				return true;
 			}
 			catch (HttpStatusCodeException ex)

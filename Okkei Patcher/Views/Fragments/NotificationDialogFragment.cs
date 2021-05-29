@@ -46,7 +46,6 @@ namespace OkkeiPatcher.Views.Fragments
 			var builder = new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
 				.SetTitle(_title)
 				.SetMessage(_message)
-				.SetCancelable(false)
 				.SetPositiveButton(_positiveButtonText, (sender, e) => { });
 			if (_negativeButtonText != null)
 				builder.SetNegativeButton(_negativeButtonText, (sender, e) => { });

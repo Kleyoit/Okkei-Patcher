@@ -52,13 +52,14 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
+			Cancelable = false;
+
 			var installer = new PackageInstaller(_viewModel.ProgressProvider);
 			installer.InstallFailed += _viewModel.PackageInstallerOnInstallFailed;
 
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(_title)
 				.SetMessage(_message)
-				.SetCancelable(false)
 				.SetPositiveButton(_positiveButtonText,
 					(sender, e) => installer.InstallPackage(RequireActivity(), Uri.FromFile(new File(_filePath))))
 				.Create();

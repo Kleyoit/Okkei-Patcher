@@ -6,6 +6,7 @@ using AndroidX.Lifecycle;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Patcher;
 using OkkeiPatcher.Utils;
+using PropertyChanged;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 
@@ -42,6 +43,10 @@ namespace OkkeiPatcher.ViewModels
 		public int Progress { get; set; }
 		public int ProgressMax { get; set; }
 		public string Status { get; set; }
+		public bool ManifestLoaded => _manifestTools.Value.ManifestLoaded;
+
+		[DoNotNotify]
+		public bool Exiting { get; set; }
 
 		public bool CanPatch => (!_unpatchTools.IsValueCreated || !_unpatchTools.Value.IsRunning) &&
 		                        !_cancelTokenSource.IsCancellationRequested;
@@ -93,7 +98,6 @@ namespace OkkeiPatcher.ViewModels
 			if (!Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString()))
 			{
 				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
-				return;
 			}
 
 			ProcessSavedataEnabled = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
@@ -115,8 +119,8 @@ namespace OkkeiPatcher.ViewModels
 			_manifestTools.Value.StatusChanged += OnStatusChangedFromModel;
 			_manifestTools.Value.MessageGenerated += OnMessageGeneratedFromModel;
 			_manifestTools.Value.FatalErrorOccurred += OnFatalErrorOccurredFromModel;
-			_manifestTools.Value.ErrorOccurred += OnErrorOccurred_ManifestTools;
-			_manifestTools.Value.PropertyChanged += OnPropertyChanged_ManifestTools;
+			_manifestTools.Value.ErrorOccurred += OnErrorOccurredFromManifestTools;
+			_manifestTools.Value.PropertyChanged += OnPropertyChangedFromManifestTools;
 
 			return await _manifestTools.Value.RetrieveManifestAsync(_progress, _cancelTokenSource.Token);
 		}
@@ -168,7 +172,7 @@ namespace OkkeiPatcher.ViewModels
 			_installHandler?.NotifyInstallFailed();
 		}
 
-		private void OnPropertyChanged_PatchTools(object sender, PropertyChangedEventArgs e)
+		private void OnPropertyChangedFromPatchTools(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName != nameof(_patchTools.Value.IsRunning)) return;
 
@@ -191,7 +195,7 @@ namespace OkkeiPatcher.ViewModels
 			PatchText = OkkeiUtils.GetText(Resource.String.abort);
 		}
 
-		private void OnPropertyChanged_UnpatchTools(object sender, PropertyChangedEventArgs e)
+		private void OnPropertyChangedFromUnpatchTools(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName != nameof(_unpatchTools.Value.IsRunning)) return;
 
@@ -218,7 +222,7 @@ namespace OkkeiPatcher.ViewModels
 			UnpatchText = OkkeiUtils.GetText(Resource.String.abort);
 		}
 
-		private void OnPropertyChanged_ManifestTools(object sender, PropertyChangedEventArgs e)
+		private void OnPropertyChangedFromManifestTools(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName != nameof(_manifestTools.Value.IsRunning)) return;
 
@@ -296,8 +300,8 @@ namespace OkkeiPatcher.ViewModels
 				_patchTools.Value.UninstallMessageGenerated += OnUninstallMessageFromModel;
 				_patchTools.Value.StatusChanged += OnStatusChangedFromModel;
 				_patchTools.Value.MessageGenerated += OnMessageGeneratedFromModel;
-				_patchTools.Value.PropertyChanged += OnPropertyChanged_PatchTools;
-				_patchTools.Value.ErrorOccurred += OnErrorOccurred_PatchTools;
+				_patchTools.Value.PropertyChanged += OnPropertyChangedFromPatchTools;
+				_patchTools.Value.ErrorOccurred += OnErrorOccurredFromPatchTools;
 				_patchToolsEventsSubscribed = true;
 			}
 
@@ -305,7 +309,7 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource.Token);
 		}
 
-		private void OnErrorOccurred_PatchTools(object sender, EventArgs e)
+		private void OnErrorOccurredFromPatchTools(object sender, EventArgs e)
 		{
 			if ((!_unpatchTools.IsValueCreated || !_unpatchTools.Value.IsRunning) &&
 			    !_cancelTokenSource.IsCancellationRequested &&
@@ -313,7 +317,7 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource.Cancel();
 		}
 
-		private void OnErrorOccurred_ManifestTools(object sender, EventArgs e)
+		private void OnErrorOccurredFromManifestTools(object sender, EventArgs e)
 		{
 			if ((!_patchTools.IsValueCreated || !_patchTools.Value.IsRunning) &&
 			    (!_unpatchTools.IsValueCreated || !_unpatchTools.Value.IsRunning) &&
@@ -333,15 +337,15 @@ namespace OkkeiPatcher.ViewModels
 				_unpatchTools.Value.UninstallMessageGenerated += OnUninstallMessageFromModel;
 				_unpatchTools.Value.StatusChanged += OnStatusChangedFromModel;
 				_unpatchTools.Value.MessageGenerated += OnMessageGeneratedFromModel;
-				_unpatchTools.Value.PropertyChanged += OnPropertyChanged_UnpatchTools;
-				_unpatchTools.Value.ErrorOccurred += OnErrorOccurred_UnpatchTools;
+				_unpatchTools.Value.PropertyChanged += OnPropertyChangedFromUnpatchTools;
+				_unpatchTools.Value.ErrorOccurred += OnErrorOccurredFromUnpatchTools;
 				_unpatchToolsEventsSubscribed = true;
 			}
 
 			_unpatchTools.Value.Unpatch(CreateProcessState(), _progress, _cancelTokenSource.Token);
 		}
 
-		private void OnErrorOccurred_UnpatchTools(object sender, EventArgs e)
+		private void OnErrorOccurredFromUnpatchTools(object sender, EventArgs e)
 		{
 			if ((!_patchTools.IsValueCreated || !_patchTools.Value.IsRunning) &&
 			    !_cancelTokenSource.IsCancellationRequested &&

@@ -11,10 +11,10 @@ namespace OkkeiPatcher.Views.Fragments
 	{
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
+			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
 				.SetTitle(Resource.String.attention)
 				.SetMessage(Resource.String.unknown_sources_notice)
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>
 				{
 					var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,

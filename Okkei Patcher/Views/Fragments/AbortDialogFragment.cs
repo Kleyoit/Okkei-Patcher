@@ -24,9 +24,8 @@ namespace OkkeiPatcher.Views.Fragments
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
 				.SetTitle(Resource.String.warning)
 				.SetMessage(Resource.String.abort_warning)
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => _viewModel.AbortCurrentProcess())
-				.SetNegativeButton(Resource.String.dialog_exit, (sender, e) => { })
+				.SetNegativeButton(Resource.String.dialog_cancel, (sender, e) => { })
 				.Create();
 		}
 	}

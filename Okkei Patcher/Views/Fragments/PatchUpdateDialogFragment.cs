@@ -44,7 +44,6 @@ namespace OkkeiPatcher.Views.Fragments
 				.SetTitle(Resource.String.update_header)
 				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.update_patch_available),
 					_patchSize.ToString()))
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>
 				{
 					if (_viewModel.CheckForAppUpdates())

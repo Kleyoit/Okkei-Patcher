@@ -25,7 +25,6 @@ namespace OkkeiPatcher.Views.Fragments
 				.SetTitle(Resource.String.warning)
 				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.download_size_warning),
 					_viewModel.GetPatchSize().ToString()))
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => _viewModel.StartPatch())
 				.SetNegativeButton(Resource.String.dialog_cancel, (sender, e) => { })
 				.Create();

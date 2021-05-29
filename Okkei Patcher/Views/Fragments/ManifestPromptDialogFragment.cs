@@ -23,10 +23,10 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
+			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.attention)
 				.SetMessage(Resource.String.manifest_prompt)
-				.SetCancelable(false)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => Task.Run(async () =>
 				{
 					var manifestRetrieved = await _viewModel.RetrieveManifest();
