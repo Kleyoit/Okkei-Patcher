@@ -22,8 +22,7 @@ using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Views.Activities
 {
-	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", //ScreenOrientation = ScreenOrientation.Portrait,
-		MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
+	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
 		private bool _backPressed;
