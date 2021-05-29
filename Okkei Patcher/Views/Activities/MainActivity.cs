@@ -396,6 +396,7 @@ namespace OkkeiPatcher.Views.Activities
 					return;
 				}
 
+				DismissExistingStoragePermissionDialog();
 				new StoragePermissionsSettingsDialogFragment().Show(SupportFragmentManager,
 					nameof(StoragePermissionsSettingsDialogFragment));
 				return;
