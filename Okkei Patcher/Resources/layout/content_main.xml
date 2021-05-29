@@ -84,14 +84,15 @@
     app:layout_constraintTop_toBottomOf="@+id/patchButton" />
 
   <CheckBox
-    android:id="@+id/savedataCheckBox"
-    android:layout_width="wrap_content"
-    android:layout_height="0dp"
-    android:checked="true"
-    android:text="@string/savedata_checkbox"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintHorizontal_bias="0.0"
-    app:layout_constraintStart_toStartOf="@+id/progressBar"
-    app:layout_constraintTop_toBottomOf="@+id/clearDataButton" />
+      android:id="@+id/savedataCheckBox"
+      android:layout_width="wrap_content"
+      android:layout_height="0dp"
+      android:layout_marginStart="8dp"
+      android:checked="true"
+      android:text="@string/savedata_checkbox"
+      app:layout_constraintEnd_toEndOf="parent"
+      app:layout_constraintHorizontal_bias="0.0"
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@+id/clearDataButton" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
