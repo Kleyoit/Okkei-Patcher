@@ -34,7 +34,7 @@ namespace OkkeiPatcher.Views.Activities
 			base.OnCreate(savedInstanceState);
 			SetContentView(Resource.Layout.activity_main);
 
-			//Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
+			Window?.AddFlags(WindowManagerFlags.KeepScreenOn);
 
 			_viewModel =
 				new ViewModelProvider(this).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as MainViewModel;
