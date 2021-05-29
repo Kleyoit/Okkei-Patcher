@@ -29,8 +29,8 @@ namespace OkkeiPatcher.ViewModels
 			_progress = new Progress<ProgressInfo>(OnProgressChangedFromModel);
 
 			SetApkIsPatchedPreferenceIfNotSet();
-			SetButtonsState();
-			SetCheckBoxState();
+			SetCheckBoxStatePreferenceIfNotSet();
+			Init();
 		}
 
 		public bool PatchEnabled { get; set; }
@@ -71,18 +71,13 @@ namespace OkkeiPatcher.ViewModels
 			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), ProcessSavedataEnabled);
 		}
 
-		private static void SetApkIsPatchedPreferenceIfNotSet()
-		{
-			if (!Preferences.ContainsKey(Prefkey.apk_is_patched.ToString()))
-				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
-		}
-
-		private void SetButtonsState()
+		private void Init()
 		{
 			PatchText = Resource.String.patch;
 			UnpatchText = Resource.String.unpatch;
-
 			ClearDataEnabled = true;
+			ProcessSavedataEnabled = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
+			Status = Resource.String.empty;
 
 			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
 			{
@@ -95,14 +90,16 @@ namespace OkkeiPatcher.ViewModels
 			UnpatchEnabled = false;
 		}
 
-		private void SetCheckBoxState()
+		private static void SetApkIsPatchedPreferenceIfNotSet()
 		{
-			if (!Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString()))
-			{
-				Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
-			}
+			if (Preferences.ContainsKey(Prefkey.apk_is_patched.ToString())) return;
+			Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
+		}
 
-			ProcessSavedataEnabled = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
+		private static void SetCheckBoxStatePreferenceIfNotSet()
+		{
+			if (Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString())) return;
+			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 		}
 
 		private ProcessState CreateProcessState()
