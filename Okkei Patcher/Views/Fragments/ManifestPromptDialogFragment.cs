@@ -23,6 +23,7 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
+			var context = RequireActivity();
 			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.attention)
@@ -34,14 +35,14 @@ namespace OkkeiPatcher.Views.Fragments
 					if (_viewModel.CheckForPatchUpdates())
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
-							new PatchUpdateDialogFragment().Show(RequireActivity().SupportFragmentManager,
+							new PatchUpdateDialogFragment().Show(context.SupportFragmentManager,
 								nameof(PatchUpdateDialogFragment)));
 						return;
 					}
 
 					if (_viewModel.CheckForAppUpdates())
 						MainThread.BeginInvokeOnMainThread(() =>
-							new AppUpdateDialogFragment().Show(RequireActivity().SupportFragmentManager,
+							new AppUpdateDialogFragment().Show(context.SupportFragmentManager,
 								nameof(AppUpdateDialogFragment)));
 				}))
 				.Create();
