@@ -97,8 +97,10 @@ namespace OkkeiPatcher.Patcher
 		private void OnInstallFailed(object sender, EventArgs e)
 		{
 			Progress.Reset();
-			((PackageInstallObserver) sender).InstallFailed -= OnInstallFailed;
+			if (!(sender is PackageInstallObserver observer)) return;
+			observer.InstallFailed -= OnInstallFailed;
 			InstallFailed?.Invoke(this, e);
+			InstallFailed = null;
 		}
 	}
 }

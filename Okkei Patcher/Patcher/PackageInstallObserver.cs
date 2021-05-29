@@ -31,6 +31,8 @@ namespace OkkeiPatcher.Patcher
 			PackageInstaller.UnregisterSessionCallback(this);
 			PackageInstaller.Dispose();
 			if (!success) InstallFailed?.Invoke(this, EventArgs.Empty);
+			InstallFailed = null;
+			ProgressChanged = null;
 		}
 
 		public override void OnProgressChanged(int sessionId, float progress)
