@@ -9,6 +9,7 @@ using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
+using PropertyChanged;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 
@@ -16,9 +17,12 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class ManifestTools : ToolsBase, IInstallHandler
 	{
+		[DoNotNotify]
 		public OkkeiManifest Manifest { get; private set; }
-		public bool ManifestLoaded { get; private set; }
 
+		[DoNotNotify]
+		public bool ManifestLoaded { get; private set; }
+		
 		public bool IsAppUpdateAvailable
 		{
 			get
