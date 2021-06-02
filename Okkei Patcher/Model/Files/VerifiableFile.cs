@@ -12,7 +12,6 @@ namespace OkkeiPatcher.Model.Files
 		public string Directory { get; protected set; }
 		public string FileName { get; protected set; }
 		public string FullPath => Path.Combine(Directory, FileName);
-
 		public bool Exists => File.Exists(FullPath);
 
 		public abstract Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token);

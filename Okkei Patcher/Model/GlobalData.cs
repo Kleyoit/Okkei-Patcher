@@ -40,7 +40,7 @@ namespace OkkeiPatcher.Model
 		public const string SignedApkFileName = "signed.apk";
 		public const string ScriptsFileName = "scripts.zip";
 		public const string SavedataFileName = "SAVEDATA.DAT";
-		public const string TempSavedataFileName = "SAVEDATA_BACKUP.DAT";
+		public const string TempSavedataFileName = "SAVEDATA_TEMP.DAT";
 		public const string ChaosChildPackageName = "com.mages.chaoschild_jp";
 		public const string ObbFileName = "main.87.com.mages.chaoschild_jp.obb";
 		public const string ManifestFileName = "Manifest.json";

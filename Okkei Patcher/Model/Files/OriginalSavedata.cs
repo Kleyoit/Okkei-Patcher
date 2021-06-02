@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
@@ -21,11 +20,11 @@ namespace OkkeiPatcher.Model.Files
 			var backupSavedata = new BackupSavedata();
 			var md5 = string.Empty;
 			var md5ToCompare = string.Empty;
-			if (File.Exists(backupSavedata.FullPath))
+			if (backupSavedata.Exists)
 				md5ToCompare = await MD5Utils.ComputeMD5Async(backupSavedata.FullPath, progress, token)
 					.ConfigureAwait(false);
 			if (md5ToCompare == string.Empty) return false;
-			if (File.Exists(FullPath))
+			if (Exists)
 				md5 = await MD5Utils.ComputeMD5Async(FullPath, progress, token).ConfigureAwait(false);
 			return md5 == md5ToCompare;
 		}
