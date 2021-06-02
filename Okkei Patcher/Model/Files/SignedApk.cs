@@ -13,7 +13,7 @@ namespace OkkeiPatcher.Model.Files
 		public SignedApk()
 		{
 			Directory = OkkeiFilesPath;
-			FileName = SignedApkFileName;
+			FileName = "signed.apk";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

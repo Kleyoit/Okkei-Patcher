@@ -13,7 +13,7 @@ namespace OkkeiPatcher.Model.Files
 		public TempApk()
 		{
 			Directory = OkkeiFilesPath;
-			FileName = TempApkFileName;
+			FileName = "base.apk";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

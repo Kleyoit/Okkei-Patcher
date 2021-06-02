@@ -12,8 +12,8 @@ namespace OkkeiPatcher.Model.Files
 	{
 		public BackupObb()
 		{
-			Directory = OkkeiFilesPathBackup;
-			FileName = ObbFileName;
+			Directory = OkkeiFilesBackupPath;
+			FileName = "main.87.com.mages.chaoschild_jp.obb";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

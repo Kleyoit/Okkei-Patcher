@@ -12,8 +12,8 @@ namespace OkkeiPatcher.Model.Files
 	{
 		public BackupApk()
 		{
-			Directory = OkkeiFilesPathBackup;
-			FileName = BackupApkFileName;
+			Directory = OkkeiFilesBackupPath;
+			FileName = "backup.apk";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

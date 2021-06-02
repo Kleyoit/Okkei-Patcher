@@ -149,6 +149,8 @@ namespace OkkeiPatcher.Patcher
 			}
 			catch (OperationCanceledException)
 			{
+				Files.TempSavedata.DeleteIfExists();
+
 				SetStatusToAborted();
 				progress.Reset();
 				IsRunning = false;
@@ -165,7 +167,7 @@ namespace OkkeiPatcher.Patcher
 				return false;
 			}
 
-			if (!OkkeiUtils.IsBackupAvailable())
+			if (!IsBackupAvailable())
 			{
 				DisplayErrorMessage(Resource.String.error, Resource.String.backup_not_found, Resource.String.dialog_ok);
 				return false;
@@ -176,6 +178,11 @@ namespace OkkeiPatcher.Patcher
 			DisplayErrorMessage(Resource.String.error, Resource.String.no_free_space_unpatch,
 				Resource.String.dialog_ok);
 			return false;
+		}
+
+		private static bool IsBackupAvailable()
+		{
+			return Files.BackupApk.Exists && Files.BackupObb.Exists;
 		}
 
 		private async Task BackupSavedataAsync(IProgress<ProgressInfo> progress, CancellationToken token)

@@ -223,6 +223,8 @@ namespace OkkeiPatcher.Patcher
 			}
 			catch (OperationCanceledException)
 			{
+				Files.TempSavedata.DeleteIfExists();
+
 				SetStatusToAborted();
 				progress.Reset();
 				IsRunning = false;

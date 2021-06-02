@@ -8,20 +8,23 @@ using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
+using Uri = Android.Net.Uri;
 
 namespace OkkeiPatcher.Patcher
 {
 	internal class PackageInstaller
 	{
+		public const string ActionPackageInstalled = "solru.okkeipatcher.PACKAGE_INSTALLED_ACTION";
+
 		public PackageInstaller(IProgress<ProgressInfo> progress)
 		{
 			Progress = progress;
 		}
 
-		public IProgress<ProgressInfo> Progress { get; }
+		private IProgress<ProgressInfo> Progress { get; }
 		public event EventHandler InstallFailed;
 
-		private static void AddApkToInstallSession(Android.Net.Uri apkUri,
+		private static void AddApkToInstallSession(Uri apkUri,
 			Android.Content.PM.PackageInstaller.Session session)
 		{
 			var packageInSession = session.OpenWrite("package", 0, -1);
@@ -47,7 +50,7 @@ namespace OkkeiPatcher.Patcher
 			GC.Collect();
 		}
 
-		public void InstallPackage(Activity activity, Android.Net.Uri apkUri)
+		public void InstallPackage(Activity activity, Uri apkUri)
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
 			{

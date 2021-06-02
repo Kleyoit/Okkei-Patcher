@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using static OkkeiPatcher.Model.GlobalData;
@@ -8,6 +9,8 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class ToolsBase : INotifyPropertyChanged
 	{
+		protected const string ChaosChildPackageName = "com.mages.chaoschild_jp";
+		private static readonly string BugReportLogPath = Path.Combine(OkkeiFilesPath, "bugreport.log");
 		protected ProcessState ProcessState;
 
 		public bool IsRunning { get; protected set; }
@@ -94,7 +97,7 @@ namespace OkkeiPatcher.Patcher
 		{
 			IsRunning = true;
 			var bugReport = DebugUtils.GetBugReportText(ex);
-			System.IO.File.WriteAllText(BugReportLogPath, bugReport);
+			File.WriteAllText(BugReportLogPath, bugReport);
 			DisplayFatalErrorMessage(Resource.String.exception, Resource.String.exception_notice,
 				Resource.String.dialog_exit);
 		}

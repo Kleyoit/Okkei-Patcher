@@ -125,7 +125,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Model\GlobalData.cs" />
     <Compile Include="Patcher\UnpatchTools.cs" />
-    <Compile Include="Utils\OkkeiUtils.cs" />
     <Compile Include="Utils\ZipUtils.cs" />
     <Compile Include="Views\Fragments\ClearDataDialogFragment.cs" />
     <Compile Include="Views\Fragments\DownloadSizeDialogFragment.cs" />

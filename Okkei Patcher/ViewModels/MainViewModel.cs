@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AndroidX.Lifecycle;
@@ -33,33 +34,28 @@ namespace OkkeiPatcher.ViewModels
 			Init();
 		}
 
-		public bool PatchEnabled { get; set; }
-		public bool UnpatchEnabled { get; set; }
-		public int PatchText { get; set; }
-		public int UnpatchText { get; set; }
-		public bool ClearDataEnabled { get; set; }
+		public bool PatchEnabled { get; private set; }
+		public bool UnpatchEnabled { get; private set; }
+		public int PatchText { get; private set; }
+		public int UnpatchText { get; private set; }
+		public bool ClearDataEnabled { get; private set; }
 		public bool ProcessSavedataEnabled { get; set; }
-		public bool ProgressIndeterminate { get; set; }
-		public int Progress { get; set; }
-		public int ProgressMax { get; set; }
-		public int Status { get; set; }
+		public bool ProgressIndeterminate { get; private set; }
+		public int Progress { get; private set; }
+		public int ProgressMax { get; private set; }
+		public int Status { get; private set; }
 		public bool ManifestLoaded => _manifestTools.Value.ManifestLoaded;
+		public bool IsPatched => Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+		public bool Patching => _patchTools.IsValueCreated && _patchTools.Value.IsRunning;
+		public bool Unpatching => _unpatchTools.IsValueCreated && _unpatchTools.Value.IsRunning;
+		public bool ManifestToolsRunning => _manifestTools.IsValueCreated && _manifestTools.Value.IsRunning;
+		public bool CanPatch => !Unpatching && !_cancelTokenSource.IsCancellationRequested;
+		public bool CanUnpatch => !Patching && !_cancelTokenSource.IsCancellationRequested;
+		public IProgress<ProgressInfo> ProgressProvider => _progress;
 
 		[DoNotNotify]
 		public bool Exiting { get; set; }
 
-		public bool CanPatch => (!_unpatchTools.IsValueCreated || !_unpatchTools.Value.IsRunning) &&
-		                        !_cancelTokenSource.IsCancellationRequested;
-
-		public bool Patching => _patchTools.IsValueCreated && _patchTools.Value.IsRunning ||
-		                        _manifestTools.IsValueCreated && _manifestTools.Value.IsRunning;
-
-		public bool CanUnpatch => (!_patchTools.IsValueCreated || !_patchTools.Value.IsRunning) &&
-		                          !_cancelTokenSource.IsCancellationRequested;
-
-		public bool Unpatching => _unpatchTools.IsValueCreated && _unpatchTools.Value.IsRunning;
-
-		public IProgress<ProgressInfo> ProgressProvider => _progress;
 		public event PropertyChangedEventHandler PropertyChanged;
 		public event EventHandler<MessageData> MessageGenerated;
 		public event EventHandler<MessageData> FatalErrorOccurred;
@@ -78,16 +74,8 @@ namespace OkkeiPatcher.ViewModels
 			ClearDataEnabled = true;
 			ProcessSavedataEnabled = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
 			Status = Resource.String.empty;
-
-			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-			{
-				PatchEnabled = false;
-				UnpatchEnabled = true;
-				return;
-			}
-
-			PatchEnabled = true;
-			UnpatchEnabled = false;
+			PatchEnabled = !IsPatched;
+			UnpatchEnabled = IsPatched;
 		}
 
 		private static void SetApkIsPatchedPreferenceIfNotSet()
@@ -182,10 +170,8 @@ namespace OkkeiPatcher.ViewModels
 
 				PatchText = Resource.String.patch;
 				ClearDataEnabled = true;
-				if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false)) return;
-				PatchEnabled = false;
-				UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
-
+				PatchEnabled = !IsPatched;
+				UnpatchEnabled = IsPatched;
 				return;
 			}
 
@@ -205,14 +191,8 @@ namespace OkkeiPatcher.ViewModels
 
 				UnpatchText = Resource.String.unpatch;
 				ClearDataEnabled = true;
-				if (!Preferences.Get(Prefkey.apk_is_patched.ToString(), false))
-				{
-					UnpatchEnabled = false;
-					PatchEnabled = true;
-					return;
-				}
-
-				UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
+				PatchEnabled = !IsPatched;
+				UnpatchEnabled = IsPatched;
 				return;
 			}
 
@@ -230,10 +210,9 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource.Dispose();
 				_cancelTokenSource = new CancellationTokenSource();
 
-				PatchEnabled = !Preferences.Get(Prefkey.apk_is_patched.ToString(), false) ||
-				               _manifestTools.Value.IsPatchUpdateAvailable;
 				PatchText = Resource.String.patch;
-				UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
+				PatchEnabled = !IsPatched || _manifestTools.Value.IsPatchUpdateAvailable;
+				UnpatchEnabled = IsPatched;
 				ClearDataEnabled = true;
 				return;
 			}
@@ -285,7 +264,7 @@ namespace OkkeiPatcher.ViewModels
 
 		public void AbortCurrentProcess()
 		{
-			if (Patching || Unpatching) _cancelTokenSource.Cancel();
+			if (Patching || Unpatching || ManifestToolsRunning) _cancelTokenSource.Cancel();
 		}
 
 		public void StartPatch()
@@ -310,18 +289,12 @@ namespace OkkeiPatcher.ViewModels
 
 		private void OnErrorOccurredFromPatchTools(object sender, EventArgs e)
 		{
-			if ((!_unpatchTools.IsValueCreated || !_unpatchTools.Value.IsRunning) &&
-			    !_cancelTokenSource.IsCancellationRequested &&
-			    _patchTools.IsValueCreated && _patchTools.Value.IsRunning)
-				_cancelTokenSource.Cancel();
+			if (CanPatch && Patching) _cancelTokenSource.Cancel();
 		}
 
 		private void OnErrorOccurredFromManifestTools(object sender, EventArgs e)
 		{
-			if ((!_patchTools.IsValueCreated || !_patchTools.Value.IsRunning) &&
-			    (!_unpatchTools.IsValueCreated || !_unpatchTools.Value.IsRunning) &&
-			    !_cancelTokenSource.IsCancellationRequested &&
-			    _manifestTools.IsValueCreated && _manifestTools.Value.IsRunning)
+			if (!Patching && !Unpatching && ManifestToolsRunning && !_cancelTokenSource.IsCancellationRequested)
 				_cancelTokenSource.Cancel();
 		}
 
@@ -346,10 +319,7 @@ namespace OkkeiPatcher.ViewModels
 
 		private void OnErrorOccurredFromUnpatchTools(object sender, EventArgs e)
 		{
-			if ((!_patchTools.IsValueCreated || !_patchTools.Value.IsRunning) &&
-			    !_cancelTokenSource.IsCancellationRequested &&
-			    _unpatchTools.IsValueCreated && _unpatchTools.Value.IsRunning)
-				_cancelTokenSource.Cancel();
+			if (CanUnpatch && Unpatching) _cancelTokenSource.Cancel();
 		}
 
 		public void ClearData()
@@ -358,7 +328,7 @@ namespace OkkeiPatcher.ViewModels
 			Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
 			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
 
-			OkkeiUtils.ClearOkkeiFiles();
+			ClearOkkeiFiles();
 
 			ProcessSavedataEnabled = true;
 			PatchEnabled = true;
@@ -366,14 +336,45 @@ namespace OkkeiPatcher.ViewModels
 			Status = Resource.String.data_cleared;
 		}
 
+		private static void ClearOkkeiFiles()
+		{
+			if (Directory.Exists(OkkeiFilesPath)) FileUtils.RecursiveClearFiles(OkkeiFilesPath);
+			FileUtils.DeleteIfExists(ManifestTools.ManifestPath);
+			FileUtils.DeleteIfExists(ManifestTools.ManifestBackupPath);
+		}
+
 		protected override void OnCleared()
 		{
-			base.OnCleared();
 			PropertyChanged = null;
 			MessageGenerated = null;
 			FatalErrorOccurred = null;
 			InstallMessageGenerated = null;
 			UninstallMessageGenerated = null;
+
+			_manifestTools.Value.InstallMessageGenerated -= OnInstallMessageFromModel;
+			_manifestTools.Value.StatusChanged -= OnStatusChangedFromModel;
+			_manifestTools.Value.MessageGenerated -= OnMessageGeneratedFromModel;
+			_manifestTools.Value.FatalErrorOccurred -= OnFatalErrorOccurredFromModel;
+			_manifestTools.Value.ErrorOccurred -= OnErrorOccurredFromManifestTools;
+			_manifestTools.Value.PropertyChanged -= OnPropertyChangedFromManifestTools;
+
+			_patchTools.Value.InstallMessageGenerated -= OnInstallMessageFromModel;
+			_patchTools.Value.UninstallMessageGenerated -= OnUninstallMessageFromModel;
+			_patchTools.Value.StatusChanged -= OnStatusChangedFromModel;
+			_patchTools.Value.MessageGenerated -= OnMessageGeneratedFromModel;
+			_patchTools.Value.PropertyChanged -= OnPropertyChangedFromPatchTools;
+			_patchTools.Value.ErrorOccurred -= OnErrorOccurredFromPatchTools;
+			_patchToolsEventsSubscribed = false;
+
+			_unpatchTools.Value.InstallMessageGenerated -= OnInstallMessageFromModel;
+			_unpatchTools.Value.UninstallMessageGenerated -= OnUninstallMessageFromModel;
+			_unpatchTools.Value.StatusChanged -= OnStatusChangedFromModel;
+			_unpatchTools.Value.MessageGenerated -= OnMessageGeneratedFromModel;
+			_unpatchTools.Value.PropertyChanged -= OnPropertyChangedFromUnpatchTools;
+			_unpatchTools.Value.ErrorOccurred -= OnErrorOccurredFromUnpatchTools;
+			_unpatchToolsEventsSubscribed = false;
+
+			base.OnCleared();
 		}
 	}
 }

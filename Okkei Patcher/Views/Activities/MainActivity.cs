@@ -14,7 +14,6 @@ using AndroidX.Lifecycle;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Snackbar;
 using OkkeiPatcher.Model.DTO;
-using OkkeiPatcher.Utils;
 using OkkeiPatcher.ViewModels;
 using OkkeiPatcher.Views.Fragments;
 using Xamarin.Essentials;
@@ -43,8 +42,7 @@ namespace OkkeiPatcher.Views.Activities
 			SetStateFromViewModel();
 
 			SubscribeToViewsEvents();
-
-			SetUnpatchButtonState();
+			
 			RequestReadWriteStoragePermissions();
 		}
 
@@ -77,7 +75,7 @@ namespace OkkeiPatcher.Views.Activities
 
 		protected override void OnNewIntent(Intent intent)
 		{
-			if (!ActionPackageInstalled.Equals(intent.Action)) return;
+			if (!Patcher.PackageInstaller.ActionPackageInstalled.Equals(intent.Action)) return;
 			var extras = intent.Extras;
 			var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 			//var message = extras?.GetString(PackageInstaller.ExtraStatusMessage);
@@ -123,8 +121,6 @@ namespace OkkeiPatcher.Views.Activities
 
 			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
-
-			_viewModel.UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
 
 			if (!RequestInstallPackagesPermission()) return;
 			DismissExistingManifestPrompt();
@@ -364,14 +360,6 @@ namespace OkkeiPatcher.Views.Activities
 				ExitAppDialogFragment.NewInstance(e).Show(SupportFragmentManager, nameof(ExitAppDialogFragment)));
 		}
 
-		private void SetUnpatchButtonState()
-		{
-			if (Preferences.Get(Prefkey.apk_is_patched.ToString(), false) &&
-			    (Build.VERSION.SdkInt < BuildVersionCodes.M ||
-			     CheckSelfPermission(Manifest.Permission.ReadExternalStorage) == Permission.Granted))
-				_viewModel.UnpatchEnabled = OkkeiUtils.IsBackupAvailable();
-		}
-
 		private bool RequestInstallPackagesPermission()
 		{
 			if (Build.VERSION.SdkInt < BuildVersionCodes.O || PackageManager.CanRequestPackageInstalls())
@@ -443,7 +431,7 @@ namespace OkkeiPatcher.Views.Activities
 		private void OnPatchClick(object sender, EventArgs e)
 		{
 			if (!_viewModel.CanPatch) return;
-			if (!_viewModel.Patching)
+			if (!_viewModel.Patching && !_viewModel.ManifestToolsRunning)
 			{
 				new PatchWarningDialogFragment().Show(SupportFragmentManager, nameof(PatchWarningDialogFragment));
 				return;
@@ -466,7 +454,7 @@ namespace OkkeiPatcher.Views.Activities
 
 		private void OnClearDataClick(object sender, EventArgs e)
 		{
-			if (_viewModel.Patching || _viewModel.Unpatching) return;
+			if (_viewModel.Patching || _viewModel.Unpatching || _viewModel.ManifestToolsRunning) return;
 			new ClearDataDialogFragment().Show(SupportFragmentManager, nameof(ClearDataDialogFragment));
 		}
 

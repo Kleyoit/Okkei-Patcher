@@ -1,9 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
-using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Model.Files
 {
@@ -11,8 +11,9 @@ namespace OkkeiPatcher.Model.Files
 	{
 		public OriginalSavedata()
 		{
-			Directory = SavedataPath;
-			FileName = SavedataFileName;
+			Directory = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,
+				"Android/data/com.mages.chaoschild_jp/files");
+			FileName = "SAVEDATA.DAT";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

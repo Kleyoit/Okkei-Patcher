@@ -2,12 +2,14 @@
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 using Android.App;
-using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {
 	internal static class CertificateUtils
 	{
+		private const string CertFileName = "testkey.p12";
+		private const string CertPassword = "password";
+
 		private static byte[] ReadCertificate(Stream certStream, int size)
 		{
 			if (certStream == null) throw new ArgumentNullException(nameof(certStream));

@@ -13,7 +13,7 @@ namespace OkkeiPatcher.Model.Files
 		public Scripts()
 		{
 			Directory = OkkeiFilesPath;
-			FileName = ScriptsFileName;
+			FileName = "scripts.zip";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

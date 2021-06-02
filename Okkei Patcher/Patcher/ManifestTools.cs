@@ -17,12 +17,22 @@ namespace OkkeiPatcher.Patcher
 {
 	internal class ManifestTools : ToolsBase, IInstallHandler
 	{
+		private const string ManifestUrl =
+			"https://raw.githubusercontent.com/ForrrmerBlack/okkei-patcher/master/Manifest.json";
+
+		private const string ManifestFileName = "Manifest.json";
+		private const string ManifestBackupFileName = "ManifestBackup.json";
+		private const string AppUpdateFileName = "OkkeiPatcher.apk";
+		public static readonly string ManifestPath = Path.Combine(PrivateStorage, ManifestFileName);
+		public static readonly string ManifestBackupPath = Path.Combine(PrivateStorage, ManifestBackupFileName);
+		private static readonly string AppUpdatePath = Path.Combine(OkkeiFilesPath, AppUpdateFileName);
+
 		[DoNotNotify]
 		public OkkeiManifest Manifest { get; private set; }
 
 		[DoNotNotify]
 		public bool ManifestLoaded { get; private set; }
-		
+
 		public bool IsAppUpdateAvailable
 		{
 			get

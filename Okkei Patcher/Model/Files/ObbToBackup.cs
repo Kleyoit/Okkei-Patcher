@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
@@ -12,8 +13,9 @@ namespace OkkeiPatcher.Model.Files
 	{
 		public ObbToBackup()
 		{
-			Directory = ObbPath;
-			FileName = ObbFileName;
+			Directory = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,
+				"Android/obb/com.mages.chaoschild_jp");
+			FileName = "main.87.com.mages.chaoschild_jp.obb";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

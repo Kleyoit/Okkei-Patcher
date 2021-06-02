@@ -12,8 +12,8 @@ namespace OkkeiPatcher.Model.Files
 	{
 		public TempSavedata()
 		{
-			Directory = OkkeiFilesPathBackup;
-			FileName = TempSavedataFileName;
+			Directory = OkkeiFilesBackupPath;
+			FileName = "SAVEDATA_TEMP.DAT";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)

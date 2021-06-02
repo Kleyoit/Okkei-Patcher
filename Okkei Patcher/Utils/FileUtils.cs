@@ -1,10 +1,11 @@
 ﻿using System.IO;
-using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {
 	internal static class FileUtils
 	{
+		private const long TwoGb = (long) 1024 * 1024 * 1024 * 2;
+
 		public static void RecursiveClearFiles(string path)
 		{
 			var files = Directory.GetFiles(path);
@@ -12,12 +13,12 @@ namespace OkkeiPatcher.Utils
 				foreach (var file in files)
 					File.Delete(file);
 			var directories = Directory.GetDirectories(path);
-			if (directories.Length > 0)
-				foreach (var dir in directories)
-				{
-					RecursiveClearFiles(dir);
-					Directory.Delete(dir);
-				}
+			if (directories.Length == 0) return;
+			foreach (var dir in directories)
+			{
+				RecursiveClearFiles(dir);
+				Directory.Delete(dir);
+			}
 		}
 
 		public static void DeleteFolder(string folderPath)
