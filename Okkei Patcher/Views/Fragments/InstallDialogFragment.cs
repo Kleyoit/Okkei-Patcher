@@ -3,8 +3,8 @@ using Android.Net;
 using Android.OS;
 using AndroidX.Lifecycle;
 using Java.IO;
+using OkkeiPatcher.Core;
 using OkkeiPatcher.Model.DTO;
-using OkkeiPatcher.Patcher;
 using OkkeiPatcher.ViewModels;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 

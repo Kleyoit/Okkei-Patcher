@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.OS;
 using AndroidX.Lifecycle;
-using OkkeiPatcher.Patcher;
+using OkkeiPatcher.Core;
 using OkkeiPatcher.ViewModels;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 

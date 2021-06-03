@@ -75,7 +75,7 @@ namespace OkkeiPatcher.Views.Activities
 
 		protected override void OnNewIntent(Intent intent)
 		{
-			if (!Patcher.PackageInstaller.ActionPackageInstalled.Equals(intent.Action)) return;
+			if (!Core.PackageInstaller.ActionPackageInstalled.Equals(intent.Action)) return;
 			var extras = intent.Extras;
 			var status = extras?.GetInt(PackageInstaller.ExtraStatus);
 			//var message = extras?.GetString(PackageInstaller.ExtraStatusMessage);

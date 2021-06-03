@@ -13,7 +13,7 @@ using PropertyChanged;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 
-namespace OkkeiPatcher.Patcher
+namespace OkkeiPatcher.Core
 {
 	internal class ManifestTools : ToolsBase, IInstallHandler
 	{

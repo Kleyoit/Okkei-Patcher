@@ -5,7 +5,7 @@ using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using static OkkeiPatcher.Model.GlobalData;
 
-namespace OkkeiPatcher.Patcher
+namespace OkkeiPatcher.Core
 {
 	internal class ToolsBase : INotifyPropertyChanged
 	{

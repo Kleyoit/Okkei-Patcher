@@ -10,7 +10,7 @@ using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 using Uri = Android.Net.Uri;
 
-namespace OkkeiPatcher.Patcher
+namespace OkkeiPatcher.Core
 {
 	internal class PackageInstaller
 	{

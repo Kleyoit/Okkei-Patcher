@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OkkeiPatcher.Patcher
+namespace OkkeiPatcher.Core
 {
 	internal class PackageInstallObserver : Android.Content.PM.PackageInstaller.SessionCallback
 	{

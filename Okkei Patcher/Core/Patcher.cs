@@ -14,15 +14,16 @@ using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.GlobalData;
 
-namespace OkkeiPatcher.Patcher
+namespace OkkeiPatcher.Core
 {
-	internal class PatchTools : ToolsBase, IInstallHandler, IUninstallHandler
+	internal class Patcher : ToolsBase, IInstallHandler, IUninstallHandler
 	{
 		private OkkeiManifest _manifest;
 		private bool _saveDataBackupFromOldPatch;
 		private X509Certificate2 _signingCertificate;
 
 		public event EventHandler<InstallMessageData> InstallMessageGenerated;
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void NotifyInstallFailed()
 		{
@@ -35,8 +36,6 @@ namespace OkkeiPatcher.Patcher
 		{
 			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
 		}
-
-		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
