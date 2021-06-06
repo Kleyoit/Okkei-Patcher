@@ -145,7 +145,7 @@ namespace OkkeiPatcher.Views.Activities
 			}
 
 			_backPressed = true;
-			Toast.MakeText(this, Resources.GetText(Resource.String.back_button_pressed), ToastLength.Short).Show();
+			Toast.MakeText(this, Resource.String.back_button_pressed, ToastLength.Short)?.Show();
 		}
 
 		protected override void OnDestroy()
@@ -464,10 +464,8 @@ namespace OkkeiPatcher.Views.Activities
 		private void OnInfoButtonClick(object sender, EventArgs eventArgs)
 		{
 			var view = (View) sender;
-			Snackbar.Make(view,
-					string.Format(Resources.GetText(Resource.String.fab_version), AppInfo.VersionString),
-					BaseTransientBottomBar.LengthLong)
-				.SetAction("Action", (View.IOnClickListener) null).Show();
+			Snackbar.Make(view, string.Format(GetText(Resource.String.fab_version), AppInfo.VersionString),
+				BaseTransientBottomBar.LengthLong).SetAction("Action", (View.IOnClickListener) null).Show();
 		}
 	}
 }
