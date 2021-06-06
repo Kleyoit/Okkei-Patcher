@@ -103,7 +103,7 @@ namespace OkkeiPatcher.ViewModels
 			return Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 		}
 
-		public async Task<bool> RetrieveManifest()
+		public async Task<bool> RetrieveManifestAsync()
 		{
 			_installHandler = _manifestTools.Value;
 

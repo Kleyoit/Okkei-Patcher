@@ -30,7 +30,7 @@ namespace OkkeiPatcher.Views.Fragments
 				.SetMessage(Resource.String.manifest_prompt)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => Task.Run(async () =>
 				{
-					var manifestRetrieved = await _viewModel.RetrieveManifest();
+					var manifestRetrieved = await _viewModel.RetrieveManifestAsync();
 					if (!manifestRetrieved) return;
 					if (_viewModel.IsPatchUpdateAvailable())
 					{
