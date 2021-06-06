@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
+using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Model.Files
 {

@@ -2,8 +2,8 @@
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using OkkeiPatcher.Core;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Utils
 {

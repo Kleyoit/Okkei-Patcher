@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.IO;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
-using static OkkeiPatcher.Model.GlobalData;
+using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Core
 {

@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Manifest;
@@ -11,7 +12,7 @@ using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using PropertyChanged;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
+using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Core
 {

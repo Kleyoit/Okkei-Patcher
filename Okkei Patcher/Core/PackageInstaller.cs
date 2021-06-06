@@ -7,7 +7,6 @@ using Android.OS;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
 using Uri = Android.Net.Uri;
 
 namespace OkkeiPatcher.Core

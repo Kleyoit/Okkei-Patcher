@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Files;
@@ -12,7 +13,7 @@ using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
+using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Core
 {

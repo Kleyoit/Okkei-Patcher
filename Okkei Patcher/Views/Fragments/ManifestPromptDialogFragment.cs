@@ -32,7 +32,7 @@ namespace OkkeiPatcher.Views.Fragments
 				{
 					var manifestRetrieved = await _viewModel.RetrieveManifest();
 					if (!manifestRetrieved) return;
-					if (_viewModel.CheckForPatchUpdates())
+					if (_viewModel.IsPatchUpdateAvailable())
 					{
 						MainThread.BeginInvokeOnMainThread(() =>
 							new PatchUpdateDialogFragment().Show(context.SupportFragmentManager,
@@ -40,7 +40,7 @@ namespace OkkeiPatcher.Views.Fragments
 						return;
 					}
 
-					if (_viewModel.CheckForAppUpdates())
+					if (_viewModel.IsAppUpdateAvailable())
 						MainThread.BeginInvokeOnMainThread(() =>
 							new AppUpdateDialogFragment().Show(context.SupportFragmentManager,
 								nameof(AppUpdateDialogFragment)));

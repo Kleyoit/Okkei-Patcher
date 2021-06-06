@@ -13,11 +13,14 @@ using AndroidX.AppCompat.App;
 using AndroidX.Lifecycle;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Snackbar;
+using OkkeiPatcher.Core;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.ViewModels;
 using OkkeiPatcher.Views.Fragments;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
+using static OkkeiPatcher.Model.OkkeiFilesPaths;
+using PackageInstaller = Android.Content.PM.PackageInstaller;
 
 namespace OkkeiPatcher.Views.Activities
 {
@@ -147,7 +150,7 @@ namespace OkkeiPatcher.Views.Activities
 
 		protected override void OnDestroy()
 		{
-			UnsubscribeViewsEvents();
+			UnsubscribeFromViewsEvents();
 			UnsubscribeFromViewModel();
 			base.OnDestroy();
 		}
@@ -197,7 +200,7 @@ namespace OkkeiPatcher.Views.Activities
 			FindViewById<CheckBox>(Resource.Id.savedataCheckBox).Click += OnSavedataCheckBoxClick;
 		}
 
-		private void UnsubscribeViewsEvents()
+		private void UnsubscribeFromViewsEvents()
 		{
 			FindViewById<FloatingActionButton>(Resource.Id.infoButton).Click -= OnInfoButtonClick;
 			FindViewById<Button>(Resource.Id.patchButton).Click -= OnPatchClick;

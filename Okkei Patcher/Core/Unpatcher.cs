@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
 
 namespace OkkeiPatcher.Core
 {

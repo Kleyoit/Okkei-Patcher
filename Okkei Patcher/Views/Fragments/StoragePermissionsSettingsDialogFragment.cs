@@ -1,8 +1,8 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.OS;
+using OkkeiPatcher.Core;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 
 namespace OkkeiPatcher.Views.Fragments

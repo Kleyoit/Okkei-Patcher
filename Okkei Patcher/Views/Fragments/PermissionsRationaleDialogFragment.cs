@@ -1,6 +1,6 @@
 ﻿using Android.App;
 using Android.OS;
-using static OkkeiPatcher.Model.GlobalData;
+using OkkeiPatcher.Core;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 
 namespace OkkeiPatcher.Views.Fragments

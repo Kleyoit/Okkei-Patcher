@@ -5,11 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AndroidX.Lifecycle;
 using OkkeiPatcher.Core;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using PropertyChanged;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.GlobalData;
+using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.ViewModels
 {
@@ -27,7 +28,7 @@ namespace OkkeiPatcher.ViewModels
 
 		public MainViewModel()
 		{
-			_progress = new Progress<ProgressInfo>(OnProgressChangedFromModel);
+			_progress = new Progress<ProgressInfo>(OnProgressChangedAtCore);
 
 			SetApkIsPatchedPreferenceIfNotSet();
 			SetCheckBoxStatePreferenceIfNotSet();
@@ -45,7 +46,6 @@ namespace OkkeiPatcher.ViewModels
 		public int ProgressMax { get; private set; }
 		public int Status { get; private set; }
 		public bool ManifestLoaded => _manifestTools.Value.ManifestLoaded;
-		public bool IsPatched => Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
 		public bool Patching => _patcher.IsValueCreated && _patcher.Value.IsRunning;
 		public bool Unpatching => _unpatcher.IsValueCreated && _unpatcher.Value.IsRunning;
 		public bool ManifestToolsRunning => _manifestTools.IsValueCreated && _manifestTools.Value.IsRunning;
@@ -74,8 +74,8 @@ namespace OkkeiPatcher.ViewModels
 			ClearDataEnabled = true;
 			ProcessSavedataEnabled = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
 			Status = Resource.String.empty;
-			PatchEnabled = !IsPatched;
-			UnpatchEnabled = IsPatched;
+			PatchEnabled = !IsPatched();
+			UnpatchEnabled = IsPatched();
 		}
 
 		private static void SetApkIsPatchedPreferenceIfNotSet()
@@ -98,28 +98,33 @@ namespace OkkeiPatcher.ViewModels
 			return new ProcessState(processSavedata, scriptsUpdate, obbUpdate);
 		}
 
+		private static bool IsPatched()
+		{
+			return Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+		}
+
 		public async Task<bool> RetrieveManifest()
 		{
 			_installHandler = _manifestTools.Value;
 
-			_manifestTools.Value.InstallMessageGenerated += OnInstallMessageFromModel;
-			_manifestTools.Value.StatusChanged += OnStatusChangedFromModel;
-			_manifestTools.Value.MessageGenerated += OnMessageGeneratedFromModel;
-			_manifestTools.Value.FatalErrorOccurred += OnFatalErrorOccurredFromModel;
-			_manifestTools.Value.ErrorOccurred += OnErrorOccurredFromManifestTools;
-			_manifestTools.Value.PropertyChanged += OnPropertyChangedFromManifestTools;
+			_manifestTools.Value.InstallMessageGenerated += OnInstallMessageAtCore;
+			_manifestTools.Value.StatusChanged += OnStatusChangedAtCore;
+			_manifestTools.Value.MessageGenerated += OnMessageGeneratedAtCore;
+			_manifestTools.Value.FatalErrorOccurred += OnFatalErrorOccurredAtCore;
+			_manifestTools.Value.ErrorOccurred += OnErrorOccurredAtManifestTools;
+			_manifestTools.Value.PropertyChanged += OnPropertyChangedAtManifestTools;
 
 			return await _manifestTools.Value.RetrieveManifestAsync(_progress, _cancelTokenSource.Token);
 		}
 
-		public bool CheckForPatchUpdates()
+		public bool IsPatchUpdateAvailable()
 		{
 			var isPatchUpdateAvailable = _manifestTools.Value.IsPatchUpdateAvailable;
 			if (isPatchUpdateAvailable) PatchEnabled = true;
 			return isPatchUpdateAvailable;
 		}
 
-		public bool CheckForAppUpdates()
+		public bool IsAppUpdateAvailable()
 		{
 			return _manifestTools.Value.IsAppUpdateAvailable;
 		}
@@ -159,7 +164,7 @@ namespace OkkeiPatcher.ViewModels
 			_installHandler?.NotifyInstallFailed();
 		}
 
-		private void OnPropertyChangedFromPatchTools(object sender, PropertyChangedEventArgs e)
+		private void OnPropertyChangedAtPatcher(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName != nameof(_patcher.Value.IsRunning)) return;
 
@@ -170,8 +175,8 @@ namespace OkkeiPatcher.ViewModels
 
 				PatchText = Resource.String.patch;
 				ClearDataEnabled = true;
-				PatchEnabled = !IsPatched;
-				UnpatchEnabled = IsPatched;
+				PatchEnabled = !IsPatched();
+				UnpatchEnabled = IsPatched();
 				return;
 			}
 
@@ -180,7 +185,7 @@ namespace OkkeiPatcher.ViewModels
 			PatchText = Resource.String.abort;
 		}
 
-		private void OnPropertyChangedFromUnpatchTools(object sender, PropertyChangedEventArgs e)
+		private void OnPropertyChangedAtUnpatcher(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName != nameof(_unpatcher.Value.IsRunning)) return;
 
@@ -191,8 +196,8 @@ namespace OkkeiPatcher.ViewModels
 
 				UnpatchText = Resource.String.unpatch;
 				ClearDataEnabled = true;
-				PatchEnabled = !IsPatched;
-				UnpatchEnabled = IsPatched;
+				PatchEnabled = !IsPatched();
+				UnpatchEnabled = IsPatched();
 				return;
 			}
 
@@ -201,7 +206,7 @@ namespace OkkeiPatcher.ViewModels
 			UnpatchText = Resource.String.abort;
 		}
 
-		private void OnPropertyChangedFromManifestTools(object sender, PropertyChangedEventArgs e)
+		private void OnPropertyChangedAtManifestTools(object sender, PropertyChangedEventArgs e)
 		{
 			if (e.PropertyName != nameof(_manifestTools.Value.IsRunning)) return;
 
@@ -211,8 +216,8 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource = new CancellationTokenSource();
 
 				PatchText = Resource.String.patch;
-				PatchEnabled = !IsPatched || _manifestTools.Value.IsPatchUpdateAvailable;
-				UnpatchEnabled = IsPatched;
+				PatchEnabled = !IsPatched() || _manifestTools.Value.IsPatchUpdateAvailable;
+				UnpatchEnabled = IsPatched();
 				ClearDataEnabled = true;
 				return;
 			}
@@ -230,34 +235,34 @@ namespace OkkeiPatcher.ViewModels
 			_installHandler?.NotifyInstallFailed();
 		}
 
-		private void OnStatusChangedFromModel(object sender, int e)
+		private void OnStatusChangedAtCore(object sender, int e)
 		{
 			Status = e;
 		}
 
-		private void OnMessageGeneratedFromModel(object sender, MessageData e)
+		private void OnMessageGeneratedAtCore(object sender, MessageData e)
 		{
 			MessageGenerated?.Invoke(this, e);
 		}
 
-		private void OnProgressChangedFromModel(ProgressInfo e)
+		private void OnProgressChangedAtCore(ProgressInfo e)
 		{
 			ProgressIndeterminate = e.IsIndeterminate;
 			ProgressMax = e.Max;
 			if (!ProgressIndeterminate) Progress = e.Progress;
 		}
 
-		private void OnFatalErrorOccurredFromModel(object sender, MessageData e)
+		private void OnFatalErrorOccurredAtCore(object sender, MessageData e)
 		{
 			FatalErrorOccurred?.Invoke(this, e);
 		}
 
-		private void OnUninstallMessageFromModel(object sender, UninstallMessageData e)
+		private void OnUninstallMessageAtCore(object sender, UninstallMessageData e)
 		{
 			UninstallMessageGenerated?.Invoke(this, e);
 		}
 
-		private void OnInstallMessageFromModel(object sender, InstallMessageData e)
+		private void OnInstallMessageAtCore(object sender, InstallMessageData e)
 		{
 			InstallMessageGenerated?.Invoke(this, e);
 		}
@@ -274,12 +279,12 @@ namespace OkkeiPatcher.ViewModels
 
 			if (!_patcherEventsSubscribed)
 			{
-				_patcher.Value.InstallMessageGenerated += OnInstallMessageFromModel;
-				_patcher.Value.UninstallMessageGenerated += OnUninstallMessageFromModel;
-				_patcher.Value.StatusChanged += OnStatusChangedFromModel;
-				_patcher.Value.MessageGenerated += OnMessageGeneratedFromModel;
-				_patcher.Value.PropertyChanged += OnPropertyChangedFromPatchTools;
-				_patcher.Value.ErrorOccurred += OnErrorOccurredFromPatchTools;
+				_patcher.Value.InstallMessageGenerated += OnInstallMessageAtCore;
+				_patcher.Value.UninstallMessageGenerated += OnUninstallMessageAtCore;
+				_patcher.Value.StatusChanged += OnStatusChangedAtCore;
+				_patcher.Value.MessageGenerated += OnMessageGeneratedAtCore;
+				_patcher.Value.PropertyChanged += OnPropertyChangedAtPatcher;
+				_patcher.Value.ErrorOccurred += OnErrorOccurredAtPatcher;
 				_patcherEventsSubscribed = true;
 			}
 
@@ -287,12 +292,12 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource.Token);
 		}
 
-		private void OnErrorOccurredFromPatchTools(object sender, EventArgs e)
+		private void OnErrorOccurredAtPatcher(object sender, EventArgs e)
 		{
 			if (CanPatch && Patching) _cancelTokenSource.Cancel();
 		}
 
-		private void OnErrorOccurredFromManifestTools(object sender, EventArgs e)
+		private void OnErrorOccurredAtManifestTools(object sender, EventArgs e)
 		{
 			if (!Patching && !Unpatching && ManifestToolsRunning && !_cancelTokenSource.IsCancellationRequested)
 				_cancelTokenSource.Cancel();
@@ -305,19 +310,19 @@ namespace OkkeiPatcher.ViewModels
 
 			if (!_unpatcherEventsSubscribed)
 			{
-				_unpatcher.Value.InstallMessageGenerated += OnInstallMessageFromModel;
-				_unpatcher.Value.UninstallMessageGenerated += OnUninstallMessageFromModel;
-				_unpatcher.Value.StatusChanged += OnStatusChangedFromModel;
-				_unpatcher.Value.MessageGenerated += OnMessageGeneratedFromModel;
-				_unpatcher.Value.PropertyChanged += OnPropertyChangedFromUnpatchTools;
-				_unpatcher.Value.ErrorOccurred += OnErrorOccurredFromUnpatchTools;
+				_unpatcher.Value.InstallMessageGenerated += OnInstallMessageAtCore;
+				_unpatcher.Value.UninstallMessageGenerated += OnUninstallMessageAtCore;
+				_unpatcher.Value.StatusChanged += OnStatusChangedAtCore;
+				_unpatcher.Value.MessageGenerated += OnMessageGeneratedAtCore;
+				_unpatcher.Value.PropertyChanged += OnPropertyChangedAtUnpatcher;
+				_unpatcher.Value.ErrorOccurred += OnErrorOccurredAtUnpatcher;
 				_unpatcherEventsSubscribed = true;
 			}
 
 			_unpatcher.Value.Unpatch(CreateProcessState(), _progress, _cancelTokenSource.Token);
 		}
 
-		private void OnErrorOccurredFromUnpatchTools(object sender, EventArgs e)
+		private void OnErrorOccurredAtUnpatcher(object sender, EventArgs e)
 		{
 			if (CanUnpatch && Unpatching) _cancelTokenSource.Cancel();
 		}
@@ -351,27 +356,27 @@ namespace OkkeiPatcher.ViewModels
 			InstallMessageGenerated = null;
 			UninstallMessageGenerated = null;
 
-			_manifestTools.Value.InstallMessageGenerated -= OnInstallMessageFromModel;
-			_manifestTools.Value.StatusChanged -= OnStatusChangedFromModel;
-			_manifestTools.Value.MessageGenerated -= OnMessageGeneratedFromModel;
-			_manifestTools.Value.FatalErrorOccurred -= OnFatalErrorOccurredFromModel;
-			_manifestTools.Value.ErrorOccurred -= OnErrorOccurredFromManifestTools;
-			_manifestTools.Value.PropertyChanged -= OnPropertyChangedFromManifestTools;
+			_manifestTools.Value.InstallMessageGenerated -= OnInstallMessageAtCore;
+			_manifestTools.Value.StatusChanged -= OnStatusChangedAtCore;
+			_manifestTools.Value.MessageGenerated -= OnMessageGeneratedAtCore;
+			_manifestTools.Value.FatalErrorOccurred -= OnFatalErrorOccurredAtCore;
+			_manifestTools.Value.ErrorOccurred -= OnErrorOccurredAtManifestTools;
+			_manifestTools.Value.PropertyChanged -= OnPropertyChangedAtManifestTools;
 
-			_patcher.Value.InstallMessageGenerated -= OnInstallMessageFromModel;
-			_patcher.Value.UninstallMessageGenerated -= OnUninstallMessageFromModel;
-			_patcher.Value.StatusChanged -= OnStatusChangedFromModel;
-			_patcher.Value.MessageGenerated -= OnMessageGeneratedFromModel;
-			_patcher.Value.PropertyChanged -= OnPropertyChangedFromPatchTools;
-			_patcher.Value.ErrorOccurred -= OnErrorOccurredFromPatchTools;
+			_patcher.Value.InstallMessageGenerated -= OnInstallMessageAtCore;
+			_patcher.Value.UninstallMessageGenerated -= OnUninstallMessageAtCore;
+			_patcher.Value.StatusChanged -= OnStatusChangedAtCore;
+			_patcher.Value.MessageGenerated -= OnMessageGeneratedAtCore;
+			_patcher.Value.PropertyChanged -= OnPropertyChangedAtPatcher;
+			_patcher.Value.ErrorOccurred -= OnErrorOccurredAtPatcher;
 			_patcherEventsSubscribed = false;
 
-			_unpatcher.Value.InstallMessageGenerated -= OnInstallMessageFromModel;
-			_unpatcher.Value.UninstallMessageGenerated -= OnUninstallMessageFromModel;
-			_unpatcher.Value.StatusChanged -= OnStatusChangedFromModel;
-			_unpatcher.Value.MessageGenerated -= OnMessageGeneratedFromModel;
-			_unpatcher.Value.PropertyChanged -= OnPropertyChangedFromUnpatchTools;
-			_unpatcher.Value.ErrorOccurred -= OnErrorOccurredFromUnpatchTools;
+			_unpatcher.Value.InstallMessageGenerated -= OnInstallMessageAtCore;
+			_unpatcher.Value.UninstallMessageGenerated -= OnUninstallMessageAtCore;
+			_unpatcher.Value.StatusChanged -= OnStatusChangedAtCore;
+			_unpatcher.Value.MessageGenerated -= OnMessageGeneratedAtCore;
+			_unpatcher.Value.PropertyChanged -= OnPropertyChangedAtUnpatcher;
+			_unpatcher.Value.ErrorOccurred -= OnErrorOccurredAtUnpatcher;
 			_unpatcherEventsSubscribed = false;
 
 			base.OnCleared();

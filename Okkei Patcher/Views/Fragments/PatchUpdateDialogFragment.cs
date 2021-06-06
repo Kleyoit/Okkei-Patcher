@@ -28,7 +28,7 @@ namespace OkkeiPatcher.Views.Fragments
 					_viewModel.GetPatchSize().ToString()))
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>
 				{
-					if (_viewModel.CheckForAppUpdates())
+					if (_viewModel.IsAppUpdateAvailable())
 						MainThread.BeginInvokeOnMainThread(() =>
 							new AppUpdateDialogFragment().Show(RequireActivity().SupportFragmentManager,
 								nameof(AppUpdateDialogFragment)));
