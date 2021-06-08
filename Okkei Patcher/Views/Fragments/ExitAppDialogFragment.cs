@@ -50,7 +50,7 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			_viewModel.Exiting = true;
 			Cancelable = false;
-			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
+			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(_titleId)
 				.SetMessage(_messageId)
 				.SetPositiveButton(Resource.String.dialog_exit, (sender, e) => System.Environment.Exit(0))

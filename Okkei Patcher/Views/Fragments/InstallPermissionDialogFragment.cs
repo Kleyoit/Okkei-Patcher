@@ -12,7 +12,7 @@ namespace OkkeiPatcher.Views.Fragments
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
 			Cancelable = false;
-			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
+			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.attention)
 				.SetMessage(Resource.String.unknown_sources_notice)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>

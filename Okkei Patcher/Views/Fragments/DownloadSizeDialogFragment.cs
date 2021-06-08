@@ -23,7 +23,7 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.warning)
-				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.download_size_warning),
+				.SetMessage(string.Format(GetText(Resource.String.download_size_warning),
 					_viewModel.GetPatchSize().ToString()))
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => _viewModel.StartPatch())
 				.SetNegativeButton(Resource.String.dialog_cancel, (sender, e) => { })

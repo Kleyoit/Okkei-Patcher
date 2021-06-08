@@ -8,7 +8,7 @@ namespace OkkeiPatcher.Views.Fragments
 	{
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
-			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
+			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.warning)
 				.SetMessage(Resource.String.long_process_warning)
 				.SetPositiveButton(Resource.String.dialog_ok,

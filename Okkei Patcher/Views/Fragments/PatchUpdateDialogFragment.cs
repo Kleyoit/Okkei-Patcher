@@ -24,7 +24,7 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.update_header)
-				.SetMessage(string.Format(RequireActivity().GetText(Resource.String.update_patch_available),
+				.SetMessage(string.Format(GetText(Resource.String.update_patch_available),
 					_viewModel.GetPatchSize().ToString()))
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>
 				{

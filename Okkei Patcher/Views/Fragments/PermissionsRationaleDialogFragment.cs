@@ -34,7 +34,7 @@ namespace OkkeiPatcher.Views.Fragments
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
 			Cancelable = false;
-			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
+			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.error)
 				.SetMessage(Resource.String.no_storage_permission_rationale)
 				.SetPositiveButton(Resource.String.dialog_ok,
