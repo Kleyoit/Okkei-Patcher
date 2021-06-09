@@ -27,6 +27,8 @@ namespace OkkeiPatcher.Views.Activities
 	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
+		private const string RequestingPermissionsBooleanKey = "RequestingPermissions";
+		private bool _requestingPermissions;
 		private bool _backPressed;
 		private int _lastBackPressedTimestamp;
 		private MainViewModel _viewModel;
@@ -40,6 +42,9 @@ namespace OkkeiPatcher.Views.Activities
 
 			_viewModel =
 				new ViewModelProvider(this).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as MainViewModel;
+
+			if (savedInstanceState != null)
+				_requestingPermissions = savedInstanceState.GetBoolean(RequestingPermissionsBooleanKey, false);
 
 			SubscribeToViewModel();
 			SetStateFromViewModel();
@@ -100,9 +105,7 @@ namespace OkkeiPatcher.Views.Activities
 			[GeneratedEnum] Permission[] grantResults)
 		{
 			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-
-
-			// Request read/write external storage permissions on first start
+			
 			if (requestCode != (int) RequestCodes.StoragePermissionRequestCode ||
 			    Build.VERSION.SdkInt < BuildVersionCodes.M) return;
 			if (grantResults[0] != Permission.Granted)
@@ -122,6 +125,7 @@ namespace OkkeiPatcher.Views.Activities
 				return;
 			}
 
+			_requestingPermissions = false;
 			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
 
@@ -129,6 +133,12 @@ namespace OkkeiPatcher.Views.Activities
 			DismissExistingManifestPrompt();
 			if (!_viewModel.ManifestLoaded)
 				new ManifestPromptDialogFragment().Show(SupportFragmentManager, nameof(ManifestPromptDialogFragment));
+		}
+
+		protected override void OnSaveInstanceState(Bundle outState)
+		{
+			outState.PutBoolean(RequestingPermissionsBooleanKey, _requestingPermissions);
+			base.OnSaveInstanceState(outState);
 		}
 
 		public override void OnBackPressed()
@@ -376,9 +386,12 @@ namespace OkkeiPatcher.Views.Activities
 
 		private void RequestReadWriteStoragePermissions()
 		{
+			if (_requestingPermissions || _viewModel.Exiting) return;
+
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.M &&
 			    CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 			{
+				_requestingPermissions = true;
 				if (!Preferences.Get(Prefkey.extstorage_permission_denied.ToString(), false))
 				{
 					string[] extStoragePermissions =
