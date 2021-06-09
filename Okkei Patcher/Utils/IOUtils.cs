@@ -103,21 +103,21 @@ namespace OkkeiPatcher.Utils
 		/// <exception cref="HttpRequestException"></exception>
 		/// <exception cref="HttpStatusCodeException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
-		public static async Task DownloadFileAsync(string URL, VerifiableFile outFile, IProgress<ProgressInfo> progress,
+		public static async Task DownloadFileAsync(string url, VerifiableFile outFile, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			await DownloadFileAsync(URL, outFile.Directory, outFile.FileName, progress, token);
+			await DownloadFileAsync(url, outFile.Directory, outFile.FileName, progress, token);
 		}
 
 		/// <exception cref="System.IO.IOException"></exception>
 		/// <exception cref="HttpRequestException"></exception>
 		/// <exception cref="HttpStatusCodeException"></exception>
 		/// <exception cref="ArgumentNullException"></exception>
-		public static async Task DownloadFileAsync(string URL, string outFilePath, string outFileName,
+		public static async Task DownloadFileAsync(string url, string outFilePath, string outFileName,
 			IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			if (URL == null) throw new ArgumentNullException(nameof(URL));
+			if (url == null) throw new ArgumentNullException(nameof(url));
 			if (outFilePath == null) throw new ArgumentNullException(nameof(outFilePath));
 			if (outFileName == null) throw new ArgumentNullException(nameof(outFileName));
 
@@ -134,7 +134,7 @@ namespace OkkeiPatcher.Utils
 			try
 			{
 				int length;
-				var response = await Client.Value.GetAsync(URL, HttpCompletionOption.ResponseHeadersRead)
+				var response = await Client.Value.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
 					.ConfigureAwait(false);
 
 				if (response.StatusCode != HttpStatusCode.OK)

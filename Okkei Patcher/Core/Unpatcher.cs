@@ -107,7 +107,7 @@ namespace OkkeiPatcher.Core
 
 				UpdateStatus(Resource.String.write_saves_md5);
 				Preferences.Set(Prefkey.savedata_md5.ToString(),
-					await MD5Utils.ComputeMD5Async(Files.BackupSavedata, progress, token)
+					await Md5Utils.ComputeMd5Async(Files.BackupSavedata, progress, token)
 						.ConfigureAwait(false));
 			}
 		}

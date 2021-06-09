@@ -105,7 +105,7 @@
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Model\Exceptions\HttpStatusCodeException.cs" />
     <Compile Include="Utils\IOUtils.cs" />
-    <Compile Include="Utils\MD5Utils.cs" />
+    <Compile Include="Utils\Md5Utils.cs" />
     <Compile Include="Core\PackageInstaller.cs" />
     <Compile Include="Utils\MessageDataUtils.cs" />
     <Compile Include="Utils\PackageManagerUtils.cs" />

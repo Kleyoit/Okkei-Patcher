@@ -9,15 +9,15 @@ using OkkeiPatcher.Utils.Extensions;
 
 namespace OkkeiPatcher.Utils
 {
-	internal static class MD5Utils
+	internal static class Md5Utils
 	{
-		public static Task<string> ComputeMD5Async(VerifiableFile file, IProgress<ProgressInfo> progress,
+		public static Task<string> ComputeMd5Async(VerifiableFile file, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			return ComputeMD5Async(file.FullPath, progress, token);
+			return ComputeMd5Async(file.FullPath, progress, token);
 		}
 
-		public static Task<string> ComputeMD5Async(string filename, IProgress<ProgressInfo> progress,
+		public static Task<string> ComputeMd5Async(string filename, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			using var md5 = MD5.Create();

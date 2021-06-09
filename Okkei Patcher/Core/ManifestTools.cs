@@ -270,7 +270,7 @@ namespace OkkeiPatcher.Core
 				await DownloadAppUpdateAsync(progress, token);
 
 				UpdateStatus(Resource.String.compare_apk);
-				var updateHash = await MD5Utils.ComputeMD5Async(AppUpdatePath, progress, token).ConfigureAwait(false);
+				var updateHash = await Md5Utils.ComputeMd5Async(AppUpdatePath, progress, token).ConfigureAwait(false);
 
 				if (updateHash != Manifest.OkkeiPatcher.MD5)
 				{

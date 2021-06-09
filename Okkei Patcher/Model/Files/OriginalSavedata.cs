@@ -22,11 +22,11 @@ namespace OkkeiPatcher.Model.Files
 			var md5 = string.Empty;
 			var md5ToCompare = string.Empty;
 			if (backupSavedata.Exists)
-				md5ToCompare = await MD5Utils.ComputeMD5Async(backupSavedata.FullPath, progress, token)
+				md5ToCompare = await Md5Utils.ComputeMd5Async(backupSavedata.FullPath, progress, token)
 					.ConfigureAwait(false);
 			if (md5ToCompare == string.Empty) return false;
 			if (Exists)
-				md5 = await MD5Utils.ComputeMD5Async(FullPath, progress, token).ConfigureAwait(false);
+				md5 = await Md5Utils.ComputeMd5Async(FullPath, progress, token).ConfigureAwait(false);
 			return md5 == md5ToCompare;
 		}
 	}

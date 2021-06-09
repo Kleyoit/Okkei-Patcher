@@ -125,7 +125,7 @@ namespace OkkeiPatcher.Core
 
 			UpdateStatus(Resource.String.write_obb_md5);
 
-			var obbHash = await MD5Utils.ComputeMD5Async(Files.ObbToReplace, progress, token)
+			var obbHash = await Md5Utils.ComputeMd5Async(Files.ObbToReplace, progress, token)
 				.ConfigureAwait(false);
 			if (obbHash != _manifest.Obb.MD5)
 			{
@@ -282,7 +282,7 @@ namespace OkkeiPatcher.Core
 				UpdateStatus(Resource.String.write_saves_md5);
 
 				Preferences.Set(Prefkey.savedata_md5.ToString(),
-					await MD5Utils.ComputeMD5Async(Files.OriginalSavedata, progress, token)
+					await Md5Utils.ComputeMd5Async(Files.OriginalSavedata, progress, token)
 						.ConfigureAwait(false));
 
 				return;
@@ -324,7 +324,7 @@ namespace OkkeiPatcher.Core
 			UpdateStatus(Resource.String.write_apk_md5);
 
 			Preferences.Set(Prefkey.backup_apk_md5.ToString(),
-				await MD5Utils.ComputeMD5Async(Files.BackupApk, progress, token).ConfigureAwait(false));
+				await Md5Utils.ComputeMd5Async(Files.BackupApk, progress, token).ConfigureAwait(false));
 		}
 
 		private async Task DownloadScriptsAsync(IProgress<ProgressInfo> progress, CancellationToken token)
@@ -357,7 +357,7 @@ namespace OkkeiPatcher.Core
 
 			UpdateStatus(Resource.String.write_scripts_md5);
 
-			var scriptsHash = await MD5Utils.ComputeMD5Async(Files.Scripts, progress, token)
+			var scriptsHash = await Md5Utils.ComputeMd5Async(Files.Scripts, progress, token)
 				.ConfigureAwait(false);
 			if (scriptsHash != _manifest.Scripts.MD5)
 			{
@@ -418,7 +418,7 @@ namespace OkkeiPatcher.Core
 			UpdateStatus(Resource.String.write_patched_apk_md5);
 
 			Preferences.Set(Prefkey.signed_apk_md5.ToString(),
-				await MD5Utils.ComputeMD5Async(Files.SignedApk, progress, token).ConfigureAwait(false));
+				await Md5Utils.ComputeMd5Async(Files.SignedApk, progress, token).ConfigureAwait(false));
 
 			Files.TempApk.DeleteIfExists();
 		}
@@ -445,7 +445,7 @@ namespace OkkeiPatcher.Core
 				UpdateStatus(Resource.String.write_obb_md5);
 
 				Preferences.Set(Prefkey.backup_obb_md5.ToString(),
-					await MD5Utils.ComputeMD5Async(Files.BackupObb, progress, token).ConfigureAwait(false));
+					await Md5Utils.ComputeMd5Async(Files.BackupObb, progress, token).ConfigureAwait(false));
 
 				return;
 			}
