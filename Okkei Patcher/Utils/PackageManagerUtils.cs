@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.Content;
 using Android.Content.PM;
+using Android.Net;
 using Android.OS;
 using OkkeiPatcher.Core;
 using Xamarin.Essentials;
@@ -24,7 +25,7 @@ namespace OkkeiPatcher.Utils
 
 		public static void UninstallPackage(Activity activity, string packageName)
 		{
-			var packageUri = Android.Net.Uri.Parse("package:" + packageName);
+			Uri packageUri = Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
 			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
 		}

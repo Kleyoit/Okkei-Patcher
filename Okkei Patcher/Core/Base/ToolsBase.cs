@@ -96,7 +96,7 @@ namespace OkkeiPatcher.Core.Base
 		protected void WriteBugReport(Exception ex)
 		{
 			IsRunning = true;
-			var bugReport = DebugUtils.GetBugReportText(ex);
+			string bugReport = DebugUtils.GetBugReportText(ex);
 			File.WriteAllText(BugReportLogPath, bugReport);
 			DisplayFatalErrorMessage(Resource.String.exception, Resource.String.exception_notice,
 				Resource.String.dialog_exit);

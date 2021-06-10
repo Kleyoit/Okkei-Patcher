@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Android.App;
 using Android.OS;
+using AndroidX.Fragment.App;
 using AndroidX.Lifecycle;
 using OkkeiPatcher.ViewModels;
 using Xamarin.Essentials;
@@ -23,14 +24,14 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
-			var context = RequireActivity();
+			FragmentActivity context = RequireActivity();
 			Cancelable = false;
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(Resource.String.attention)
 				.SetMessage(Resource.String.manifest_prompt)
 				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) => Task.Run(async () =>
 				{
-					var manifestRetrieved = await _viewModel.RetrieveManifestAsync();
+					bool manifestRetrieved = await _viewModel.RetrieveManifestAsync();
 					if (!manifestRetrieved) return;
 					if (_viewModel.IsPatchUpdateAvailable())
 					{

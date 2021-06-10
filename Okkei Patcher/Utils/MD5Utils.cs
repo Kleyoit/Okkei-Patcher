@@ -21,7 +21,7 @@ namespace OkkeiPatcher.Utils
 			CancellationToken token)
 		{
 			using var md5 = MD5.Create();
-			using var stream = File.OpenRead(filename);
+			using FileStream stream = File.OpenRead(filename);
 
 			const int bufferLength = 0x100000;
 			var buffer = new byte[bufferLength];

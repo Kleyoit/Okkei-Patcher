@@ -22,12 +22,12 @@ namespace OkkeiPatcher.Utils
 
 		public static string GetDeviceInfo()
 		{
-			var manufacturer = Build.Manufacturer;
-			var model = Build.Model;
-			var product = Build.Product;
-			var incremental = Build.VERSION.Incremental;
-			var release = Build.VERSION.Release;
-			var sdkInt = Build.VERSION.SdkInt;
+			string manufacturer = Build.Manufacturer;
+			string model = Build.Model;
+			string product = Build.Product;
+			string incremental = Build.VERSION.Incremental;
+			string release = Build.VERSION.Release;
+			BuildVersionCodes sdkInt = Build.VERSION.SdkInt;
 			return
 				$"manufacturer:       {manufacturer}\n" +
 				$"model:              {model}\n" +

@@ -135,7 +135,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 		private bool CheckIfCouldUnpatch()
 		{
-			var isPatched = Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
+			bool isPatched = Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
 			if (!isPatched)
 			{
 				DisplayErrorMessage(Resource.String.error, Resource.String.error_not_patched,

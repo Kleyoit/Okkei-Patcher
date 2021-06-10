@@ -40,7 +40,7 @@ namespace OkkeiPatcher.Views.Fragments
 				new ViewModelProvider(RequireActivity()).Get(Java.Lang.Class.FromType(typeof(MainViewModel))) as
 					MainViewModel;
 
-			var args = Arguments;
+			Bundle args = Arguments;
 			if (args == null) return;
 
 			_titleId = args.GetInt(TitleIdIntKey);

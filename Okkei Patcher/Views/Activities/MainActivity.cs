@@ -23,7 +23,8 @@ using PackageInstaller = Android.Content.PM.PackageInstaller;
 
 namespace OkkeiPatcher.Views.Activities
 {
-	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true, LaunchMode = LaunchMode.SingleTop)]
+	[Activity(Label = "@string/app_name", Theme = "@style/AppTheme", MainLauncher = true,
+		LaunchMode = LaunchMode.SingleTop)]
 	public class MainActivity : AppCompatActivity
 	{
 		private const string RequestingPermissionsBooleanKey = "RequestingPermissions";
@@ -49,7 +50,7 @@ namespace OkkeiPatcher.Views.Activities
 			SetStateFromViewModel();
 
 			SubscribeToViewsEvents();
-			
+
 			RequestReadWriteStoragePermissions();
 		}
 
@@ -83,8 +84,8 @@ namespace OkkeiPatcher.Views.Activities
 		protected override void OnNewIntent(Intent intent)
 		{
 			if (!Core.PackageInstaller.ActionPackageInstalled.Equals(intent.Action)) return;
-			var extras = intent.Extras;
-			var status = extras?.GetInt(PackageInstaller.ExtraStatus);
+			Bundle extras = intent.Extras;
+			int? status = extras?.GetInt(PackageInstaller.ExtraStatus);
 			//var message = extras?.GetString(PackageInstaller.ExtraStatusMessage);
 
 			switch (status)
@@ -104,7 +105,7 @@ namespace OkkeiPatcher.Views.Activities
 			[GeneratedEnum] Permission[] grantResults)
 		{
 			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
-			
+
 			if (requestCode != (int) RequestCodes.StoragePermissionRequestCode ||
 			    Build.VERSION.SdkInt < BuildVersionCodes.M) return;
 			if (grantResults[0] != Permission.Granted)
@@ -117,7 +118,7 @@ namespace OkkeiPatcher.Views.Activities
 				}
 
 				Preferences.Set(AppPrefkey.extstorage_permission_denied.ToString(), true);
-				
+
 				ExitAppDialogFragment.NewInstance(Resource.String.error, Resource.String.no_storage_permission)
 					.Show(SupportFragmentManager, nameof(ExitAppDialogFragment));
 
@@ -142,9 +143,9 @@ namespace OkkeiPatcher.Views.Activities
 
 		public override void OnBackPressed()
 		{
-			var lastBackPressedTimestampTemp = _lastBackPressedTimestamp;
+			int lastBackPressedTimestampTemp = _lastBackPressedTimestamp;
 			_lastBackPressedTimestamp = System.Environment.TickCount;
-			var sinceLastBackPressed = _lastBackPressedTimestamp - lastBackPressedTimestampTemp;
+			int sinceLastBackPressed = _lastBackPressedTimestamp - lastBackPressedTimestampTemp;
 
 			if (_backPressed && sinceLastBackPressed <= 2000)
 			{

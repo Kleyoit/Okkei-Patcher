@@ -26,7 +26,7 @@ namespace OkkeiPatcher.Core
 		private static void AddApkToInstallSession(Uri apkUri,
 			Android.Content.PM.PackageInstaller.Session session)
 		{
-			var packageInSession = session.OpenWrite("package", 0, -1);
+			Stream packageInSession = session.OpenWrite("package", 0, -1);
 			FileStream input = null;
 			if (apkUri.Path != null) input = new FileStream(apkUri.Path, FileMode.Open);
 
@@ -53,11 +53,12 @@ namespace OkkeiPatcher.Core
 		{
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
 			{
-				var packageInstaller = Application.Context.PackageManager.PackageInstaller;
+				Android.Content.PM.PackageInstaller packageInstaller =
+					Application.Context.PackageManager.PackageInstaller;
 				var sessionParams =
 					new Android.Content.PM.PackageInstaller.SessionParams(PackageInstallMode.FullInstall);
-				var sessionId = packageInstaller.CreateSession(sessionParams);
-				var session = packageInstaller.OpenSession(sessionId);
+				int sessionId = packageInstaller.CreateSession(sessionParams);
+				Android.Content.PM.PackageInstaller.Session session = packageInstaller.OpenSession(sessionId);
 
 				var observer = new PackageInstallObserver(packageInstaller);
 				observer.ProgressChanged += OnProgressChanged;
@@ -69,11 +70,11 @@ namespace OkkeiPatcher.Core
 				var intent = new Intent(activity, activity.Class);
 				intent.SetAction(ActionPackageInstalled);
 
-				var pendingIntent = PendingIntent.GetActivity(activity,
+				PendingIntent pendingIntent = PendingIntent.GetActivity(activity,
 					(int) RequestCodes.PendingIntentInstallCode,
 					intent, PendingIntentFlags.UpdateCurrent);
 
-				var statusReceiver = pendingIntent?.IntentSender;
+				IntentSender statusReceiver = pendingIntent?.IntentSender;
 
 				session.Commit(statusReceiver);
 			}

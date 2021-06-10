@@ -25,7 +25,7 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			base.OnCreate(savedInstanceState);
 
-			var args = Arguments;
+			Bundle args = Arguments;
 			if (args == null) return;
 
 			_permissions = args.GetStringArray(PermissionsStringArrayKey);

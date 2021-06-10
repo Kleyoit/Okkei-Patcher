@@ -8,13 +8,13 @@ namespace OkkeiPatcher.Utils
 
 		public static void RecursiveClearFiles(string path)
 		{
-			var files = Directory.GetFiles(path);
+			string[] files = Directory.GetFiles(path);
 			if (files.Length > 0)
-				foreach (var file in files)
+				foreach (string file in files)
 					File.Delete(file);
-			var directories = Directory.GetDirectories(path);
+			string[] directories = Directory.GetDirectories(path);
 			if (directories.Length == 0) return;
-			foreach (var dir in directories)
+			foreach (string dir in directories)
 			{
 				RecursiveClearFiles(dir);
 				Directory.Delete(dir);

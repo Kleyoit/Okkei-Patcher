@@ -12,9 +12,15 @@ namespace OkkeiPatcher.Core.Impl.English
 {
 	internal class ManifestTools : Base.ManifestTools
 	{
+		public ManifestTools()
+		{
+			ManifestUrl = "https://raw.githubusercontent.com/ForrrmerBlack/okkei-patcher/master/Manifest.json";
+		}
+
 		private OkkeiManifest ManifestImpl => Manifest as OkkeiManifest;
 
-		public override IPatchUpdates PatchUpdates => new PatchUpdates(IsScriptsUpdateAvailable(), IsObbUpdateAvailable());
+		public override IPatchUpdates PatchUpdates =>
+			new PatchUpdates(IsScriptsUpdateAvailable(), IsObbUpdateAvailable());
 
 		public override int PatchSizeInMb
 		{
@@ -27,19 +33,14 @@ namespace OkkeiPatcher.Core.Impl.English
 					return scriptsSize + obbSize;
 				}
 
-				var scriptsUpdateSize = IsScriptsUpdateAvailable()
+				int scriptsUpdateSize = IsScriptsUpdateAvailable()
 					? (int) Math.Round(ManifestImpl.Scripts.Size / (double) 0x100000)
 					: 0;
-				var obbUpdateSize = IsObbUpdateAvailable()
+				int obbUpdateSize = IsObbUpdateAvailable()
 					? (int) Math.Round(ManifestImpl.Obb.Size / (double) 0x100000)
 					: 0;
 				return scriptsUpdateSize + obbUpdateSize;
 			}
-		}
-
-		public ManifestTools()
-		{
-			ManifestUrl = "https://raw.githubusercontent.com/ForrrmerBlack/okkei-patcher/master/Manifest.json";
 		}
 
 		private bool IsScriptsUpdateAvailable()
@@ -48,7 +49,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			if (!Preferences.ContainsKey(FileVersionPrefkey.scripts_version.ToString()))
 				Preferences.Set(FileVersionPrefkey.scripts_version.ToString(), 1);
-			var scriptsVersion = Preferences.Get(FileVersionPrefkey.scripts_version.ToString(), 1);
+			int scriptsVersion = Preferences.Get(FileVersionPrefkey.scripts_version.ToString(), 1);
 			return ManifestImpl.Scripts.Version > scriptsVersion;
 		}
 
@@ -58,7 +59,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			if (!Preferences.ContainsKey(FileVersionPrefkey.obb_version.ToString()))
 				Preferences.Set(FileVersionPrefkey.obb_version.ToString(), 1);
-			var obbVersion = Preferences.Get(FileVersionPrefkey.obb_version.ToString(), 1);
+			int obbVersion = Preferences.Get(FileVersionPrefkey.obb_version.ToString(), 1);
 			return ManifestImpl.Obb.Version > obbVersion;
 		}
 

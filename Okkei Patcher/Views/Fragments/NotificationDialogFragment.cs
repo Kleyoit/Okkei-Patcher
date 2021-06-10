@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.OS;
 using OkkeiPatcher.Model.DTO;
+using AlertDialog = AndroidX.AppCompat.App.AlertDialog;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
 
 namespace OkkeiPatcher.Views.Fragments
@@ -36,7 +37,7 @@ namespace OkkeiPatcher.Views.Fragments
 		{
 			base.OnCreate(savedInstanceState);
 
-			var args = Arguments;
+			Bundle args = Arguments;
 			if (args == null) return;
 
 			_titleId = args.GetInt(TitleIdIntKey);
@@ -48,7 +49,7 @@ namespace OkkeiPatcher.Views.Fragments
 
 		public override Dialog OnCreateDialog(Bundle savedInstanceState)
 		{
-			var builder = new AndroidX.AppCompat.App.AlertDialog.Builder(RequireContext())
+			AlertDialog.Builder builder = new AlertDialog.Builder(RequireContext())
 				.SetTitle(_titleId);
 			if (_error != null)
 				builder.SetMessage(string.Format(GetText(_messageId), _error));

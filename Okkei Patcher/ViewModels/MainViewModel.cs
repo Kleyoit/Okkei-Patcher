@@ -8,13 +8,11 @@ using OkkeiPatcher.Core;
 using OkkeiPatcher.Core.Base;
 using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.DTO.Base;
 using OkkeiPatcher.Utils;
 using PropertyChanged;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.OkkeiFilesPaths;
-using ManifestTools = OkkeiPatcher.Core.Base.ManifestTools;
-using Patcher = OkkeiPatcher.Core.Base.Patcher;
-using Unpatcher = OkkeiPatcher.Core.Base.Unpatcher;
 
 namespace OkkeiPatcher.ViewModels
 {
@@ -32,6 +30,16 @@ namespace OkkeiPatcher.ViewModels
 		private bool _unpatcherEventsSubscribed;
 		private IInstallHandler _installHandler;
 		private IUninstallHandler _uninstallHandler;
+
+		public MainViewModel()
+		{
+			_progress = new Progress<ProgressInfo>(CoreOnProgressChanged);
+
+			SetApkIsPatchedPreferenceIfNotSet();
+			SetCheckBoxStatePreferenceIfNotSet();
+			SetLanguagePreferenceIfNotSet();
+			Init();
+		}
 
 		public bool PatchEnabled { get; private set; }
 		public bool UnpatchEnabled { get; private set; }
@@ -57,16 +65,6 @@ namespace OkkeiPatcher.ViewModels
 		public event EventHandler<MessageData> FatalErrorOccurred;
 		public event EventHandler<InstallMessageData> InstallMessageGenerated;
 		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
-
-		public MainViewModel()
-		{
-			_progress = new Progress<ProgressInfo>(CoreOnProgressChanged);
-
-			SetApkIsPatchedPreferenceIfNotSet();
-			SetCheckBoxStatePreferenceIfNotSet();
-			SetLanguagePreferenceIfNotSet();
-			Init();
-		}
 
 		private void OnProcessSavedataEnabledChanged()
 		{
@@ -104,8 +102,8 @@ namespace OkkeiPatcher.ViewModels
 
 		private ProcessState CreateProcessState()
 		{
-			var processSavedata = ProcessSavedataEnabled;
-			var patchUpdates = _manifestTools.Value.PatchUpdates;
+			bool processSavedata = ProcessSavedataEnabled;
+			IPatchUpdates patchUpdates = _manifestTools.Value.PatchUpdates;
 			return new ProcessState(processSavedata, patchUpdates);
 		}
 
@@ -130,7 +128,7 @@ namespace OkkeiPatcher.ViewModels
 
 		public bool IsPatchUpdateAvailable()
 		{
-			var isPatchUpdateAvailable = _manifestTools.Value.PatchUpdates.Available;
+			bool isPatchUpdateAvailable = _manifestTools.Value.PatchUpdates.Available;
 			if (isPatchUpdateAvailable) PatchEnabled = true;
 			return isPatchUpdateAvailable;
 		}

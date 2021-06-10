@@ -35,7 +35,8 @@ namespace OkkeiPatcher.Core.Base
 			Task.Run(() => InternalOnUninstallResultAsync(progress, token).OnException(WriteBugReport));
 		}
 
-		protected abstract Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress, CancellationToken token);
+		protected abstract Task
+			InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress, CancellationToken token);
 
 		public void Patch(ProcessState processState, OkkeiManifest manifest, IProgress<ProgressInfo> progress,
 			CancellationToken token)
@@ -55,18 +56,20 @@ namespace OkkeiPatcher.Core.Base
 			IsRunning = false;
 		}
 
-		protected abstract Task InternalOnUninstallResultAsync(IProgress<ProgressInfo> progress, CancellationToken token);
+		protected abstract Task InternalOnUninstallResultAsync(IProgress<ProgressInfo> progress,
+			CancellationToken token);
 
 		protected void DisplayUninstallMessage(int titleId, int messageId, int buttonTextId, string packageName)
 		{
-			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId,
+			UninstallMessageData data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId,
 				packageName);
 			UninstallMessageGenerated?.Invoke(this, data);
 		}
 
 		protected void DisplayInstallMessage(int titleId, int messageId, int buttonTextId, string filePath)
 		{
-			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
+			InstallMessageData data =
+				MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
 			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}

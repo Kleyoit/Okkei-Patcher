@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.DTO.Impl.English;
 using OkkeiPatcher.Model.Exceptions;
@@ -11,7 +12,6 @@ using OkkeiPatcher.Model.Manifest.Impl.English;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
-using ICSharpCode.SharpZipLib.Zip;
 using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Core.Impl.English
@@ -104,7 +104,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			UpdateStatus(Resource.String.write_obb_md5);
 
-			var obbHash = await Md5Utils.ComputeMd5Async(Files.ObbToReplace, progress, token)
+			string obbHash = await Md5Utils.ComputeMd5Async(Files.ObbToReplace, progress, token)
 				.ConfigureAwait(false);
 			if (obbHash != ManifestImpl.Obb.MD5)
 			{
@@ -138,7 +138,7 @@ namespace OkkeiPatcher.Core.Impl.English
 				if ((!PatchUpdates.ObbUpdate || PatchUpdates.ScriptsUpdate) &&
 				    (!Files.SignedApk.Exists || !Files.BackupApk.Exists))
 				{
-					var originalApkPath = RetrieveOriginalApkPath();
+					string originalApkPath = RetrieveOriginalApkPath();
 					await RetrieveOriginalApkAsync(originalApkPath, progress, token);
 					await BackupApkAsync(originalApkPath, progress, token);
 
@@ -146,7 +146,7 @@ namespace OkkeiPatcher.Core.Impl.English
 					{
 						await DownloadScriptsAsync(progress, token);
 
-						var extractedScriptsPath = Path.Combine(OkkeiFilesPath, "scripts");
+						string extractedScriptsPath = Path.Combine(OkkeiFilesPath, "scripts");
 						ExtractScripts(extractedScriptsPath, progress);
 
 						var apkZipFile = new ZipFile(Files.TempApk.FullPath);
@@ -211,7 +211,7 @@ namespace OkkeiPatcher.Core.Impl.English
 		{
 			UpdateStatus(Resource.String.checking);
 
-			var isPatched = Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
+			bool isPatched = Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
 
 			if (isPatched && !PatchUpdates.Available)
 			{
@@ -328,7 +328,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			UpdateStatus(Resource.String.write_scripts_md5);
 
-			var scriptsHash = await Md5Utils.ComputeMd5Async(Files.Scripts, progress, token)
+			string scriptsHash = await Md5Utils.ComputeMd5Async(Files.Scripts, progress, token)
 				.ConfigureAwait(false);
 			if (scriptsHash != ManifestImpl.Scripts.MD5)
 			{
@@ -354,15 +354,15 @@ namespace OkkeiPatcher.Core.Impl.English
 		{
 			progress.Reset();
 
-			var filePaths = Directory.GetFiles(scriptsPath);
-			var scriptsCount = filePaths.Length;
+			string[] filePaths = Directory.GetFiles(scriptsPath);
+			int scriptsCount = filePaths.Length;
 
 			UpdateStatus(Resource.String.replace_scripts);
 
 			apkZipFile.BeginUpdate();
 
 			var currentProgress = 0;
-			foreach (var scriptfile in filePaths)
+			foreach (string scriptfile in filePaths)
 			{
 				apkZipFile.Add(scriptfile, "assets/script/" + Path.GetFileName(scriptfile));
 				++currentProgress;

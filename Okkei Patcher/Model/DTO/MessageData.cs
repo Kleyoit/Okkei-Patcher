@@ -7,8 +7,9 @@
 		public int PositiveButtonTextId { get; }
 		public int NegativeButtonTextId { get; }
 		public string Error { get; }
-		
-		public MessageData(int titleId, int messageId, int positiveButtonTextId, int negativeButtonTextId = 0, string error = null)
+
+		public MessageData(int titleId, int messageId, int positiveButtonTextId, int negativeButtonTextId = 0,
+			string error = null)
 		{
 			TitleId = titleId;
 			MessageId = messageId;

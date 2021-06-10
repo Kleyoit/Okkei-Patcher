@@ -53,13 +53,15 @@ namespace OkkeiPatcher.Core.Base
 
 		protected void DisplayUninstallMessage(int titleId, int messageId, int buttonTextId, string packageName)
 		{
-			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId, packageName);
+			UninstallMessageData data =
+				MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId, packageName);
 			UninstallMessageGenerated?.Invoke(this, data);
 		}
 
 		protected void DisplayInstallMessage(int titleId, int messageId, int buttonTextId, string filePath)
 		{
-			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
+			InstallMessageData data =
+				MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
 			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}

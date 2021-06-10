@@ -136,7 +136,7 @@ namespace OkkeiPatcher.Core.Base
 			T manifest;
 			try
 			{
-				var json = File.ReadAllText(ManifestPath);
+				string json = File.ReadAllText(ManifestPath);
 				manifest = JsonSerializer.Deserialize<T>(json);
 			}
 			catch
@@ -157,7 +157,7 @@ namespace OkkeiPatcher.Core.Base
 
 			try
 			{
-				var json = File.ReadAllText(ManifestBackupPath);
+				string json = File.ReadAllText(ManifestBackupPath);
 				manifest = JsonSerializer.Deserialize<T>(json);
 			}
 			catch
@@ -193,7 +193,8 @@ namespace OkkeiPatcher.Core.Base
 				await DownloadAppUpdateAsync(progress, token);
 
 				UpdateStatus(Resource.String.compare_apk);
-				var updateHash = await Md5Utils.ComputeMd5Async(AppUpdatePath, progress, token).ConfigureAwait(false);
+				string updateHash =
+					await Md5Utils.ComputeMd5Async(AppUpdatePath, progress, token).ConfigureAwait(false);
 
 				if (updateHash != Manifest.OkkeiPatcher.MD5)
 				{
@@ -255,7 +256,8 @@ namespace OkkeiPatcher.Core.Base
 
 		private void DisplayInstallMessage(int titleId, int messageId, int buttonTextId, string filePath)
 		{
-			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
+			InstallMessageData data =
+				MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
 			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}

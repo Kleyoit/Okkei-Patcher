@@ -50,7 +50,7 @@ namespace OkkeiPatcher.Utils
 			progress.Reset();
 
 			Directory.CreateDirectory(outFilePath);
-			var outPath = Path.Combine(outFilePath, outFileName);
+			string outPath = Path.Combine(outFilePath, outFileName);
 			if (File.Exists(outPath)) File.Delete(outPath);
 
 			var output = new FileStream(outPath, FileMode.OpenOrCreate);
@@ -91,7 +91,7 @@ namespace OkkeiPatcher.Utils
 
 			output.Dispose();
 
-			var outFile = Path.Combine(outFilePath, outFileName);
+			string outFile = Path.Combine(outFilePath, outFileName);
 			if (token.IsCancellationRequested && File.Exists(outFile)) File.Delete(outFile);
 
 			token.ThrowIfCancellationRequested();
@@ -122,7 +122,7 @@ namespace OkkeiPatcher.Utils
 			if (outFileName == null) throw new ArgumentNullException(nameof(outFileName));
 
 			Directory.CreateDirectory(outFilePath);
-			var outPath = Path.Combine(outFilePath, outFileName);
+			string outPath = Path.Combine(outFilePath, outFileName);
 			if (File.Exists(outPath)) File.Delete(outPath);
 			var output = new FileStream(outPath, FileMode.OpenOrCreate);
 
@@ -134,13 +134,14 @@ namespace OkkeiPatcher.Utils
 			try
 			{
 				int length;
-				var response = await Client.Value.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
+				HttpResponseMessage response = await Client.Value
+					.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
 					.ConfigureAwait(false);
 
 				if (response.StatusCode != HttpStatusCode.OK)
 					throw new HttpStatusCodeException(response.StatusCode);
 
-				var contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
+				int contentLength = (int?) response.Content.Headers.ContentLength ?? int.MaxValue;
 				download = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
 				while ((length = download.Read(buffer)) > 0 && !token.IsCancellationRequested)
@@ -154,7 +155,7 @@ namespace OkkeiPatcher.Utils
 				//await Task.Delay(1);    // Xamarin debugger bug workaround
 				download?.Dispose();
 				output.Dispose();
-				var downloadedFile = Path.Combine(outFilePath, outFileName);
+				string downloadedFile = Path.Combine(outFilePath, outFileName);
 				if (token.IsCancellationRequested && File.Exists(downloadedFile))
 					File.Delete(downloadedFile);
 				token.ThrowIfCancellationRequested();
