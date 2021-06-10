@@ -97,7 +97,7 @@ namespace OkkeiPatcher.ViewModels
 		private static void SetLanguagePreferenceIfNotSet()
 		{
 			if (Preferences.ContainsKey(AppPrefkey.patch_language.ToString())) return;
-			Preferences.Set(Languages.English.ToString(), true);
+			Preferences.Set(AppPrefkey.patch_language.ToString(), Languages.English.ToString());
 		}
 
 		private ProcessState CreateProcessState()
