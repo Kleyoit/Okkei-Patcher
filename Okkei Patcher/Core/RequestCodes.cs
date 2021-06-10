@@ -1,6 +1,6 @@
 ﻿namespace OkkeiPatcher.Core
 {
-	public enum RequestCodes
+	internal enum RequestCodes
 	{
 		UnknownAppSourceSettingsCode,
 		StoragePermissionSettingsCode,

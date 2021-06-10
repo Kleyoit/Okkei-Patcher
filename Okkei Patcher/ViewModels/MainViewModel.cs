@@ -5,35 +5,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using AndroidX.Lifecycle;
 using OkkeiPatcher.Core;
+using OkkeiPatcher.Core.Base;
 using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using PropertyChanged;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.OkkeiFilesPaths;
+using ManifestTools = OkkeiPatcher.Core.Base.ManifestTools;
+using Patcher = OkkeiPatcher.Core.Base.Patcher;
+using Unpatcher = OkkeiPatcher.Core.Base.Unpatcher;
 
 namespace OkkeiPatcher.ViewModels
 {
 	internal class MainViewModel : ViewModel, INotifyPropertyChanged
 	{
-		private readonly Lazy<Patcher> _patcher = new Lazy<Patcher>(() => new Patcher());
-		private readonly Lazy<Unpatcher> _unpatcher = new Lazy<Unpatcher>(() => new Unpatcher());
-		private readonly Lazy<ManifestTools> _manifestTools = new Lazy<ManifestTools>(() => new ManifestTools());
+		private readonly Lazy<Patcher> _patcher = new Lazy<Patcher>(() => new Core.Impl.English.Patcher());
+		private readonly Lazy<Unpatcher> _unpatcher = new Lazy<Unpatcher>(() => new Core.Impl.English.Unpatcher());
+
+		private readonly Lazy<ManifestTools> _manifestTools =
+			new Lazy<ManifestTools>(() => new Core.Impl.English.ManifestTools());
+
 		private readonly Progress<ProgressInfo> _progress;
 		private CancellationTokenSource _cancelTokenSource = new CancellationTokenSource();
 		private bool _patcherEventsSubscribed;
 		private bool _unpatcherEventsSubscribed;
 		private IInstallHandler _installHandler;
 		private IUninstallHandler _uninstallHandler;
-
-		public MainViewModel()
-		{
-			_progress = new Progress<ProgressInfo>(CoreOnProgressChanged);
-
-			SetApkIsPatchedPreferenceIfNotSet();
-			SetCheckBoxStatePreferenceIfNotSet();
-			Init();
-		}
 
 		public bool PatchEnabled { get; private set; }
 		public bool UnpatchEnabled { get; private set; }
@@ -52,9 +50,7 @@ namespace OkkeiPatcher.ViewModels
 		public bool CanPatch => !Unpatching && !_cancelTokenSource.IsCancellationRequested;
 		public bool CanUnpatch => !Patching && !_cancelTokenSource.IsCancellationRequested;
 		public IProgress<ProgressInfo> ProgressProvider => _progress;
-
-		[DoNotNotify]
-		public bool Exiting { get; set; }
+		[DoNotNotify] public bool Exiting { get; set; }
 
 		public event PropertyChangedEventHandler PropertyChanged;
 		public event EventHandler<MessageData> MessageGenerated;
@@ -62,9 +58,19 @@ namespace OkkeiPatcher.ViewModels
 		public event EventHandler<InstallMessageData> InstallMessageGenerated;
 		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
+		public MainViewModel()
+		{
+			_progress = new Progress<ProgressInfo>(CoreOnProgressChanged);
+
+			SetApkIsPatchedPreferenceIfNotSet();
+			SetCheckBoxStatePreferenceIfNotSet();
+			SetLanguagePreferenceIfNotSet();
+			Init();
+		}
+
 		private void OnProcessSavedataEnabledChanged()
 		{
-			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), ProcessSavedataEnabled);
+			Preferences.Set(AppPrefkey.backup_restore_savedata.ToString(), ProcessSavedataEnabled);
 		}
 
 		private void Init()
@@ -72,7 +78,7 @@ namespace OkkeiPatcher.ViewModels
 			PatchText = Resource.String.patch;
 			UnpatchText = Resource.String.unpatch;
 			ClearDataEnabled = true;
-			ProcessSavedataEnabled = Preferences.Get(Prefkey.backup_restore_savedata.ToString(), true);
+			ProcessSavedataEnabled = Preferences.Get(AppPrefkey.backup_restore_savedata.ToString(), true);
 			Status = Resource.String.empty;
 			PatchEnabled = !IsPatched();
 			UnpatchEnabled = IsPatched();
@@ -80,27 +86,32 @@ namespace OkkeiPatcher.ViewModels
 
 		private static void SetApkIsPatchedPreferenceIfNotSet()
 		{
-			if (Preferences.ContainsKey(Prefkey.apk_is_patched.ToString())) return;
-			Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
+			if (Preferences.ContainsKey(AppPrefkey.apk_is_patched.ToString())) return;
+			Preferences.Set(AppPrefkey.apk_is_patched.ToString(), false);
 		}
 
 		private static void SetCheckBoxStatePreferenceIfNotSet()
 		{
-			if (Preferences.ContainsKey(Prefkey.backup_restore_savedata.ToString())) return;
-			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
+			if (Preferences.ContainsKey(AppPrefkey.backup_restore_savedata.ToString())) return;
+			Preferences.Set(AppPrefkey.backup_restore_savedata.ToString(), true);
+		}
+
+		private static void SetLanguagePreferenceIfNotSet()
+		{
+			if (Preferences.ContainsKey(AppPrefkey.patch_language.ToString())) return;
+			Preferences.Set(Languages.English.ToString(), true);
 		}
 
 		private ProcessState CreateProcessState()
 		{
 			var processSavedata = ProcessSavedataEnabled;
-			var scriptsUpdate = _manifestTools.Value.IsScriptsUpdateAvailable;
-			var obbUpdate = _manifestTools.Value.IsObbUpdateAvailable;
-			return new ProcessState(processSavedata, scriptsUpdate, obbUpdate);
+			var patchUpdates = _manifestTools.Value.PatchUpdates;
+			return new ProcessState(processSavedata, patchUpdates);
 		}
 
 		private static bool IsPatched()
 		{
-			return Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+			return Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
 		}
 
 		public async Task<bool> RetrieveManifestAsync()
@@ -119,7 +130,7 @@ namespace OkkeiPatcher.ViewModels
 
 		public bool IsPatchUpdateAvailable()
 		{
-			var isPatchUpdateAvailable = _manifestTools.Value.IsPatchUpdateAvailable;
+			var isPatchUpdateAvailable = _manifestTools.Value.PatchUpdates.Available;
 			if (isPatchUpdateAvailable) PatchEnabled = true;
 			return isPatchUpdateAvailable;
 		}
@@ -131,12 +142,12 @@ namespace OkkeiPatcher.ViewModels
 
 		public int GetPatchSize()
 		{
-			return _manifestTools.Value.PatchSizeInMB;
+			return _manifestTools.Value.PatchSizeInMb;
 		}
 
 		public double GetAppUpdateSize()
 		{
-			return _manifestTools.Value.AppUpdateSizeInMB;
+			return _manifestTools.Value.AppUpdateSizeInMb;
 		}
 
 		public string GetAppChangelog()
@@ -216,7 +227,7 @@ namespace OkkeiPatcher.ViewModels
 				_cancelTokenSource = new CancellationTokenSource();
 
 				PatchText = Resource.String.patch;
-				PatchEnabled = !IsPatched() || _manifestTools.Value.IsPatchUpdateAvailable;
+				PatchEnabled = !IsPatched() || _manifestTools.Value.PatchUpdates.Available;
 				UnpatchEnabled = IsPatched();
 				ClearDataEnabled = true;
 				return;
@@ -330,8 +341,8 @@ namespace OkkeiPatcher.ViewModels
 		public void ClearData()
 		{
 			Preferences.Clear();
-			Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
-			Preferences.Set(Prefkey.backup_restore_savedata.ToString(), true);
+			Preferences.Set(AppPrefkey.apk_is_patched.ToString(), false);
+			Preferences.Set(AppPrefkey.backup_restore_savedata.ToString(), true);
 
 			ClearOkkeiFiles();
 
@@ -344,8 +355,7 @@ namespace OkkeiPatcher.ViewModels
 		private static void ClearOkkeiFiles()
 		{
 			if (Directory.Exists(OkkeiFilesPath)) FileUtils.RecursiveClearFiles(OkkeiFilesPath);
-			FileUtils.DeleteIfExists(ManifestTools.ManifestPath);
-			FileUtils.DeleteIfExists(ManifestTools.ManifestBackupPath);
+			ManifestTools.DeleteManifest();
 		}
 
 		protected override void OnCleared()

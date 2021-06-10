@@ -14,7 +14,7 @@ namespace OkkeiPatcher.Views.Fragments
 		private int _titleId, _messageId;
 		private string _packageName;
 
-		public static UninstallDialogFragment NewInstance(UninstallMessageData messageData)
+		internal static UninstallDialogFragment NewInstance(UninstallMessageData messageData)
 		{
 			var fragment = new UninstallDialogFragment();
 			var args = new Bundle();

@@ -2,7 +2,7 @@
 
 namespace OkkeiPatcher.Utils
 {
-	public static class MessageDataUtils
+	internal static class MessageDataUtils
 	{
 		public static InstallMessageData CreateInstallMessageData(int titleId, int messageId, int buttonTextId,
 			string filePath)

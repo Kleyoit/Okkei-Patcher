@@ -2,7 +2,7 @@
 using System.Threading;
 using OkkeiPatcher.Model.DTO;
 
-namespace OkkeiPatcher.Core
+namespace OkkeiPatcher.Core.Base
 {
 	internal interface IInstallHandler
 	{

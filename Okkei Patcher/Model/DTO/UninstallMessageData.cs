@@ -1,6 +1,6 @@
 ﻿namespace OkkeiPatcher.Model.DTO
 {
-	public readonly struct UninstallMessageData
+	internal readonly struct UninstallMessageData
 	{
 		public MessageData Data { get; }
 		public string PackageName { get; }

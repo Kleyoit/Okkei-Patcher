@@ -1,17 +1,16 @@
-﻿namespace OkkeiPatcher.Model.DTO
+﻿using OkkeiPatcher.Model.DTO.Base;
+
+namespace OkkeiPatcher.Model.DTO
 {
 	internal readonly struct ProcessState
 	{
-		public ProcessState(bool processSavedata, bool scriptsUpdate, bool obbUpdate)
+		public ProcessState(bool processSavedata, IPatchUpdates patchUpdates)
 		{
 			ProcessSavedata = processSavedata;
-			ScriptsUpdate = scriptsUpdate;
-			ObbUpdate = obbUpdate;
+			PatchUpdates = patchUpdates;
 		}
 
 		public bool ProcessSavedata { get; }
-		public bool ScriptsUpdate { get; }
-		public bool ObbUpdate { get; }
-		public bool PatchUpdate => ScriptsUpdate || ObbUpdate;
+		public IPatchUpdates PatchUpdates { get; }
 	}
 }

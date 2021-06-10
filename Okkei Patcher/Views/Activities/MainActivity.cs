@@ -14,7 +14,6 @@ using AndroidX.Lifecycle;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Snackbar;
 using OkkeiPatcher.Core;
-using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.ViewModels;
 using OkkeiPatcher.Views.Fragments;
@@ -117,7 +116,7 @@ namespace OkkeiPatcher.Views.Activities
 					return;
 				}
 
-				Preferences.Set(Prefkey.extstorage_permission_denied.ToString(), true);
+				Preferences.Set(AppPrefkey.extstorage_permission_denied.ToString(), true);
 				
 				ExitAppDialogFragment.NewInstance(Resource.String.error, Resource.String.no_storage_permission)
 					.Show(SupportFragmentManager, nameof(ExitAppDialogFragment));
@@ -126,7 +125,7 @@ namespace OkkeiPatcher.Views.Activities
 			}
 
 			_requestingPermissions = false;
-			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
+			Preferences.Remove(AppPrefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
 
 			if (!RequestInstallPackagesPermission()) return;
@@ -192,7 +191,7 @@ namespace OkkeiPatcher.Views.Activities
 				return;
 			}
 
-			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
+			Preferences.Remove(AppPrefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
 
 			if (!RequestInstallPackagesPermission()) return;
@@ -392,7 +391,7 @@ namespace OkkeiPatcher.Views.Activities
 			    CheckSelfPermission(Manifest.Permission.WriteExternalStorage) != Permission.Granted)
 			{
 				_requestingPermissions = true;
-				if (!Preferences.Get(Prefkey.extstorage_permission_denied.ToString(), false))
+				if (!Preferences.Get(AppPrefkey.extstorage_permission_denied.ToString(), false))
 				{
 					string[] extStoragePermissions =
 						{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
@@ -406,7 +405,7 @@ namespace OkkeiPatcher.Views.Activities
 				return;
 			}
 
-			Preferences.Remove(Prefkey.extstorage_permission_denied.ToString());
+			Preferences.Remove(AppPrefkey.extstorage_permission_denied.ToString());
 			Directory.CreateDirectory(OkkeiFilesPath);
 
 			if (!RequestInstallPackagesPermission()) return;

@@ -5,12 +5,12 @@ using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
-namespace OkkeiPatcher.Core
+namespace OkkeiPatcher.Core.Base
 {
-	internal class ToolsBase : INotifyPropertyChanged
+	internal abstract class ToolsBase : INotifyPropertyChanged
 	{
-		protected const string ChaosChildPackageName = "com.mages.chaoschild_jp";
 		private static readonly string BugReportLogPath = Path.Combine(OkkeiFilesPath, "bugreport.log");
+		protected const string ChaosChildPackageName = "com.mages.chaoschild_jp";
 		protected ProcessState ProcessState;
 
 		public bool IsRunning { get; protected set; }

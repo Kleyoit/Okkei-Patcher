@@ -1,6 +1,6 @@
 ﻿namespace OkkeiPatcher.Model.DTO
 {
-	public readonly struct InstallMessageData
+	internal readonly struct InstallMessageData
 	{
 		public MessageData Data { get; }
 		public string FilePath { get; }

@@ -1,4 +1,6 @@
-﻿namespace OkkeiPatcher.Model.Files
+﻿using OkkeiPatcher.Model.Files.Impl;
+
+namespace OkkeiPatcher.Model.Files
 {
 	internal static class Files
 	{

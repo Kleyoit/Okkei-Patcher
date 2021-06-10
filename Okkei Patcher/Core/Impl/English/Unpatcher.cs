@@ -1,38 +1,20 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.DTO.Impl.English;
 using OkkeiPatcher.Model.Files;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
 
-namespace OkkeiPatcher.Core
+namespace OkkeiPatcher.Core.Impl.English
 {
-	internal class Unpatcher : ToolsBase, IInstallHandler, IUninstallHandler
+	internal class Unpatcher : Base.Unpatcher
 	{
-		public event EventHandler<InstallMessageData> InstallMessageGenerated;
-		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
+		private PatchUpdates PatchUpdates => ProcessState.PatchUpdates as PatchUpdates;
 
-		public void NotifyInstallFailed()
-		{
-			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.install_error, Resource.String.dialog_ok);
-			IsRunning = false;
-		}
-
-		public void OnInstallSuccess(IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
-		}
-
-		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalOnUninstallResultAsync(progress, token).OnException(WriteBugReport));
-		}
-
-		private async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress,
+		protected override async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
@@ -46,7 +28,7 @@ namespace OkkeiPatcher.Core
 				await RecoverPreviousSavedataBackupAsync(progress, token);
 				ClearBackup();
 
-				Preferences.Set(Prefkey.apk_is_patched.ToString(), false);
+				Preferences.Set(AppPrefkey.apk_is_patched.ToString(), false);
 
 				UpdateStatus(Resource.String.unpatch_success);
 			}
@@ -106,7 +88,7 @@ namespace OkkeiPatcher.Core
 				Files.TempSavedata.MoveTo(Files.BackupSavedata);
 
 				UpdateStatus(Resource.String.write_saves_md5);
-				Preferences.Set(Prefkey.savedata_md5.ToString(),
+				Preferences.Set(FilePrefkey.savedata_md5.ToString(),
 					await Md5Utils.ComputeMd5Async(Files.BackupSavedata, progress, token)
 						.ConfigureAwait(false));
 			}
@@ -118,12 +100,7 @@ namespace OkkeiPatcher.Core
 			Files.BackupObb.DeleteIfExists();
 		}
 
-		public void Unpatch(ProcessState processState, IProgress<ProgressInfo> progress, CancellationToken token)
-		{
-			Task.Run(() => InternalUnpatchAsync(processState, progress, token).OnException(WriteBugReport));
-		}
-
-		private async Task InternalUnpatchAsync(ProcessState processState, IProgress<ProgressInfo> progress,
+		protected override async Task InternalUnpatchAsync(ProcessState processState, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
 			IsRunning = true;
@@ -158,7 +135,7 @@ namespace OkkeiPatcher.Core
 
 		private bool CheckIfCouldUnpatch()
 		{
-			var isPatched = Preferences.Get(Prefkey.apk_is_patched.ToString(), false);
+			var isPatched = Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
 			if (!isPatched)
 			{
 				DisplayErrorMessage(Resource.String.error, Resource.String.error_not_patched,
@@ -214,21 +191,15 @@ namespace OkkeiPatcher.Core
 				Files.BackupApk.FullPath);
 		}
 
-		private bool CheckUninstallSuccess(IProgress<ProgressInfo> progress)
-		{
-			if (!PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) || ProcessState.ScriptsUpdate) return true;
-
-			progress.Reset();
-			SetStatusToAborted();
-			DisplayMessage(Resource.String.error, Resource.String.uninstall_error, Resource.String.dialog_ok);
-			IsRunning = false;
-			return false;
-		}
-
-		private async Task InternalOnUninstallResultAsync(IProgress<ProgressInfo> progress,
+		protected override async Task InternalOnUninstallResultAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			if (!IsRunning || !CheckUninstallSuccess(progress)) return;
+			if (!IsRunning) return;
+			if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) && !PatchUpdates.ScriptsUpdate)
+			{
+				OnUninstallFail(progress);
+				return;
+			}
 
 			try
 			{
@@ -262,18 +233,6 @@ namespace OkkeiPatcher.Core
 				progress.Reset();
 				IsRunning = false;
 			}
-		}
-
-		private void DisplayUninstallMessage(int titleId, int messageId, int buttonTextId, string packageName)
-		{
-			var data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId, packageName);
-			UninstallMessageGenerated?.Invoke(this, data);
-		}
-
-		private void DisplayInstallMessage(int titleId, int messageId, int buttonTextId, string filePath)
-		{
-			var data = MessageDataUtils.CreateInstallMessageData(titleId, messageId, buttonTextId, filePath);
-			InstallMessageGenerated?.Invoke(this, data);
 		}
 	}
 }

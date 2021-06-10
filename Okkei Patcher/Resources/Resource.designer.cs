@@ -25,8 +25,6 @@ namespace OkkeiPatcher
 		
 		public static void UpdateIdValues()
 		{
-			global::SignApk.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
-			global::Xamarin.Essentials.Resource.String.app_name = global::OkkeiPatcher.Resource.String.app_name;
 		}
 		
 		public partial class Animation

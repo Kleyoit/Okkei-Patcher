@@ -6,20 +6,20 @@ using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
 using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
-namespace OkkeiPatcher.Model.Files
+namespace OkkeiPatcher.Model.Files.Impl
 {
-	internal class BackupObb : VerifiableFile
+	internal class SignedApk : VerifiableFile
 	{
-		public BackupObb()
+		public SignedApk()
 		{
-			Directory = OkkeiFilesBackupPath;
-			FileName = "main.87.com.mages.chaoschild_jp.obb";
+			Directory = OkkeiFilesPath;
+			FileName = "signed.apk";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			var md5 = string.Empty;
-			var md5ToCompare = Preferences.Get(Prefkey.backup_obb_md5.ToString(), string.Empty);
+			var md5ToCompare = Preferences.Get(FilePrefkey.signed_apk_md5.ToString(), string.Empty);
 			if (md5ToCompare == string.Empty) return false;
 			if (Exists)
 				md5 = await Md5Utils.ComputeMd5Async(FullPath, progress, token).ConfigureAwait(false);

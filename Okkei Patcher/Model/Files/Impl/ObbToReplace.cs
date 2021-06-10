@@ -4,26 +4,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
+using Xamarin.Essentials;
 
-namespace OkkeiPatcher.Model.Files
+namespace OkkeiPatcher.Model.Files.Impl
 {
-	internal class OriginalSavedata : VerifiableFile
+	internal class ObbToReplace : VerifiableFile
 	{
-		public OriginalSavedata()
+		public ObbToReplace()
 		{
 			Directory = Path.Combine(Android.OS.Environment.ExternalStorageDirectory.AbsolutePath,
-				"Android/data/com.mages.chaoschild_jp/files");
-			FileName = "SAVEDATA.DAT";
+				"Android/obb/com.mages.chaoschild_jp");
+			FileName = "main.87.com.mages.chaoschild_jp.obb";
 		}
 
 		public override async Task<bool> VerifyAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			var backupSavedata = new BackupSavedata();
 			var md5 = string.Empty;
-			var md5ToCompare = string.Empty;
-			if (backupSavedata.Exists)
-				md5ToCompare = await Md5Utils.ComputeMd5Async(backupSavedata.FullPath, progress, token)
-					.ConfigureAwait(false);
+			var md5ToCompare = Preferences.Get(FilePrefkey.downloaded_obb_md5.ToString(), string.Empty);
 			if (md5ToCompare == string.Empty) return false;
 			if (Exists)
 				md5 = await Md5Utils.ComputeMd5Async(FullPath, progress, token).ConfigureAwait(false);

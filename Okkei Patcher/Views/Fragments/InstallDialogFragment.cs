@@ -19,7 +19,7 @@ namespace OkkeiPatcher.Views.Fragments
 		private string _filePath;
 		private MainViewModel _viewModel;
 
-		public static InstallDialogFragment NewInstance(InstallMessageData messageData)
+		internal static InstallDialogFragment NewInstance(InstallMessageData messageData)
 		{
 			var fragment = new InstallDialogFragment();
 			var args = new Bundle();

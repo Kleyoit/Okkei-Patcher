@@ -3,7 +3,7 @@ using System.Net;
 
 namespace OkkeiPatcher.Model.Exceptions
 {
-	internal class HttpStatusCodeException : Exception
+	public class HttpStatusCodeException : Exception
 	{
 		public HttpStatusCodeException(HttpStatusCode statusCode)
 		{

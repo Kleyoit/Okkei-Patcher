@@ -14,7 +14,7 @@ namespace OkkeiPatcher.Views.Fragments
 		private int _titleId, _messageId;
 		private MainViewModel _viewModel;
 
-		public static ExitAppDialogFragment NewInstance(MessageData messageData)
+		internal static ExitAppDialogFragment NewInstance(MessageData messageData)
 		{
 			return NewInstance(messageData.TitleId, messageData.MessageId);
 		}

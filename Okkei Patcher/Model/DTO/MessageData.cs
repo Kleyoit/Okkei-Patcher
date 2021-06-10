@@ -1,6 +1,6 @@
 ﻿namespace OkkeiPatcher.Model.DTO
 {
-	public readonly struct MessageData
+	internal readonly struct MessageData
 	{
 		public int TitleId { get; }
 		public int MessageId { get; }

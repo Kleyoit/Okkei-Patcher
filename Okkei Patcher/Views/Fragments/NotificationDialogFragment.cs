@@ -15,7 +15,7 @@ namespace OkkeiPatcher.Views.Fragments
 		private int _titleId, _messageId, _positiveButtonTextId, _negativeButtonTextId;
 		private string _error;
 
-		public static NotificationDialogFragment NewInstance(MessageData messageData)
+		internal static NotificationDialogFragment NewInstance(MessageData messageData)
 		{
 			var fragment = new NotificationDialogFragment();
 			var args = new Bundle();
