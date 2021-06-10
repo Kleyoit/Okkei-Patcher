@@ -339,8 +339,9 @@ namespace OkkeiPatcher.ViewModels
 		public void ClearData()
 		{
 			Preferences.Clear();
-			Preferences.Set(AppPrefkey.apk_is_patched.ToString(), false);
-			Preferences.Set(AppPrefkey.backup_restore_savedata.ToString(), true);
+			SetApkIsPatchedPreferenceIfNotSet();
+			SetCheckBoxStatePreferenceIfNotSet();
+			SetLanguagePreferenceIfNotSet();
 
 			ClearOkkeiFiles();
 
