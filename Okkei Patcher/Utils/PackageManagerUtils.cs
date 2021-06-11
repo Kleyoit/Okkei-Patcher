@@ -27,7 +27,7 @@ namespace OkkeiPatcher.Utils
 		{
 			Uri packageUri = Uri.Parse("package:" + packageName);
 			var uninstallIntent = new Intent(Intent.ActionDelete, packageUri);
-			activity.StartActivityForResult(uninstallIntent, (int) RequestCodes.UninstallCode);
+			activity.StartActivityForResult(uninstallIntent, (int) RequestCode.UninstallCode);
 		}
 
 		public static string GetPackagePublicSourceDir(string packageName)

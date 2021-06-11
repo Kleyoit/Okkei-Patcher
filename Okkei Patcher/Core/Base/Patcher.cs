@@ -3,7 +3,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
-using OkkeiPatcher.Model.Manifest.Base;
+using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 
@@ -16,7 +16,6 @@ namespace OkkeiPatcher.Core.Base
 		protected X509Certificate2 SigningCertificate;
 
 		public event EventHandler<InstallMessageData> InstallMessageGenerated;
-		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void NotifyInstallFailed()
 		{
@@ -29,6 +28,8 @@ namespace OkkeiPatcher.Core.Base
 		{
 			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
 		}
+
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
@@ -45,8 +46,7 @@ namespace OkkeiPatcher.Core.Base
 		}
 
 		protected abstract Task InternalPatchAsync(ProcessState processState, OkkeiManifest manifest,
-			IProgress<ProgressInfo> progress,
-			CancellationToken token);
+			IProgress<ProgressInfo> progress, CancellationToken token);
 
 		protected void OnUninstallFail(IProgress<ProgressInfo> progress)
 		{
@@ -61,8 +61,8 @@ namespace OkkeiPatcher.Core.Base
 
 		protected void DisplayUninstallMessage(int titleId, int messageId, int buttonTextId, string packageName)
 		{
-			UninstallMessageData data = MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId,
-				packageName);
+			UninstallMessageData data =
+				MessageDataUtils.CreateUninstallMessageData(titleId, messageId, buttonTextId, packageName);
 			UninstallMessageGenerated?.Invoke(this, data);
 		}
 

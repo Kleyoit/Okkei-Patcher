@@ -40,7 +40,7 @@ namespace OkkeiPatcher.Views.Fragments
 				.SetPositiveButton(Resource.String.dialog_ok,
 					(sender, e) =>
 						RequireActivity()
-							.RequestPermissions(_permissions, (int) RequestCodes.StoragePermissionRequestCode))
+							.RequestPermissions(_permissions, (int) RequestCode.StoragePermissionRequestCode))
 				.SetNegativeButton(Resource.String.dialog_exit, (sender, e) => System.Environment.Exit(0))
 				.Create();
 		}

@@ -14,11 +14,11 @@ using AndroidX.Lifecycle;
 using Google.Android.Material.FloatingActionButton;
 using Google.Android.Material.Snackbar;
 using OkkeiPatcher.Core;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.ViewModels;
 using OkkeiPatcher.Views.Fragments;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.OkkeiFilesPaths;
 using PackageInstaller = Android.Content.PM.PackageInstaller;
 
 namespace OkkeiPatcher.Views.Activities
@@ -60,16 +60,16 @@ namespace OkkeiPatcher.Views.Activities
 
 			switch (requestCode)
 			{
-				case (int) RequestCodes.UnknownAppSourceSettingsCode:
+				case (int) RequestCode.UnknownAppSourceSettingsCode:
 					OnRequestInstallPermissionResult();
 					break;
-				case (int) RequestCodes.StoragePermissionSettingsCode:
+				case (int) RequestCode.StoragePermissionSettingsCode:
 					OnRequestStoragePermissionResult();
 					break;
-				case (int) RequestCodes.UninstallCode:
+				case (int) RequestCode.UninstallCode:
 					_viewModel.OnUninstallResult();
 					break;
-				case (int) RequestCodes.KitKatInstallCode:
+				case (int) RequestCode.KitKatInstallCode:
 					if (resultCode == Result.Ok)
 					{
 						_viewModel.OnInstallSuccess();
@@ -106,7 +106,7 @@ namespace OkkeiPatcher.Views.Activities
 		{
 			base.OnRequestPermissionsResult(requestCode, permissions, grantResults);
 
-			if (requestCode != (int) RequestCodes.StoragePermissionRequestCode ||
+			if (requestCode != (int) RequestCode.StoragePermissionRequestCode ||
 			    Build.VERSION.SdkInt < BuildVersionCodes.M) return;
 			if (grantResults[0] != Permission.Granted)
 			{
@@ -127,7 +127,7 @@ namespace OkkeiPatcher.Views.Activities
 
 			_requestingPermissions = false;
 			Preferences.Remove(AppPrefkey.extstorage_permission_denied.ToString());
-			Directory.CreateDirectory(OkkeiFilesPath);
+			Directory.CreateDirectory(OkkeiPaths.Root);
 
 			if (!RequestInstallPackagesPermission()) return;
 			DismissExistingManifestPrompt();
@@ -193,7 +193,7 @@ namespace OkkeiPatcher.Views.Activities
 			}
 
 			Preferences.Remove(AppPrefkey.extstorage_permission_denied.ToString());
-			Directory.CreateDirectory(OkkeiFilesPath);
+			Directory.CreateDirectory(OkkeiPaths.Root);
 
 			if (!RequestInstallPackagesPermission()) return;
 			DismissExistingManifestPrompt();
@@ -396,7 +396,7 @@ namespace OkkeiPatcher.Views.Activities
 				{
 					string[] extStoragePermissions =
 						{Manifest.Permission.WriteExternalStorage, Manifest.Permission.ReadExternalStorage};
-					RequestPermissions(extStoragePermissions, (int) RequestCodes.StoragePermissionRequestCode);
+					RequestPermissions(extStoragePermissions, (int) RequestCode.StoragePermissionRequestCode);
 					return;
 				}
 
@@ -407,7 +407,7 @@ namespace OkkeiPatcher.Views.Activities
 			}
 
 			Preferences.Remove(AppPrefkey.extstorage_permission_denied.ToString());
-			Directory.CreateDirectory(OkkeiFilesPath);
+			Directory.CreateDirectory(OkkeiPaths.Root);
 
 			if (!RequestInstallPackagesPermission()) return;
 			DismissExistingManifestPrompt();

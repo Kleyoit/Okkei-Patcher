@@ -80,18 +80,18 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Impl\English\PatchFile.cs" />
     <Compile Include="Core\Impl\English\FileVersionPrefkey.cs" />
     <Compile Include="Core\Impl\English\ManifestTools.cs" />
     <Compile Include="Core\Impl\English\Patcher.cs" />
     <Compile Include="Core\Impl\English\Unpatcher.cs" />
-    <Compile Include="Core\RequestCodes.cs" />
+    <Compile Include="Core\RequestCode.cs" />
     <Compile Include="Model\DTO\Impl\English\PatchUpdates.cs" />
     <Compile Include="Model\DTO\InstallMessageData.cs" />
     <Compile Include="Model\DTO\UninstallMessageData.cs" />
     <Compile Include="Model\DTO\Base\IPatchUpdates.cs" />
     <Compile Include="Model\Files\FilePrefkey.cs" />
-    <Compile Include="Model\Languages.cs" />
-    <Compile Include="Model\Manifest\Impl\English\OkkeiManifest.cs" />
+    <Compile Include="Model\Language.cs" />
     <Compile Include="Core\AppPrefkey.cs" />
     <Compile Include="Utils\Extensions\CancellationTokenExtensions.cs" />
     <Compile Include="Model\DTO\MessageData.cs" />
@@ -127,14 +127,14 @@
     <Compile Include="Views\Activities\MainActivity.cs" />
     <Compile Include="Core\Base\ManifestTools.cs" />
     <Compile Include="Model\Manifest\FileInfo.cs" />
-    <Compile Include="Model\Manifest\Base\OkkeiManifest.cs" />
+    <Compile Include="Model\Manifest\OkkeiManifest.cs" />
     <Compile Include="Model\Manifest\OkkeiPatcherInfo.cs" />
     <Compile Include="Core\PackageInstallObserver.cs" />
     <Compile Include="Core\Base\Patcher.cs" />
     <Compile Include="Model\DTO\ProgressInfo.cs" />
     <Compile Include="Resources\Resource.designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Model\OkkeiFilesPaths.cs" />
+    <Compile Include="Model\OkkeiPaths.cs" />
     <Compile Include="Core\Base\Unpatcher.cs" />
     <Compile Include="Utils\ZipUtils.cs" />
     <Compile Include="Views\Fragments\ClearDataDialogFragment.cs" />

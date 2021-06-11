@@ -108,7 +108,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			try
 			{
-				if (!CheckIfCouldUnpatch()) token.Throw();
+				if (!CanUnpatch()) token.Throw();
 
 				await BackupSavedataAsync(progress, token);
 
@@ -133,7 +133,7 @@ namespace OkkeiPatcher.Core.Impl.English
 			}
 		}
 
-		private bool CheckIfCouldUnpatch()
+		private bool CanUnpatch()
 		{
 			bool isPatched = Preferences.Get(AppPrefkey.apk_is_patched.ToString(), false);
 			if (!isPatched)
@@ -195,7 +195,7 @@ namespace OkkeiPatcher.Core.Impl.English
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
-			if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) && !PatchUpdates.ScriptsUpdate)
+			if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) && !PatchUpdates.Scripts)
 			{
 				OnUninstallFail(progress);
 				return;

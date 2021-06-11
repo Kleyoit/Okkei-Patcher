@@ -1,12 +1,14 @@
-﻿using Android.App;
-using Android.Net;
+﻿using System;
+using Android.App;
 using Android.OS;
+using Android.Util;
 using AndroidX.Lifecycle;
 using Java.IO;
 using OkkeiPatcher.Core;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.ViewModels;
 using DialogFragment = AndroidX.Fragment.App.DialogFragment;
+using Uri = Android.Net.Uri;
 
 namespace OkkeiPatcher.Views.Fragments
 {
@@ -58,8 +60,19 @@ namespace OkkeiPatcher.Views.Fragments
 			return new AndroidX.AppCompat.App.AlertDialog.Builder(RequireActivity())
 				.SetTitle(_titleId)
 				.SetMessage(_messageId)
-				.SetPositiveButton(Resource.String.dialog_ok,
-					(sender, e) => installer.InstallPackage(RequireActivity(), Uri.FromFile(new File(_filePath))))
+				.SetPositiveButton(Resource.String.dialog_ok, (sender, e) =>
+				{
+					try
+					{
+						installer.InstallPackage(RequireActivity(), Uri.FromFile(new File(_filePath)));
+					}
+					catch (Exception ex)
+					{
+						Log.Error(nameof(PackageInstaller), $"{ex.Message}\n{ex.StackTrace}");
+						ExitAppDialogFragment.NewInstance(Resource.String.error, Resource.String.install_error)
+							.Show(RequireActivity().SupportFragmentManager, nameof(ExitAppDialogFragment));
+					}
+				})
 				.Create();
 		}
 	}

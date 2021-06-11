@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Model.Files.Impl
 {
@@ -12,7 +11,7 @@ namespace OkkeiPatcher.Model.Files.Impl
 	{
 		public TempApk()
 		{
-			Directory = OkkeiFilesPath;
+			Directory = OkkeiPaths.Root;
 			FileName = "base.apk";
 		}
 

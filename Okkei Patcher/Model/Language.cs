@@ -1,6 +1,6 @@
 ﻿namespace OkkeiPatcher.Model
 {
-	internal enum Languages
+	internal enum Language
 	{
 		English
 	}

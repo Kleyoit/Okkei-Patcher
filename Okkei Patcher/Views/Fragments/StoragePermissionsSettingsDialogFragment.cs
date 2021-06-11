@@ -19,7 +19,7 @@ namespace OkkeiPatcher.Views.Fragments
 				{
 					var intent = new Intent(Android.Provider.Settings.ActionApplicationDetailsSettings,
 						Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-					RequireActivity().StartActivityForResult(intent, (int) RequestCodes.StoragePermissionSettingsCode);
+					RequireActivity().StartActivityForResult(intent, (int) RequestCode.StoragePermissionSettingsCode);
 				})
 				.SetNegativeButton(Resource.String.dialog_exit, (sender, e) => System.Environment.Exit(0))
 				.Create();

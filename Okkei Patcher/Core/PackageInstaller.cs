@@ -23,8 +23,7 @@ namespace OkkeiPatcher.Core
 		private IProgress<ProgressInfo> Progress { get; }
 		public event EventHandler InstallFailed;
 
-		private static void AddApkToInstallSession(Uri apkUri,
-			Android.Content.PM.PackageInstaller.Session session)
+		private static void AddApkToInstallSession(Uri apkUri, Android.Content.PM.PackageInstaller.Session session)
 		{
 			Stream packageInSession = session.OpenWrite("package", 0, -1);
 			FileStream input = null;
@@ -32,10 +31,9 @@ namespace OkkeiPatcher.Core
 
 			try
 			{
-				var progress = new Progress<float>();
-				progress.ProgressChanged += (sender, f) => session.SetStagingProgress(f);
+				var progress = new Progress<float>(session.SetStagingProgress);
 				if (input != null) input.Copy(packageInSession, progress);
-				else throw new Exception("InputStream is null");
+				else throw new NullReferenceException("APK InputStream was null");
 			}
 			finally
 			{
@@ -54,7 +52,8 @@ namespace OkkeiPatcher.Core
 			if (Build.VERSION.SdkInt >= BuildVersionCodes.Lollipop)
 			{
 				Android.Content.PM.PackageInstaller packageInstaller =
-					Application.Context.PackageManager.PackageInstaller;
+					Application.Context.PackageManager?.PackageInstaller;
+				if (packageInstaller == null) throw new NullReferenceException("PackageInstaller was null");
 				var sessionParams =
 					new Android.Content.PM.PackageInstaller.SessionParams(PackageInstallMode.FullInstall);
 				int sessionId = packageInstaller.CreateSession(sessionParams);
@@ -71,11 +70,13 @@ namespace OkkeiPatcher.Core
 				intent.SetAction(ActionPackageInstalled);
 
 				PendingIntent pendingIntent = PendingIntent.GetActivity(activity,
-					(int) RequestCodes.PendingIntentInstallCode,
+					(int) RequestCode.PendingIntentInstallCode,
 					intent, PendingIntentFlags.UpdateCurrent);
 
 				IntentSender statusReceiver = pendingIntent?.IntentSender;
 
+				if (statusReceiver == null)
+					throw new NullReferenceException("PackageInstaller status receiver was null");
 				session.Commit(statusReceiver);
 			}
 			else
@@ -88,7 +89,7 @@ namespace OkkeiPatcher.Core
 				intent.PutExtra(Intent.ExtraNotUnknownSource, false);
 				intent.PutExtra(Intent.ExtraReturnResult, true);
 				intent.PutExtra(Intent.ExtraInstallerPackageName, AppInfo.PackageName);
-				activity.StartActivityForResult(intent, (int) RequestCodes.KitKatInstallCode);
+				activity.StartActivityForResult(intent, (int) RequestCode.KitKatInstallCode);
 			}
 		}
 

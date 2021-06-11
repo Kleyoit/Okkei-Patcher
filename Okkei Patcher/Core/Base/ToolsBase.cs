@@ -1,15 +1,15 @@
 ﻿using System;
 using System.ComponentModel;
 using System.IO;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
-using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Core.Base
 {
 	internal abstract class ToolsBase : INotifyPropertyChanged
 	{
-		private static readonly string BugReportLogPath = Path.Combine(OkkeiFilesPath, "bugreport.log");
+		private static readonly string BugReportLogPath = Path.Combine(OkkeiPaths.Root, "bugreport.log");
 		protected const string ChaosChildPackageName = "com.mages.chaoschild_jp";
 		protected ProcessState ProcessState;
 
@@ -53,8 +53,7 @@ namespace OkkeiPatcher.Core.Base
 			OnMessageGenerated(this, new MessageData(titleId, messageId, buttonTextId, 0, error));
 		}
 
-		protected virtual void DisplayErrorMessage(int titleId, int messageId, int buttonTextId,
-			string error)
+		protected virtual void DisplayErrorMessage(int titleId, int messageId, int buttonTextId, string error)
 		{
 			OnMessageGenerated(this, new MessageData(titleId, messageId, buttonTextId, 0, error));
 			NotifyAboutError();

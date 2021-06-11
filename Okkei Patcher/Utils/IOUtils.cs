@@ -91,9 +91,7 @@ namespace OkkeiPatcher.Utils
 
 			output.Dispose();
 
-			string outFile = Path.Combine(outFilePath, outFileName);
-			if (token.IsCancellationRequested && File.Exists(outFile)) File.Delete(outFile);
-
+			if (token.IsCancellationRequested && File.Exists(outPath)) File.Delete(outPath);
 			token.ThrowIfCancellationRequested();
 
 			return Task.CompletedTask;

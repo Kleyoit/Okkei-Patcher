@@ -10,7 +10,6 @@ namespace OkkeiPatcher.Core.Base
 	internal abstract class Unpatcher : ToolsBase, IInstallHandler, IUninstallHandler
 	{
 		public event EventHandler<InstallMessageData> InstallMessageGenerated;
-		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void NotifyInstallFailed()
 		{
@@ -23,6 +22,8 @@ namespace OkkeiPatcher.Core.Base
 		{
 			Task.Run(() => InternalOnInstallSuccessAsync(progress, token).OnException(WriteBugReport));
 		}
+
+		public event EventHandler<UninstallMessageData> UninstallMessageGenerated;
 
 		public void OnUninstallResult(IProgress<ProgressInfo> progress, CancellationToken token)
 		{

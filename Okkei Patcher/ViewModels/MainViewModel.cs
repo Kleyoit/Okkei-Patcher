@@ -12,7 +12,6 @@ using OkkeiPatcher.Model.DTO.Base;
 using OkkeiPatcher.Utils;
 using PropertyChanged;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.ViewModels
 {
@@ -97,7 +96,7 @@ namespace OkkeiPatcher.ViewModels
 		private static void SetLanguagePreferenceIfNotSet()
 		{
 			if (Preferences.ContainsKey(AppPrefkey.patch_language.ToString())) return;
-			Preferences.Set(AppPrefkey.patch_language.ToString(), Languages.English.ToString());
+			Preferences.Set(AppPrefkey.patch_language.ToString(), Language.English.ToString());
 		}
 
 		private ProcessState CreateProcessState()
@@ -353,7 +352,7 @@ namespace OkkeiPatcher.ViewModels
 
 		private static void ClearOkkeiFiles()
 		{
-			if (Directory.Exists(OkkeiFilesPath)) FileUtils.RecursiveClearFiles(OkkeiFilesPath);
+			if (Directory.Exists(OkkeiPaths.Root)) FileUtils.RecursiveClearFiles(OkkeiPaths.Root);
 			ManifestTools.DeleteManifest();
 		}
 

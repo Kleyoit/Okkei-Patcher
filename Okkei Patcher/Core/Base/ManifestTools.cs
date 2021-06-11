@@ -1,32 +1,35 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.DTO.Base;
 using OkkeiPatcher.Model.Exceptions;
-using OkkeiPatcher.Model.Manifest.Base;
+using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using PropertyChanged;
-using static OkkeiPatcher.Model.OkkeiFilesPaths;
 
 namespace OkkeiPatcher.Core.Base
 {
 	internal abstract class ManifestTools : ToolsBase, IInstallHandler
 	{
+		private const string ManifestUrl =
+			"https://raw.githubusercontent.com/ForrrmerBlack/okkei-patcher/master/Manifest.json";
+
 		private const string ManifestFileName = "Manifest.json";
 		private const string ManifestBackupFileName = "ManifestBackup.json";
 		private const string AppUpdateFileName = "OkkeiPatcher.apk";
-		private static readonly string AppUpdatePath = Path.Combine(OkkeiFilesPath, AppUpdateFileName);
-		private static readonly string ManifestPath = Path.Combine(PrivateStorage, ManifestFileName);
-		private static readonly string ManifestBackupPath = Path.Combine(PrivateStorage, ManifestBackupFileName);
+		private static readonly string AppUpdatePath = Path.Combine(OkkeiPaths.Root, AppUpdateFileName);
+		private static readonly string ManifestPath = Path.Combine(OkkeiPaths.Private, ManifestFileName);
+		private static readonly string ManifestBackupPath = Path.Combine(OkkeiPaths.Private, ManifestBackupFileName);
 
 		[DoNotNotify] public OkkeiManifest Manifest { get; private set; }
 		[DoNotNotify] public bool ManifestLoaded { get; private set; }
-		[DoNotNotify] protected string ManifestUrl { private get; set; }
 		public abstract IPatchUpdates PatchUpdates { get; }
 		public abstract int PatchSizeInMb { get; }
 		public double AppUpdateSizeInMb => Math.Round(Manifest.OkkeiPatcher.Size / (double) 0x100000, 2);
@@ -65,19 +68,44 @@ namespace OkkeiPatcher.Core.Base
 			IsRunning = false;
 		}
 
-		protected abstract bool VerifyManifest(OkkeiManifest manifest);
+		private static bool VerifyManifest(OkkeiManifest manifest)
+		{
+			return
+				manifest != null &&
+				manifest.Version > 0 &&
+				manifest.OkkeiPatcher != null &&
+				manifest.OkkeiPatcher.Version > 0 &&
+				!string.IsNullOrEmpty(manifest.OkkeiPatcher.Changelog) &&
+				!string.IsNullOrEmpty(manifest.OkkeiPatcher.URL) &&
+				!string.IsNullOrEmpty(manifest.OkkeiPatcher.MD5) &&
+				manifest.OkkeiPatcher.Size > 0 &&
+				manifest.Patches != null &&
+				manifest.Patches.Count > 0 &&
+				manifest.Patches.Values.All(files =>
+					files != null &&
+					files.Count > 0 &&
+					files.Values.All(file =>
+						file != null &&
+						file.Version > 0 &&
+						!string.IsNullOrEmpty(file.URL) &&
+						!string.IsNullOrEmpty(file.MD5) &&
+						file.Size > 0));
+		}
 
-		public abstract Task<bool> RetrieveManifestAsync(IProgress<ProgressInfo> progress, CancellationToken token);
+		public async Task<bool> RetrieveManifestAsync(IProgress<ProgressInfo> progress, CancellationToken token)
+		{
+			return await InternalRetrieveManifestAsync(progress, token).OnException(WriteBugReport);
+		}
 
-		protected async Task<bool> InternalRetrieveManifestAsync<T>(IProgress<ProgressInfo> progress,
-			CancellationToken token) where T : OkkeiManifest
+		private async Task<bool> InternalRetrieveManifestAsync(IProgress<ProgressInfo> progress,
+			CancellationToken token)
 		{
 			IsRunning = true;
 			UpdateStatus(Resource.String.manifest_download);
 
 			try
 			{
-				if (!await DownloadManifestAsync<T>(progress, token))
+				if (!await DownloadManifestAsync(progress, token))
 				{
 					SetStatusToAborted();
 					DisplayFatalErrorMessage(Resource.String.error, Resource.String.manifest_corrupted,
@@ -100,7 +128,7 @@ namespace OkkeiPatcher.Core.Base
 			{
 				File.Delete(ManifestPath);
 
-				if (!RestoreManifestBackup<T>())
+				if (!RestoreManifestBackup())
 				{
 					SetStatusToAborted();
 					DisplayFatalErrorMessage(Resource.String.error, Resource.String.manifest_download_failed,
@@ -118,26 +146,25 @@ namespace OkkeiPatcher.Core.Base
 			}
 		}
 
-		private async Task<bool> DownloadManifestAsync<T>(IProgress<ProgressInfo> progress, CancellationToken token)
-			where T : OkkeiManifest
+		private async Task<bool> DownloadManifestAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			if (File.Exists(ManifestPath))
 			{
-				await IOUtils.CopyFileAsync(ManifestPath, PrivateStorage, ManifestBackupFileName, progress, token)
+				await IOUtils.CopyFileAsync(ManifestPath, OkkeiPaths.Private, ManifestBackupFileName, progress, token)
 					.ConfigureAwait(false);
 				File.Delete(ManifestPath);
 			}
 
-			await IOUtils.DownloadFileAsync(ManifestUrl, PrivateStorage, ManifestFileName, progress, token)
+			await IOUtils.DownloadFileAsync(ManifestUrl, OkkeiPaths.Private, ManifestFileName, progress, token)
 				.ConfigureAwait(false);
 
 			progress.MakeIndeterminate();
 
-			T manifest;
+			OkkeiManifest manifest;
 			try
 			{
 				string json = File.ReadAllText(ManifestPath);
-				manifest = JsonSerializer.Deserialize<T>(json);
+				manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
 			}
 			catch
 			{
@@ -149,16 +176,16 @@ namespace OkkeiPatcher.Core.Base
 			return true;
 		}
 
-		private bool RestoreManifestBackup<T>() where T : OkkeiManifest
+		private bool RestoreManifestBackup()
 		{
-			T manifest;
+			OkkeiManifest manifest;
 
 			if (!File.Exists(ManifestBackupPath)) return false;
 
 			try
 			{
 				string json = File.ReadAllText(ManifestBackupPath);
-				manifest = JsonSerializer.Deserialize<T>(json);
+				manifest = JsonSerializer.Deserialize<OkkeiManifest>(json);
 			}
 			catch
 			{
@@ -182,8 +209,7 @@ namespace OkkeiPatcher.Core.Base
 			Task.Run(() => InternalUpdateAppAsync(progress, token).OnException(WriteBugReport));
 		}
 
-		private async Task InternalUpdateAppAsync(IProgress<ProgressInfo> progress,
-			CancellationToken token)
+		private async Task InternalUpdateAppAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			IsRunning = true;
 			UpdateStatus(Resource.String.update_app_download);
@@ -237,7 +263,7 @@ namespace OkkeiPatcher.Core.Base
 
 		private async Task DownloadAppUpdateAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			await IOUtils.DownloadFileAsync(Manifest.OkkeiPatcher.URL, OkkeiFilesPath, AppUpdateFileName, progress,
+			await IOUtils.DownloadFileAsync(Manifest.OkkeiPatcher.URL, OkkeiPaths.Root, AppUpdateFileName, progress,
 					token)
 				.ConfigureAwait(false);
 		}

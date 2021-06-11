@@ -1,25 +1,27 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
+using OkkeiPatcher.Model;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.DTO.Impl.English;
 using OkkeiPatcher.Model.Exceptions;
 using OkkeiPatcher.Model.Files;
-using OkkeiPatcher.Model.Manifest.Impl.English;
+using OkkeiPatcher.Model.Manifest;
 using OkkeiPatcher.Utils;
 using OkkeiPatcher.Utils.Extensions;
 using Xamarin.Essentials;
-using static OkkeiPatcher.Model.OkkeiFilesPaths;
+using FileInfo = OkkeiPatcher.Model.Manifest.FileInfo;
 
 namespace OkkeiPatcher.Core.Impl.English
 {
 	internal class Patcher : Base.Patcher
 	{
+		private Dictionary<string, FileInfo> PatchFiles => Manifest.Patches[Language.English];
 		private PatchUpdates PatchUpdates => ProcessState.PatchUpdates as PatchUpdates;
-		private OkkeiManifest ManifestImpl => Manifest as OkkeiManifest;
 
 		protected override async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress,
 			CancellationToken token)
@@ -73,11 +75,11 @@ namespace OkkeiPatcher.Core.Impl.English
 		{
 			progress.Reset();
 
-			if (PatchUpdates.ObbUpdate) Files.ObbToReplace.DeleteIfExists();
+			if (PatchUpdates.Obb) Files.ObbToReplace.DeleteIfExists();
 
 			if (!PatchUpdates.Available) UpdateStatus(Resource.String.compare_obb);
 
-			if (!PatchUpdates.ObbUpdate && PatchUpdates.ScriptsUpdate ||
+			if (!PatchUpdates.Obb && PatchUpdates.Scripts ||
 			    await Files.ObbToReplace.VerifyAsync(progress, token).ConfigureAwait(false))
 				return;
 
@@ -85,7 +87,8 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			try
 			{
-				await IOUtils.DownloadFileAsync(ManifestImpl.Obb.URL, Files.ObbToReplace, progress, token)
+				await IOUtils.DownloadFileAsync(PatchFiles[PatchFile.Obb.ToString()].URL, Files.ObbToReplace, progress,
+						token)
 					.ConfigureAwait(false);
 			}
 			catch (HttpStatusCodeException ex)
@@ -106,7 +109,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			string obbHash = await Md5Utils.ComputeMd5Async(Files.ObbToReplace, progress, token)
 				.ConfigureAwait(false);
-			if (obbHash != ManifestImpl.Obb.MD5)
+			if (obbHash != PatchFiles[PatchFile.Obb.ToString()].MD5)
 			{
 				SetStatusToAborted();
 				DisplayErrorMessage(Resource.String.error, Resource.String.hash_obb_mismatch,
@@ -115,11 +118,11 @@ namespace OkkeiPatcher.Core.Impl.English
 			}
 
 			Preferences.Set(FilePrefkey.downloaded_obb_md5.ToString(), obbHash);
-			Preferences.Set(FileVersionPrefkey.obb_version.ToString(), ManifestImpl.Obb.Version);
+			Preferences.Set(FileVersionPrefkey.obb_version.ToString(), PatchFiles[PatchFile.Obb.ToString()].Version);
 		}
 
-		protected override async Task InternalPatchAsync(ProcessState processState,
-			Model.Manifest.Base.OkkeiManifest manifest, IProgress<ProgressInfo> progress, CancellationToken token)
+		protected override async Task InternalPatchAsync(ProcessState processState, OkkeiManifest manifest,
+			IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			IsRunning = true;
 			SaveDataBackupFromOldPatch = false;
@@ -130,23 +133,22 @@ namespace OkkeiPatcher.Core.Impl.English
 			{
 				progress.Reset();
 
-				if (!CheckIfCouldApplyPatch()) token.Throw();
+				if (!CanPatch()) token.Throw();
 
 				await BackupSavedataAsync(progress, token);
 
 				// If patching for the first time or updating scripts and if there is no patched or backup APK
-				if ((!PatchUpdates.ObbUpdate || PatchUpdates.ScriptsUpdate) &&
-				    (!Files.SignedApk.Exists || !Files.BackupApk.Exists))
+				if ((!PatchUpdates.Obb || PatchUpdates.Scripts) && (!Files.SignedApk.Exists || !Files.BackupApk.Exists))
 				{
 					string originalApkPath = RetrieveOriginalApkPath();
 					await RetrieveOriginalApkAsync(originalApkPath, progress, token);
 					await BackupApkAsync(originalApkPath, progress, token);
 
-					if (PatchUpdates.ScriptsUpdate || !PatchUpdates.ObbUpdate)
+					if (PatchUpdates.Scripts || !PatchUpdates.Obb)
 					{
 						await DownloadScriptsAsync(progress, token);
 
-						string extractedScriptsPath = Path.Combine(OkkeiFilesPath, "scripts");
+						string extractedScriptsPath = Path.Combine(OkkeiPaths.Root, "scripts");
 						ExtractScripts(extractedScriptsPath, progress);
 
 						var apkZipFile = new ZipFile(Files.TempApk.FullPath);
@@ -185,13 +187,13 @@ namespace OkkeiPatcher.Core.Impl.English
 					return;
 				}
 
-				if (PatchUpdates.ScriptsUpdate)
+				if (PatchUpdates.Scripts)
 				{
 					await InstallUpdatedApkAsync(progress, token);
 					return;
 				}
 
-				if (PatchUpdates.ObbUpdate) FinishPatch(progress, token);
+				if (PatchUpdates.Obb) FinishPatch(progress, token);
 			}
 			catch (OperationCanceledException)
 			{
@@ -207,7 +209,7 @@ namespace OkkeiPatcher.Core.Impl.English
 			}
 		}
 
-		private bool CheckIfCouldApplyPatch()
+		private bool CanPatch()
 		{
 			UpdateStatus(Resource.String.checking);
 
@@ -310,7 +312,8 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			try
 			{
-				await IOUtils.DownloadFileAsync(ManifestImpl.Scripts.URL, Files.Scripts, progress, token)
+				await IOUtils.DownloadFileAsync(PatchFiles[PatchFile.Scripts.ToString()].URL, Files.Scripts, progress,
+						token)
 					.ConfigureAwait(false);
 			}
 			catch (HttpStatusCodeException ex)
@@ -330,7 +333,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			string scriptsHash = await Md5Utils.ComputeMd5Async(Files.Scripts, progress, token)
 				.ConfigureAwait(false);
-			if (scriptsHash != ManifestImpl.Scripts.MD5)
+			if (scriptsHash != PatchFiles[PatchFile.Scripts.ToString()].MD5)
 			{
 				SetStatusToAborted();
 				DisplayErrorMessage(Resource.String.error, Resource.String.hash_scripts_mismatch,
@@ -339,7 +342,8 @@ namespace OkkeiPatcher.Core.Impl.English
 			}
 
 			Preferences.Set(FilePrefkey.scripts_md5.ToString(), scriptsHash);
-			Preferences.Set(FileVersionPrefkey.scripts_version.ToString(), ManifestImpl.Scripts.Version);
+			Preferences.Set(FileVersionPrefkey.scripts_version.ToString(),
+				PatchFiles[PatchFile.Scripts.ToString()].Version);
 		}
 
 		private void ExtractScripts(string extractPath, IProgress<ProgressInfo> progress)
@@ -431,8 +435,7 @@ namespace OkkeiPatcher.Core.Impl.English
 				Resource.String.dialog_ok, ChaosChildPackageName);
 		}
 
-		private async Task InstallUpdatedApkAsync(IProgress<ProgressInfo> progress,
-			CancellationToken token)
+		private async Task InstallUpdatedApkAsync(IProgress<ProgressInfo> progress, CancellationToken token)
 		{
 			await InternalOnUninstallResultAsync(progress, token).ConfigureAwait(false);
 		}
@@ -446,7 +449,7 @@ namespace OkkeiPatcher.Core.Impl.English
 			CancellationToken token)
 		{
 			if (!IsRunning) return;
-			if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) && !PatchUpdates.ScriptsUpdate)
+			if (PackageManagerUtils.IsAppInstalled(ChaosChildPackageName) && !PatchUpdates.Scripts)
 			{
 				OnUninstallFail(progress);
 				return;

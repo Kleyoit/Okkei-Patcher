@@ -19,7 +19,7 @@ namespace OkkeiPatcher.Views.Fragments
 				{
 					var intent = new Intent(Android.Provider.Settings.ActionManageUnknownAppSources,
 						Android.Net.Uri.Parse("package:" + AppInfo.PackageName));
-					RequireActivity().StartActivityForResult(intent, (int) RequestCodes.UnknownAppSourceSettingsCode);
+					RequireActivity().StartActivityForResult(intent, (int) RequestCode.UnknownAppSourceSettingsCode);
 				})
 				.Create();
 		}

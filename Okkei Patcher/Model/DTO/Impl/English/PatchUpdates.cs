@@ -4,14 +4,14 @@ namespace OkkeiPatcher.Model.DTO.Impl.English
 {
 	internal class PatchUpdates : IPatchUpdates
 	{
-		public PatchUpdates(bool scriptsUpdate, bool obbUpdate)
+		public PatchUpdates(bool scripts, bool obb)
 		{
-			ScriptsUpdate = scriptsUpdate;
-			ObbUpdate = obbUpdate;
+			Scripts = scripts;
+			Obb = obb;
 		}
 
-		public bool ScriptsUpdate { get; }
-		public bool ObbUpdate { get; }
-		public bool Available => ScriptsUpdate || ObbUpdate;
+		public bool Scripts { get; }
+		public bool Obb { get; }
+		public bool Available => Scripts || Obb;
 	}
 }
