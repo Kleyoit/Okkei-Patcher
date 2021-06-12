@@ -56,7 +56,7 @@
     <WarningLevel>4</WarningLevel>
     <AndroidManagedSymbols>true</AndroidManagedSymbols>
     <AndroidUseSharedRuntime>False</AndroidUseSharedRuntime>
-    <AndroidLinkMode>Full</AndroidLinkMode>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
     <AotAssemblies>true</AotAssemblies>
     <EnableLLVM>false</EnableLLVM>
@@ -99,7 +99,7 @@
     <Compile Include="Model\Files\Impl\BackupObb.cs" />
     <Compile Include="Model\Files\Impl\BackupSavedata.cs" />
     <Compile Include="Model\Files\Files.cs" />
-    <Compile Include="Model\Files\VerifiableFile.cs" />
+    <Compile Include="Model\Files\Base\VerifiableFile.cs" />
     <Compile Include="Model\Files\Impl\ObbToBackup.cs" />
     <Compile Include="Model\Files\Impl\ObbToReplace.cs" />
     <Compile Include="Model\Files\Impl\OriginalSavedata.cs" />
