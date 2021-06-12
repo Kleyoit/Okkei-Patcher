@@ -103,8 +103,9 @@ namespace OkkeiPatcher.Core.Impl.English
 		protected override async Task InternalUnpatchAsync(ProcessState processState, IProgress<ProgressInfo> progress,
 			CancellationToken token)
 		{
-			IsRunning = true;
+			if (progress == null) throw new ArgumentNullException(nameof(progress));
 			ProcessState = processState;
+			IsRunning = true;
 
 			try
 			{

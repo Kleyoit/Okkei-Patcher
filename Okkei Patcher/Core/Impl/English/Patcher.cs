@@ -21,6 +21,8 @@ namespace OkkeiPatcher.Core.Impl.English
 	internal class Patcher : Base.Patcher
 	{
 		private Dictionary<string, FileInfo> PatchFiles => Manifest.Patches[Language.English];
+		private FileInfo Scripts => PatchFiles?[PatchFile.Scripts.ToString()];
+		private FileInfo Obb => PatchFiles?[PatchFile.Obb.ToString()];
 		private PatchUpdates PatchUpdates => ProcessState.PatchUpdates as PatchUpdates;
 
 		protected override async Task InternalOnInstallSuccessAsync(IProgress<ProgressInfo> progress,
@@ -87,8 +89,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			try
 			{
-				await IOUtils.DownloadFileAsync(PatchFiles[PatchFile.Obb.ToString()].URL, Files.ObbToReplace, progress,
-						token)
+				await IOUtils.DownloadFileAsync(Obb?.URL, Files.ObbToReplace, progress, token)
 					.ConfigureAwait(false);
 			}
 			catch (HttpStatusCodeException ex)
@@ -109,7 +110,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			string obbHash = await Md5Utils.ComputeMd5Async(Files.ObbToReplace, progress, token)
 				.ConfigureAwait(false);
-			if (obbHash != PatchFiles[PatchFile.Obb.ToString()].MD5)
+			if (obbHash != Obb?.MD5)
 			{
 				SetStatusToAborted();
 				DisplayErrorMessage(Resource.String.error, Resource.String.hash_obb_mismatch,
@@ -118,16 +119,17 @@ namespace OkkeiPatcher.Core.Impl.English
 			}
 
 			Preferences.Set(FilePrefkey.downloaded_obb_md5.ToString(), obbHash);
-			Preferences.Set(FileVersionPrefkey.obb_version.ToString(), PatchFiles[PatchFile.Obb.ToString()].Version);
+			if (Obb != null) Preferences.Set(FileVersionPrefkey.obb_version.ToString(), Obb.Version);
 		}
 
 		protected override async Task InternalPatchAsync(ProcessState processState, OkkeiManifest manifest,
 			IProgress<ProgressInfo> progress, CancellationToken token)
 		{
-			IsRunning = true;
-			SaveDataBackupFromOldPatch = false;
+			if (progress == null) throw new ArgumentNullException(nameof(progress));
+			Manifest = manifest ?? throw new ArgumentNullException(nameof(manifest));
 			ProcessState = processState;
-			Manifest = manifest;
+			SaveDataBackupFromOldPatch = false;
+			IsRunning = true;
 
 			try
 			{
@@ -286,8 +288,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			UpdateStatus(Resource.String.compare_apk);
 
-			if (Files.BackupApk.Exists &&
-			    await Files.TempApk.VerifyAsync(progress, token).ConfigureAwait(false))
+			if (Files.BackupApk.Exists && await Files.TempApk.VerifyAsync(progress, token).ConfigureAwait(false))
 				return;
 
 			UpdateStatus(Resource.String.backup_apk);
@@ -312,8 +313,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			try
 			{
-				await IOUtils.DownloadFileAsync(PatchFiles[PatchFile.Scripts.ToString()].URL, Files.Scripts, progress,
-						token)
+				await IOUtils.DownloadFileAsync(Scripts?.URL, Files.Scripts, progress, token)
 					.ConfigureAwait(false);
 			}
 			catch (HttpStatusCodeException ex)
@@ -333,7 +333,7 @@ namespace OkkeiPatcher.Core.Impl.English
 
 			string scriptsHash = await Md5Utils.ComputeMd5Async(Files.Scripts, progress, token)
 				.ConfigureAwait(false);
-			if (scriptsHash != PatchFiles[PatchFile.Scripts.ToString()].MD5)
+			if (scriptsHash != Scripts?.MD5)
 			{
 				SetStatusToAborted();
 				DisplayErrorMessage(Resource.String.error, Resource.String.hash_scripts_mismatch,
@@ -342,8 +342,7 @@ namespace OkkeiPatcher.Core.Impl.English
 			}
 
 			Preferences.Set(FilePrefkey.scripts_md5.ToString(), scriptsHash);
-			Preferences.Set(FileVersionPrefkey.scripts_version.ToString(),
-				PatchFiles[PatchFile.Scripts.ToString()].Version);
+			if (Scripts != null) Preferences.Set(FileVersionPrefkey.scripts_version.ToString(), Scripts.Version);
 		}
 
 		private void ExtractScripts(string extractPath, IProgress<ProgressInfo> progress)
