@@ -1,4 +1,5 @@
-﻿using OkkeiPatcher.Model.Files.Impl;
+﻿using OkkeiPatcher.Model.Files.Base;
+using OkkeiPatcher.Model.Files.Impl;
 
 namespace OkkeiPatcher.Model.Files
 {

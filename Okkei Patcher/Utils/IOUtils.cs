@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Java.IO;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Model.Exceptions;
-using OkkeiPatcher.Model.Files;
+using OkkeiPatcher.Model.Files.Base;
 using OkkeiPatcher.Utils.Extensions;
 using File = System.IO.File;
 

@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
+using OkkeiPatcher.Model.Files.Base;
 using OkkeiPatcher.Utils;
 using Xamarin.Essentials;
 

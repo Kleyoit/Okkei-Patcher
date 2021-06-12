@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using OkkeiPatcher.Model.DTO;
 using OkkeiPatcher.Utils;
 
-namespace OkkeiPatcher.Model.Files
+namespace OkkeiPatcher.Model.Files.Base
 {
 	internal abstract class VerifiableFile
 	{
